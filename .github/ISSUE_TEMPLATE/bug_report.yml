@@ -1,0 +1,83 @@
+name: Bug report
+description: Something does not work as described
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. Please **remove private details** before you paste anything: hostnames, IP addresses, tokens, webhook URLs, file names you do not want public.
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Shown at the bottom of Settings ("Cue Media Engine x.y.z"). Add the Companion module version if it matters.
+      placeholder: "2.8.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Where it runs
+      options:
+        - Linux (Debian / Ubuntu)
+        - Raspberry Pi OS
+        - Windows
+        - macOS
+        - Other (say which below)
+    validations:
+      required: true
+  - type: dropdown
+    id: control
+    attributes:
+      label: How you control it
+      multiple: true
+      options:
+        - Web page
+        - Bitfocus Companion module
+        - OSC / HTTP commands
+        - Stage page
+    validations:
+      required: true
+  - type: input
+    id: audio
+    attributes:
+      label: Audio output
+      description: Device type only, for example "USB audio interface", "Dante USB adapter", "built-in", "Bluetooth".
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected, what you got. A screenshot of the page helps.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Cue a track in playlist 1
+        2. Press Go
+        3. ...
+  - type: dropdown
+    id: live
+    attributes:
+      label: Did it affect live audio (dropout, glitch, wrong level)?
+      options:
+        - "No"
+        - "Yes, a short glitch"
+        - "Yes, audio stopped or was wrong"
+        - "Not sure"
+  - type: textarea
+    id: logs
+    attributes:
+      label: Log or health report
+      description: Paste the relevant lines from the service log (`journalctl -u cue-media-engine`, or `companionplayer` on older installs) or the health panel report. Trim it to the problem.
+      render: text
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I removed hostnames, IP addresses and tokens from what I pasted
+          required: true
+        - label: I looked for an existing issue about this

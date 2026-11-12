@@ -1,0 +1,35 @@
+name: Feature request
+description: Suggest an improvement or a new feature
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do?
+      description: Describe the situation (the show, the rig, the workflow), not only the feature.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would you like it to do?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: What do you do today instead?
+  - type: dropdown
+    id: control
+    attributes:
+      label: Where would you use it?
+      multiple: true
+      options:
+        - Web page
+        - Bitfocus Companion module
+        - OSC / HTTP commands
+        - Stage page
+  - type: markdown
+    attributes:
+      value: |
+        This is a small project. Requests are read, but there is no promise of a date or of building every idea. Anything that could put live audio at risk is held to a high bar.

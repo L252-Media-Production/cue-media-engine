@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security problem (private)
+    url: https://github.com/L252-Media-Production/cue-media-engine/security/advisories/new
+    about: Please do not open a public issue for security problems. Use a private report.
+  - name: Read the Help first
+    url: https://github.com/L252-Media-Production/cue-media-engine#readme
+    about: The README and the in-page Help (top right of the web page) cover most setup questions.
