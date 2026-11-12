@@ -1,0 +1,471 @@
+{
+ "prefix": "mp_",
+ "target": "127.0.0.1:PORT",
+ "vars": [
+  {
+   "info": "Cued track as playlist/track, e.g. 0/1 (- when the cue is cleared)",
+   "name": "focus_id",
+   "value": "0/3"
+  },
+  {
+   "info": "Name of the focused track (what Next / Prev moved to)",
+   "name": "focus_name",
+   "value": "-"
+  },
+  {
+   "info": "Name of the focused playlist",
+   "name": "focus_playlist",
+   "value": "Golden A"
+  },
+  {
+   "info": "Number of the focused playlist (0, 1, 2 ...), the same number used in /<playlist>/<track> commands",
+   "name": "focus_playlist_num",
+   "value": "0"
+  },
+  {
+   "info": "1 if the focused track is the live one, else 0",
+   "name": "focus_is_live",
+   "value": "0"
+  },
+  {
+   "info": "Live track as playlist/track, or - when nothing plays",
+   "name": "live_id",
+   "value": "-"
+  },
+  {
+   "info": "Name of the live track",
+   "name": "live_name",
+   "value": "-"
+  },
+  {
+   "info": "Time left on the live track (mm:ss)",
+   "name": "remaining",
+   "value": "--:--"
+  },
+  {
+   "info": "playing / paused / fading / loading / stopped",
+   "name": "state",
+   "value": "stopped"
+  },
+  {
+   "info": "End-of-track mode of the focused playlist: stop / loop_playlist / next_playlist / shuffle (what a single track does at its end is /<p>/<t>/end/<default|once|loop|stop>)",
+   "name": "play_mode",
+   "value": "stop"
+  },
+  {
+   "info": "What the web page's Go button does: cut or crossfade (/go_transition/cut, /crossfade, /toggle). Companion's Take and Crossfade are not affected",
+   "name": "go_transition",
+   "value": "cut"
+  },
+  {
+   "info": "Volume of the preview output, 0-100 (/preview/volume/<0-100>, /preview/volume/up, /preview/volume/down). While Solo live is on this is the level you hear",
+   "name": "preview_volume",
+   "value": "100"
+  },
+  {
+   "info": "Player health: starting (still checking the library) / ready / error",
+   "name": "status",
+   "value": "ready"
+  },
+  {
+   "info": "Version of the player program (e.g. 2.7.0). The Companion module warns when its major.minor differs",
+   "name": "player_version",
+   "value": "2.8.0"
+  },
+  {
+   "info": "1 while a track is playing on top of a ducked background (Play on Top), else 0",
+   "name": "on_top",
+   "value": "0"
+  },
+  {
+   "info": "How far the background is turned down by Play on Top right now, in dB (0 when not ducking)",
+   "name": "duck_gr",
+   "value": "0"
+  },
+  {
+   "info": "Play on Top ducking threshold in dB (the background is turned down while the top track is louder)",
+   "name": "duck_threshold",
+   "value": "-30.0"
+  },
+  {
+   "info": "Play on Top ducking ratio (the number before :1)",
+   "name": "duck_ratio",
+   "value": "6"
+  },
+  {
+   "info": "Play on Top ducking attack in ms",
+   "name": "duck_attack",
+   "value": "10"
+  },
+  {
+   "info": "Play on Top ducking release in ms",
+   "name": "duck_release",
+   "value": "500"
+  },
+  {
+   "info": "1 when the background stays ducked until the top track ends, else 0",
+   "name": "duck_hold",
+   "value": "1"
+  },
+  {
+   "info": "Level of the track played on top, in percent",
+   "name": "top_level",
+   "value": "100"
+  },
+  {
+   "info": "1 when the Live input is armed (speech on the input ducks the playlist audio), else 0 (/input/armed/on, off, toggle)",
+   "name": "input_armed",
+   "value": "0"
+  },
+  {
+   "info": "1 while Duck now is on (a manual override that holds the playlist audio down, with or without an input), else 0 (/input/ducknow/on, off, toggle)",
+   "name": "input_duck_now",
+   "value": "0"
+  },
+  {
+   "info": "1 while the Live input has signal (above -60 dBFS within the last half second), else 0 (also 0 with no input)",
+   "name": "input_signal",
+   "value": "0"
+  },
+  {
+   "info": "1 while the Live input is ducking the playlist audio (from speech or Duck now), else 0",
+   "name": "input_ducking",
+   "value": "0"
+  },
+  {
+   "info": "Level match applied to the live track in dB (0 = none, negative = turned down)",
+   "name": "live_gain_db",
+   "value": "0"
+  },
+  {
+   "info": "Name of the live track being prepared (decoded) before it starts, or -. Preview has its own: preview_state = loading",
+   "name": "loading",
+   "value": "-"
+  },
+  {
+   "info": "Master volume of the live output, 0-100 (/volume/<0-100>, /volume/up, /volume/down, /volume/mute)",
+   "name": "live_volume",
+   "value": "100"
+  },
+  {
+   "info": "Preview output: off / stopped / loading / playing / paused / error",
+   "name": "preview_state",
+   "value": "off"
+  },
+  {
+   "info": "1 while the live audio is soloed on the preview output (/solo), else 0",
+   "name": "preview_solo",
+   "value": "0"
+  },
+  {
+   "info": "1 while a preview is playing (or starting), else 0",
+   "name": "preview_playing",
+   "value": "0"
+  },
+  {
+   "info": "Time left on the previewed track (mm:ss), or --:--",
+   "name": "preview_remaining",
+   "value": "--:--"
+  },
+  {
+   "info": "LEGACY: live output level, left, 0-100 on a linear -60..0 dBFS scale; sent at meter_rate_hz (use live_fader_l)",
+   "name": "live_level_l",
+   "value": "0"
+  },
+  {
+   "info": "Live level, left, as a text bar (follows the console-fader taper)",
+   "name": "live_meter_l",
+   "value": "░░░░░░░░"
+  },
+  {
+   "info": "Live output level, left, 0-100 on the console-fader taper (0 dBFS = 100, -10 = 76, -20 = 60, -40 = 33, -60 = 10, -inf = 0); sent at meter_rate_hz",
+   "name": "live_fader_l",
+   "value": "0"
+  },
+  {
+   "info": "Live output level, left, in dBFS as text with one decimal (-inf when silent)",
+   "name": "live_db_l",
+   "value": "-inf"
+  },
+  {
+   "info": "LEGACY: live output level, right, 0-100 on a linear -60..0 dBFS scale",
+   "name": "live_level_r",
+   "value": "0"
+  },
+  {
+   "info": "Live level, right, as a text bar",
+   "name": "live_meter_r",
+   "value": "░░░░░░░░"
+  },
+  {
+   "info": "Live output level, right, 0-100 on the console-fader taper",
+   "name": "live_fader_r",
+   "value": "0"
+  },
+  {
+   "info": "Live output level, right, in dBFS as text with one decimal (-inf when silent)",
+   "name": "live_db_r",
+   "value": "-inf"
+  },
+  {
+   "info": "LEGACY: preview output level, left, 0-100 on a linear -60..0 dBFS scale (use preview_fader_l)",
+   "name": "preview_level_l",
+   "value": "0"
+  },
+  {
+   "info": "Preview level, left, as a text bar (follows the console-fader taper)",
+   "name": "preview_meter_l",
+   "value": "░░░░░░░░"
+  },
+  {
+   "info": "Preview output level, left, 0-100 on the console-fader taper",
+   "name": "preview_fader_l",
+   "value": "0"
+  },
+  {
+   "info": "Preview output level, left, in dBFS as text with one decimal (-inf when silent)",
+   "name": "preview_db_l",
+   "value": "-inf"
+  },
+  {
+   "info": "LEGACY: preview output level, right, 0-100 on a linear -60..0 dBFS scale",
+   "name": "preview_level_r",
+   "value": "0"
+  },
+  {
+   "info": "Preview level, right, as a text bar",
+   "name": "preview_meter_r",
+   "value": "░░░░░░░░"
+  },
+  {
+   "info": "Preview output level, right, 0-100 on the console-fader taper",
+   "name": "preview_fader_r",
+   "value": "0"
+  },
+  {
+   "info": "Preview output level, right, in dBFS as text with one decimal (-inf when silent)",
+   "name": "preview_db_r",
+   "value": "-inf"
+  },
+  {
+   "info": "Track being previewed, or -",
+   "name": "preview_name",
+   "value": "-"
+  },
+  {
+   "info": "Name of the main output device",
+   "name": "output",
+   "value": "System default"
+  },
+  {
+   "info": "Playlist name",
+   "name": "pl0_name",
+   "value": "Golden A"
+  },
+  {
+   "info": "Number of tracks in the playlist",
+   "name": "pl0_count",
+   "value": "3"
+  },
+  {
+   "info": "Name of the track",
+   "name": "pl0_t0",
+   "value": "tone_a"
+  },
+  {
+   "info": "Name of the track",
+   "name": "pl0_t1",
+   "value": "tone_b"
+  },
+  {
+   "info": "Name of the track",
+   "name": "pl0_t2",
+   "value": "tone_d"
+  },
+  {
+   "info": "Playlist name",
+   "name": "pl1_name",
+   "value": "Golden B"
+  },
+  {
+   "info": "Number of tracks in the playlist",
+   "name": "pl1_count",
+   "value": "2"
+  },
+  {
+   "info": "Name of the track",
+   "name": "pl1_t0",
+   "value": "short_1s"
+  },
+  {
+   "info": "Name of the track",
+   "name": "pl1_t1",
+   "value": "Name with spaces & ünï"
+  },
+  {
+   "info": "Number of tracks in the focused playlist",
+   "name": "focus_count",
+   "value": "3"
+  },
+  {
+   "info": "Name of track 0 in the focused playlist (- when unused)",
+   "name": "focus_t0",
+   "value": "tone_a"
+  },
+  {
+   "info": "Name of track 1 in the focused playlist (- when unused)",
+   "name": "focus_t1",
+   "value": "tone_b"
+  },
+  {
+   "info": "Name of track 2 in the focused playlist (- when unused)",
+   "name": "focus_t2",
+   "value": "tone_d"
+  },
+  {
+   "info": "Name of track 3 in the focused playlist (- when unused)",
+   "name": "focus_t3",
+   "value": "-"
+  },
+  {
+   "info": "Name of track 4 in the focused playlist (- when unused)",
+   "name": "focus_t4",
+   "value": "-"
+  },
+  {
+   "info": "Name of track 5 in the focused playlist (- when unused)",
+   "name": "focus_t5",
+   "value": "-"
+  },
+  {
+   "info": "Name of track 6 in the focused playlist (- when unused)",
+   "name": "focus_t6",
+   "value": "-"
+  },
+  {
+   "info": "Name of track 7 in the focused playlist (- when unused)",
+   "name": "focus_t7",
+   "value": "-"
+  },
+  {
+   "info": "Name of track 8 in the focused playlist (- when unused)",
+   "name": "focus_t8",
+   "value": "-"
+  },
+  {
+   "info": "Name of track 9 in the focused playlist (- when unused)",
+   "name": "focus_t9",
+   "value": "-"
+  },
+  {
+   "info": "Name of track 10 in the focused playlist (- when unused)",
+   "name": "focus_t10",
+   "value": "-"
+  },
+  {
+   "info": "Name of track 11 in the focused playlist (- when unused)",
+   "name": "focus_t11",
+   "value": "-"
+  },
+  {
+   "info": "Name of track 12 in the focused playlist (- when unused)",
+   "name": "focus_t12",
+   "value": "-"
+  },
+  {
+   "info": "Name of track 13 in the focused playlist (- when unused)",
+   "name": "focus_t13",
+   "value": "-"
+  },
+  {
+   "info": "Name of track 14 in the focused playlist (- when unused)",
+   "name": "focus_t14",
+   "value": "-"
+  },
+  {
+   "info": "Name of track 15 in the focused playlist (- when unused)",
+   "name": "focus_t15",
+   "value": "-"
+  },
+  {
+   "info": "Name of track 16 in the focused playlist (- when unused)",
+   "name": "focus_t16",
+   "value": "-"
+  },
+  {
+   "info": "Name of track 17 in the focused playlist (- when unused)",
+   "name": "focus_t17",
+   "value": "-"
+  },
+  {
+   "info": "Name of track 18 in the focused playlist (- when unused)",
+   "name": "focus_t18",
+   "value": "-"
+  },
+  {
+   "info": "Name of track 19 in the focused playlist (- when unused)",
+   "name": "focus_t19",
+   "value": "-"
+  },
+  {
+   "info": "Name of track 20 in the focused playlist (- when unused)",
+   "name": "focus_t20",
+   "value": "-"
+  },
+  {
+   "info": "Name of track 21 in the focused playlist (- when unused)",
+   "name": "focus_t21",
+   "value": "-"
+  },
+  {
+   "info": "Name of track 22 in the focused playlist (- when unused)",
+   "name": "focus_t22",
+   "value": "-"
+  },
+  {
+   "info": "Name of track 23 in the focused playlist (- when unused)",
+   "name": "focus_t23",
+   "value": "-"
+  },
+  {
+   "info": "Name of track 24 in the focused playlist (- when unused)",
+   "name": "focus_t24",
+   "value": "-"
+  },
+  {
+   "info": "Name of track 25 in the focused playlist (- when unused)",
+   "name": "focus_t25",
+   "value": "-"
+  },
+  {
+   "info": "Name of track 26 in the focused playlist (- when unused)",
+   "name": "focus_t26",
+   "value": "-"
+  },
+  {
+   "info": "Name of track 27 in the focused playlist (- when unused)",
+   "name": "focus_t27",
+   "value": "-"
+  },
+  {
+   "info": "Name of track 28 in the focused playlist (- when unused)",
+   "name": "focus_t28",
+   "value": "-"
+  },
+  {
+   "info": "Name of track 29 in the focused playlist (- when unused)",
+   "name": "focus_t29",
+   "value": "-"
+  },
+  {
+   "info": "Name of track 30 in the focused playlist (- when unused)",
+   "name": "focus_t30",
+   "value": "-"
+  },
+  {
+   "info": "Name of track 31 in the focused playlist (- when unused)",
+   "name": "focus_t31",
+   "value": "-"
+  }
+ ]
+}

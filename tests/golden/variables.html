@@ -1,0 +1,32 @@
+<!doctype html><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1">
+<title>Cue Media Engine variables</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Crect%20width='100'%20height='100'%20rx='22'%20fill='%232b2b2b'/%3E%3Crect%20x='16'%20y='32'%20width='30'%20height='30'%20fill='none'%20stroke='%23f5f5f5'%20stroke-width='9'/%3E%3Crect%20x='54'%20y='28'%20width='38'%20height='38'%20fill='%2347c86e'/%3E%3C/svg%3E">
+<style>
+body{font:15px system-ui;margin:1.5rem auto;max-width:1000px;padding:0 1rem}
+table{border-collapse:collapse;width:100%}th,td{text-align:left;padding:.4rem .6rem;border-bottom:1px solid #8883;vertical-align:top}
+th{font-size:.8em;text-transform:uppercase;opacity:.6}code{background:#8882;padding:0 4px;border-radius:3px}
+td.v{font-weight:600;word-break:break-word}td.d{opacity:.7}.dash{opacity:.5}
+.top{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem}
+button{padding:.35rem .8rem}.meta{opacity:.75;margin:.4rem 0 1rem;line-height:1.5}
+</style>
+<div class=top><h2>Variables</h2><span><button onclick="copyNames()">Copy all names</button> <a href="/">&larr; Back to player</a></span></div>
+<div class=meta id=meta></div>
+<table><thead><tr><th>Companion variable<th>Current value<th>Meaning</tr></thead><tbody id=rows></tbody></table>
+<script>
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let names=[],built='';
+async function tick(){
+ try{
+  const d=await (await fetch('/api/variables')).json();
+  meta.innerHTML=`Sent to Companion at <b>${esc(d.target)}</b> as custom variables, refreshed every 5 s and whenever a value changes. `
+   +`Create each one in Companion under Variables &gt; Custom Variables, then use it as <code>$(custom:${esc(d.prefix)}name)</code>.`;
+  names=d.vars.map(v=>d.prefix+v.name);
+  const key=d.prefix+'|'+d.vars.map(v=>v.name).join(',');          // rebuilt when the prefix (or the list of variables) changes, so the names are never stale
+  if(built!==key){rows.innerHTML=d.vars.map(v=>`<tr><td><code>${esc(d.prefix+v.name)}</code><td class=v id="v_${esc(v.name)}"><td class=d>${esc(v.info)}`).join('');built=key}
+  for(const v of d.vars){const e=document.getElementById('v_'+v.name);
+   if(e){e.textContent=v.value;e.classList.toggle('dash',v.value==='-'||v.value==='--:--'||v.value==='off')}}
+ }catch(e){meta.textContent='Cannot reach the player'}
+}
+function copyNames(){navigator.clipboard.writeText(names.join('\n')).then(()=>alert('Copied '+names.length+' variable names'),()=>prompt('Copy these:',names.join('\n')))}
+tick();setInterval(tick,500);
+</script>

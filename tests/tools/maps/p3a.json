@@ -1,0 +1,2 @@
+{"_comment": "P3 commit 1 (docs/split-plan.md 3.3, 5.3): the clock seam. time.monotonic/time/sleep become clock.* in cpl/legacy.py; nothing else changes",
+ "expr_rewrites": [{"old": "time.monotonic", "new": "clock.monotonic"}, {"old": "time.time", "new": "clock.time"}, {"old": "time.sleep", "new": "clock.sleep"}]}

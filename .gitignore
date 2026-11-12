@@ -1,0 +1,42 @@
+# python / node
+__pycache__/
+*.pyc
+.venv/
+venv/
+node_modules/
+.pytest_cache/
+
+# runtime data (never commit)
+media/
+library/
+state.json
+playlists.json
+resume.json
+config.json
+durations.json
+formats.json
+fileinfo.json
+playlists.pre-endactions.json
+_import/
+_input/
+backups/
+*.log
+.env
+.env.*
+*.pyo
+.venv*/
+
+# test output (the pre-split baseline and golden hashes are kept on purpose)
+tests/reports/*
+!tests/reports/baseline-pre-split/
+.DS_Store
+companion-module/*.tgz
+companion-module/*.tgz
+
+# release archives (built with git archive, never committed)
+dist/
+
+# release zips (built with git archive, not committed)
+dist/
+
+CLAUDE.local.md

@@ -1,0 +1,6 @@
+{"_comment": "P1 (docs/split-plan.md 3.1): player.py -> cpl/legacy.py, only these edits are allowed",
+ "expr_rewrites": [
+  {"old": "str(Path(__file__).resolve())", "new": "str(LAUNCHER)"},
+  {"old": "Path(__file__).resolve().parent", "new": "Path(__file__).resolve().parent.parent"}],
+ "allowed_added": ["LAUNCHER", "run"],
+ "allowed_other_removed": ["if __name__ == '__main__'"]}

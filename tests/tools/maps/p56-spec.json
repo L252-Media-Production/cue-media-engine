@@ -1,0 +1,267 @@
+{
+ "modules": [
+  {
+   "name": "persist",
+   "doc": "Writing playlists.json (save) and state.json (save_state).",
+   "names": [
+    "save",
+    "save_state"
+   ]
+  },
+  {
+   "name": "cache",
+   "doc": "The decoded-sound cache: LRU of whole tracks and of trimmed cuts, the decode helper process, load and ensure_loaded.",
+   "names": [
+    "_cache",
+    "_cache_lock",
+    "_loading",
+    "_gen",
+    "resolve_path",
+    "_env",
+    "cached",
+    "_tcache",
+    "_key",
+    "_cache_total",
+    "cache_bytes",
+    "cache_drop",
+    "cache_put",
+    "cut_sound",
+    "trimmed_cached",
+    "trimmed_put",
+    "mem_info",
+    "decode_in_child",
+    "_load",
+    "ensure_loaded"
+   ],
+   "no_import": [
+    "_gen"
+   ]
+  },
+  {
+   "name": "devices",
+   "doc": "Output device listing and opening the mixer.",
+   "names": [
+    "init_mixer",
+    "_natkey",
+    "list_devices",
+    "dev_notices"
+   ]
+  },
+  {
+   "name": "durations",
+   "doc": "Track lengths, remembered in durations.json; one worker thread measures the files.",
+   "names": [
+    "DURFILE",
+    "_dur_busy",
+    "_dur_booted",
+    "_dur_load",
+    "_dur_save",
+    "_probe_dur",
+    "_dur_worker",
+    "durations"
+   ],
+   "no_import": [
+    "_dur_busy",
+    "_dur_booted"
+   ],
+   "alias": "durm",
+   "force_module_import": true
+  },
+  {
+   "name": "infostore",
+   "doc": "The file-information store (fileinfo.json).",
+   "names": [
+    "INFOFILE",
+    "INFO",
+    "_info_load",
+    "_info_save",
+    "_info_pending",
+    "info_save_soon",
+    "info_entry",
+    "info_store"
+   ]
+  },
+  {
+   "name": "ffmpeg",
+   "doc": "All ffmpeg / ffprobe use in one place: measurement, waveform, conversion, one job at a time at low priority.",
+   "names": [
+    "_num",
+    "ff_loudness",
+    "ff_lufs",
+    "ff_volume",
+    "_wave",
+    "WAVE_BINS",
+    "_wave_lock",
+    "ff_wave",
+    "get_wave",
+    "CONVERT_EXT",
+    "FF",
+    "_ff_sem",
+    "ff_check",
+    "ff_prefix",
+    "ff_run",
+    "ff_probe",
+    "ff_convert",
+    "needs_normalising"
+   ]
+  },
+  {
+   "name": "playlists",
+   "doc": "The playlist model: modes, end actions, crossfade and trim per track, track lookup, add / remove / move, next in order.",
+   "names": [
+    "pl_mode",
+    "END_ACTIONS",
+    "end_of",
+    "is_loop",
+    "set_end",
+    "set_loop",
+    "xfade_of",
+    "xfade_ms",
+    "set_xfade",
+    "_file_len",
+    "trim_of",
+    "FADE_MIN_MS",
+    "fade_default_ms",
+    "fade_ms_of",
+    "trim_range",
+    "set_trim",
+    "valid",
+    "track",
+    "clamp_focus",
+    "remap_all",
+    "add_to_playlist",
+    "remove_from_playlist",
+    "move_track",
+    "move_focus",
+    "move_playlist",
+    "_bag",
+    "set_play_mode",
+    "next_in_order"
+   ],
+   "alias": "plm"
+  },
+  {
+   "name": "library",
+   "doc": "Library scan and file operations.",
+   "names": [
+    "storage_info",
+    "invalidate_storage",
+    "scan_library",
+    "unique_in_lib",
+    "_safe_rel",
+    "mkdir_new",
+    "lib_mkdir",
+    "lib_rmdir",
+    "lib_rename",
+    "find_duplicate",
+    "missing_refs",
+    "rescan_library",
+    "delete_from_library"
+   ],
+   "alias": "libm"
+  },
+  {
+   "name": "triggers_data",
+   "doc": "Trigger points, data side.",
+   "names": [
+    "TRIG_MAX",
+    "TRIG",
+    "_truthy",
+    "triggers_of",
+    "trigger_json",
+    "trigger_target_ok",
+    "_trig_clean",
+    "set_triggers",
+    "trig_deck",
+    "trigger_targets"
+   ]
+  },
+  {
+   "name": "loudness",
+   "doc": "Level match: measurement queue, gain, per-playlist settings.",
+   "names": [
+    "LOUDFILE",
+    "LOUD",
+    "_loud",
+    "NORM_DEFAULT",
+    "_loud_load",
+    "_loud_save",
+    "norm_cfg",
+    "_lufs_of",
+    "norm_gain_db",
+    "norm_gain",
+    "apply_gain_live",
+    "_scipy_ok",
+    "loud_pending",
+    "request_loudness",
+    "@S.on_save.append(request_loudness)",
+    "_loud_worker",
+    "set_norm"
+   ],
+   "by_module": [
+    "request_loudness",
+    "loud_pending"
+   ]
+  },
+  {
+   "name": "formats",
+   "doc": "Format checks.",
+   "names": [
+    "FMTFILE",
+    "FMT",
+    "FMT_STATE",
+    "_fmt_load",
+    "_fmt_save",
+    "fmt_judge",
+    "_fmt_run",
+    "fmt_kick"
+   ]
+  },
+  {
+   "name": "warm",
+   "doc": "Warm-up policy: which tracks to decode ahead.",
+   "names": [
+    "_warm",
+    "request_warm",
+    "@S.on_change.append(request_warm)",
+    "_warm_loop",
+    "_warm_trims"
+   ],
+   "by_module": [
+    "request_warm",
+    "_warm_loop"
+   ]
+  },
+  {
+   "name": "fileinfo",
+   "doc": "The 'i' popover: file facts measured on demand.",
+   "names": [
+    "_info_jobs",
+    "_wav_basic",
+    "_info_job",
+    "info_response"
+   ]
+  },
+  {
+   "name": "upload",
+   "doc": "Upload plumbing: import, space checks, save_upload.",
+   "names": [
+    "import_file",
+    "NoSpace",
+    "drain",
+    "space_error",
+    "IMPORT_DIR",
+    "@shutil.rmtree(IMPORT_DIR",
+    "save_upload"
+   ]
+  },
+  {
+   "name": "boot",
+   "doc": "Start-up data loading: migrate_old and load.",
+   "names": [
+    "migrate_old",
+    "load"
+   ]
+  }
+ ]
+}

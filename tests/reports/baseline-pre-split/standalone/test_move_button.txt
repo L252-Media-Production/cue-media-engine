@@ -1,0 +1,21 @@
+PASS console/light/1400: no move button or select in track rows
+PASS console/light/1400: row buttons inside the row, none overlapping (7 buttons)
+PASS console/light/420: no move button or select in track rows
+PASS console/light/420: row buttons inside the row, none overlapping (7 buttons)
+PASS studio/light/1400: no move button or select in track rows
+PASS studio/light/1400: row buttons inside the row, none overlapping (7 buttons)
+PASS studio/light/420: no move button or select in track rows
+PASS studio/light/420: row buttons inside the row, none overlapping (7 buttons)
+PASS stage/light/1400: no move button or select in track rows
+PASS stage/light/1400: row buttons inside the row, none overlapping (7 buttons)
+PASS stage/light/420: no move button or select in track rows
+PASS stage/light/420: row buttons inside the row, none overlapping (7 buttons)
+PASS console/dark/1400: no move button or select in track rows
+PASS console/dark/1400: row buttons inside the row, none overlapping (7 buttons)
+PASS console/dark/420: no move button or select in track rows
+PASS console/dark/420: row buttons inside the row, none overlapping (7 buttons)
+PASS drag between playlists still moves the track (1400px)
+PASS drag between playlists still moves the track (420px)
+
+0 failure(s)
+exit 0

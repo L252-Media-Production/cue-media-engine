@@ -1,0 +1,1 @@
+{"module_funcs":{"request_warm":"warm","_warm_loop":"warm","request_loudness":"loudness","loud_pending":"loudness"},"allowed_changed":["set_device","lib_rename","health"],"allowed_added":["invalidate_all","rename_path","status"]}

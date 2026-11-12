@@ -1,0 +1,70 @@
+{
+ "state_names": {
+  "rev": "rev",
+  "cue_cleared": "cue_cleared",
+  "known": "known",
+  "last_scan": "last_scan",
+  "_boot_done": "boot_done",
+  "LAST_LOAD_ERR": "LAST_LOAD_ERR",
+  "MONITOR": "MONITOR",
+  "pending": "pending",
+  "_pending_n": "pending_n",
+  "live_deck": "live_deck"
+ },
+ "local_names_in": {
+  "fmt_kick": [
+   "pending"
+  ],
+  "info_response": [
+   "pending"
+  ]
+ },
+ "expr_rewrites_in": {
+  "_start_when_ready": [
+   {
+    "old": "push()",
+    "new": "S.notify()"
+   }
+  ],
+  "_loud_worker": [
+   {
+    "old": "push()",
+    "new": "S.notify()"
+   }
+  ],
+  "set_norm": [
+   {
+    "old": "push()",
+    "new": "S.notify()"
+   }
+  ],
+  "play_playlist": [
+   {
+    "old": "push()",
+    "new": "S.notify()"
+   }
+  ],
+  "auto_advance": [
+   {
+    "old": "push()",
+    "new": "S.notify()"
+   }
+  ]
+ },
+ "allowed_changed": [
+  "load",
+  "bump",
+  "save"
+ ],
+ "allowed_added": [
+  "on_change",
+  "on_save",
+  "notify",
+  "_no_notify",
+  "S"
+ ],
+ "allowed_other_added": [
+  "S.on_change.append(request_warm)",
+  "S.on_save.append(request_loudness)"
+ ]
+}

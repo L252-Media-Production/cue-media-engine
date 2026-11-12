@@ -1,0 +1,115 @@
+[
+ {
+  "mode": "stop",
+  "name": "Golden A",
+  "norm": {
+   "lufs": -18.0,
+   "mode": "off",
+   "ref": null
+  },
+  "ram_in": "<varies>",
+  "ram_total": 3,
+  "shuffle_left": null,
+  "tracks": [
+   {
+    "dur_eff": 3.0,
+    "end": "default",
+    "fade_in_ms_eff": 0,
+    "fade_ms_eff": 1500,
+    "gain_db": null,
+    "id": "tone_a.wav",
+    "loop": false,
+    "lufs": null,
+    "measured": false,
+    "missing": false,
+    "name": "tone_a",
+    "ram": "<varies>",
+    "triggers": [],
+    "trim": null,
+    "xfade": 2000
+   },
+   {
+    "dur_eff": 3.0,
+    "end": "loop",
+    "fade_in_ms_eff": 0,
+    "fade_ms_eff": 1500,
+    "gain_db": null,
+    "id": "tone_b.wav",
+    "loop": true,
+    "lufs": null,
+    "measured": false,
+    "missing": false,
+    "name": "tone_b",
+    "ram": "<varies>",
+    "triggers": [],
+    "trim": null,
+    "xfade": null
+   },
+   {
+    "dur_eff": 2.0,
+    "end": "default",
+    "fade_in_ms_eff": 0,
+    "fade_ms_eff": 1500,
+    "gain_db": null,
+    "id": "Sub/tone_d.wav",
+    "loop": false,
+    "lufs": null,
+    "measured": false,
+    "missing": false,
+    "name": "tone_d",
+    "ram": "<varies>",
+    "triggers": [],
+    "trim": null,
+    "xfade": null
+   }
+  ]
+ },
+ {
+  "mode": "stop",
+  "name": "Golden B",
+  "norm": {
+   "lufs": -18.0,
+   "mode": "off",
+   "ref": null
+  },
+  "ram_in": "<varies>",
+  "ram_total": 2,
+  "shuffle_left": null,
+  "tracks": [
+   {
+    "dur_eff": 1.0,
+    "end": "default",
+    "fade_in_ms_eff": 0,
+    "fade_ms_eff": 1500,
+    "gain_db": null,
+    "id": "short_1s.wav",
+    "loop": false,
+    "lufs": null,
+    "measured": false,
+    "missing": false,
+    "name": "short_1s",
+    "ram": "<varies>",
+    "triggers": [],
+    "trim": null,
+    "xfade": null
+   },
+   {
+    "dur_eff": 2.0,
+    "end": "default",
+    "fade_in_ms_eff": 0,
+    "fade_ms_eff": 1500,
+    "gain_db": null,
+    "id": "Name with spaces & ünï.wav",
+    "loop": false,
+    "lufs": null,
+    "measured": false,
+    "missing": false,
+    "name": "Name with spaces & ünï",
+    "ram": "<varies>",
+    "triggers": [],
+    "trim": null,
+    "xfade": null
+   }
+  ]
+ }
+]

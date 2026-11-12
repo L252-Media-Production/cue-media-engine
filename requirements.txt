@@ -1,0 +1,7 @@
+pygame>=2.5; platform_system != "Windows"
+pygame-ce>=2.5.6; platform_system == "Windows"
+python-osc>=1.8
+aiohttp>=3.9
+numpy>=1.26
+scipy>=1.11
+yt-dlp[default,deno]>=2025.11

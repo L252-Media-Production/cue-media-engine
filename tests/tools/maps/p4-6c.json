@@ -1,0 +1,39 @@
+{
+ "expr_rewrites_in": {
+  "_start_when_ready": [
+   {
+    "old": "push()",
+    "new": "S.notify()"
+   }
+  ],
+  "_loud_worker": [
+   {
+    "old": "push()",
+    "new": "S.notify()"
+   }
+  ],
+  "set_norm": [
+   {
+    "old": "push()",
+    "new": "S.notify()"
+   }
+  ],
+  "play_playlist": [
+   {
+    "old": "push()",
+    "new": "S.notify()"
+   }
+  ],
+  "auto_advance": [
+   {
+    "old": "push()",
+    "new": "S.notify()"
+   }
+  ]
+ },
+ "allowed_added": [
+  "notify",
+  "_no_notify",
+  "S"
+ ]
+}

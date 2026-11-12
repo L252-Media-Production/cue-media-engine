@@ -1,0 +1,164 @@
+{
+ "colors": {},
+ "files": [
+  {
+   "dur": 120.0,
+   "fmt": {
+    "lv": "info",
+    "msg": "22.05 kHz: resampled to 48 kHz when it loads",
+    "tip": "WAV · 22.05 kHz · mono · 16-bit"
+   },
+   "id": "long_120s.wav",
+   "name": "long_120s",
+   "size": 5292044,
+   "used": []
+  },
+  {
+   "dur": 6.0,
+   "fmt": {
+    "lv": "info",
+    "msg": "44.1 kHz: resampled to 48 kHz when it loads",
+    "tip": "WAV · 44.1 kHz · stereo · 16-bit"
+   },
+   "id": "loud.wav",
+   "name": "loud",
+   "size": 1058444,
+   "used": []
+  },
+  {
+   "dur": 2.0,
+   "fmt": {
+    "lv": "info",
+    "msg": "44.1 kHz: resampled to 48 kHz when it loads",
+    "tip": "WAV · 44.1 kHz · stereo · 16-bit"
+   },
+   "id": "Name with spaces & ünï.wav",
+   "name": "Name with spaces & ünï",
+   "size": 352844,
+   "used": [
+    1
+   ]
+  },
+  {
+   "dur": 6.0,
+   "fmt": {
+    "lv": "info",
+    "msg": "44.1 kHz: resampled to 48 kHz when it loads",
+    "tip": "WAV · 44.1 kHz · stereo · 16-bit"
+   },
+   "id": "quiet.wav",
+   "name": "quiet",
+   "size": 1058444,
+   "used": []
+  },
+  {
+   "dur": 1.0,
+   "fmt": {
+    "lv": "info",
+    "msg": "44.1 kHz: resampled to 48 kHz when it loads",
+    "tip": "WAV · 44.1 kHz · stereo · 16-bit"
+   },
+   "id": "short_1s.wav",
+   "name": "short_1s",
+   "size": 176444,
+   "used": [
+    1
+   ]
+  },
+  {
+   "dur": 1.0,
+   "fmt": {
+    "lv": "info",
+    "msg": "44.1 kHz: resampled to 48 kHz when it loads",
+    "tip": "WAV · 44.1 kHz · stereo · 16-bit"
+   },
+   "id": "short_1s_b.wav",
+   "name": "short_1s_b",
+   "size": 176444,
+   "used": []
+  },
+  {
+   "dur": 1.0,
+   "fmt": {
+    "lv": "info",
+    "msg": "44.1 kHz: resampled to 48 kHz when it loads",
+    "tip": "WAV · 44.1 kHz · stereo · 16-bit"
+   },
+   "id": "short_1s_c.wav",
+   "name": "short_1s_c",
+   "size": 176444,
+   "used": []
+  },
+  {
+   "dur": 2.0,
+   "fmt": {
+    "lv": "info",
+    "msg": "44.1 kHz: resampled to 48 kHz when it loads",
+    "tip": "WAV · 44.1 kHz · stereo · 16-bit"
+   },
+   "id": "short_2s.wav",
+   "name": "short_2s",
+   "size": 352844,
+   "used": []
+  },
+  {
+   "dur": 2.0,
+   "fmt": {
+    "lv": "info",
+    "msg": "44.1 kHz: resampled to 48 kHz when it loads",
+    "tip": "WAV · 44.1 kHz · stereo · 16-bit"
+   },
+   "id": "Sub/tone_d.wav",
+   "name": "tone_d",
+   "size": 352844,
+   "used": [
+    0
+   ]
+  },
+  {
+   "dur": 3.0,
+   "fmt": {
+    "lv": "info",
+    "msg": "44.1 kHz: resampled to 48 kHz when it loads",
+    "tip": "WAV · 44.1 kHz · stereo · 16-bit"
+   },
+   "id": "tone_a.wav",
+   "name": "tone_a",
+   "size": 529244,
+   "used": [
+    0
+   ]
+  },
+  {
+   "dur": 3.0,
+   "fmt": {
+    "lv": "info",
+    "msg": "44.1 kHz: resampled to 48 kHz when it loads",
+    "tip": "WAV · 44.1 kHz · stereo · 16-bit"
+   },
+   "id": "tone_b.wav",
+   "name": "tone_b",
+   "size": 529244,
+   "used": [
+    0
+   ]
+  },
+  {
+   "dur": 4.0,
+   "fmt": {
+    "lv": "info",
+    "msg": "44.1 kHz: resampled to 48 kHz when it loads",
+    "tip": "WAV · 44.1 kHz · stereo · 16-bit"
+   },
+   "id": "tone_c.wav",
+   "name": "tone_c",
+   "size": 705644,
+   "used": []
+  }
+ ],
+ "flags": {},
+ "folders": [
+  "Sub"
+ ],
+ "icons": {}
+}

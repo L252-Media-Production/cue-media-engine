@@ -1,0 +1,274 @@
+{
+ "duck_attack": "10",
+ "duck_gr": "0",
+ "duck_hold": "1",
+ "duck_ratio": "6",
+ "duck_release": "500",
+ "duck_threshold": "-30.0",
+ "feedback": "127.0.0.1:PORT",
+ "focus_id": "0/3",
+ "focus_is_live": "0",
+ "focus_name": "-",
+ "focus_playlist": "Golden A",
+ "focus_playlist_num": "0",
+ "go_transition": "cut",
+ "health": {
+  "checks": "<varies>",
+  "detail": "Ready",
+  "state": "<varies>",
+  "status": "ready",
+  "summary": "<varies>"
+ },
+ "input": {
+  "armed": false,
+  "channel": 1,
+  "channel_label": "Channel 1",
+  "channel_list": [
+   1
+  ],
+  "channel_max": 64,
+  "channels": 0,
+  "chip": "No input",
+  "choices": [
+   {
+    "channels": [
+     1,
+     2
+    ],
+    "group": "Stereo pair",
+    "label": "Channel 1/Channel 2 (stereo)",
+    "v": "1-2"
+   },
+   {
+    "channels": [
+     2,
+     3
+    ],
+    "group": "Stereo pair",
+    "label": "Channel 2/Channel 3 (stereo)",
+    "v": "2-3"
+   },
+   {
+    "channels": [
+     3,
+     4
+    ],
+    "group": "Stereo pair",
+    "label": "Channel 3/Channel 4 (stereo)",
+    "v": "3-4"
+   },
+   {
+    "channels": [
+     4,
+     5
+    ],
+    "group": "Stereo pair",
+    "label": "Channel 4/Channel 5 (stereo)",
+    "v": "4-5"
+   },
+   {
+    "channels": [
+     5,
+     6
+    ],
+    "group": "Stereo pair",
+    "label": "Channel 5/Channel 6 (stereo)",
+    "v": "5-6"
+   },
+   {
+    "channels": [
+     6,
+     7
+    ],
+    "group": "Stereo pair",
+    "label": "Channel 6/Channel 7 (stereo)",
+    "v": "6-7"
+   },
+   {
+    "channels": [
+     7,
+     8
+    ],
+    "group": "Stereo pair",
+    "label": "Channel 7/Channel 8 (stereo)",
+    "v": "7-8"
+   },
+   {
+    "channels": [
+     1
+    ],
+    "group": "Single channel",
+    "label": "Channel 1 (mono)",
+    "v": "1"
+   },
+   {
+    "channels": [
+     2
+    ],
+    "group": "Single channel",
+    "label": "Channel 2 (mono)",
+    "v": "2"
+   },
+   {
+    "channels": [
+     3
+    ],
+    "group": "Single channel",
+    "label": "Channel 3 (mono)",
+    "v": "3"
+   },
+   {
+    "channels": [
+     4
+    ],
+    "group": "Single channel",
+    "label": "Channel 4 (mono)",
+    "v": "4"
+   },
+   {
+    "channels": [
+     5
+    ],
+    "group": "Single channel",
+    "label": "Channel 5 (mono)",
+    "v": "5"
+   },
+   {
+    "channels": [
+     6
+    ],
+    "group": "Single channel",
+    "label": "Channel 6 (mono)",
+    "v": "6"
+   },
+   {
+    "channels": [
+     7
+    ],
+    "group": "Single channel",
+    "label": "Channel 7 (mono)",
+    "v": "7"
+   },
+   {
+    "channels": [
+     8
+    ],
+    "group": "Single channel",
+    "label": "Channel 8 (mono)",
+    "v": "8"
+   }
+  ],
+  "device": null,
+  "duck_now": false,
+  "ducking": false,
+  "gain_db": 0.0,
+  "gain_max": 24.0,
+  "gain_min": -12.0,
+  "gr": 0.0,
+  "level_db": null,
+  "levels_db": null,
+  "mode": "duck",
+  "note": "",
+  "present": false,
+  "reason": "No input device chosen",
+  "signal": false,
+  "solo": false,
+  "stereo": false,
+  "switching": false,
+  "threshold_db": -30.0,
+  "threshold_default": -30.0,
+  "threshold_max": 0.0,
+  "threshold_min": -60.0
+ },
+ "input_armed": "0",
+ "input_duck_now": "0",
+ "input_ducking": "0",
+ "input_signal": "0",
+ "live_db_l": "-inf",
+ "live_db_r": "-inf",
+ "live_dur": 0,
+ "live_end": "default",
+ "live_fade_in_ms": 0,
+ "live_fade_ms": 0,
+ "live_fader_l": "0",
+ "live_fader_r": "0",
+ "live_fid": null,
+ "live_gain_db": "0",
+ "live_id": "-",
+ "live_in": 0,
+ "live_level_l": "0",
+ "live_level_r": "0",
+ "live_meter_l": "░░░░░░░░",
+ "live_meter_r": "░░░░░░░░",
+ "live_name": "-",
+ "live_out": 0,
+ "live_pass": 1,
+ "live_passes": 1,
+ "live_pos": 0,
+ "live_rem": null,
+ "live_triggers": null,
+ "live_volume": "100",
+ "loading": "-",
+ "next_trigger": null,
+ "on_top": "0",
+ "output": "System default",
+ "play_mode": "stop",
+ "player_version": "2.8.0",
+ "preview": {
+  "device": null,
+  "dur": 0.0,
+  "error": "",
+  "fid": null,
+  "muted": false,
+  "name": "-",
+  "pos": 0.0,
+  "solo": false,
+  "state": "stopped",
+  "volume": 1.0
+ },
+ "preview_db_l": "-inf",
+ "preview_db_r": "-inf",
+ "preview_fader_l": "0",
+ "preview_fader_r": "0",
+ "preview_level_l": "0",
+ "preview_level_r": "0",
+ "preview_meter_l": "░░░░░░░░",
+ "preview_meter_r": "░░░░░░░░",
+ "preview_name": "-",
+ "preview_playing": "0",
+ "preview_remaining": "--:--",
+ "preview_solo": "0",
+ "preview_state": "off",
+ "preview_volume": "100",
+ "ram": "<varies>",
+ "remaining": "--:--",
+ "state": "stopped",
+ "status": "ready",
+ "test_message": "",
+ "test_sent_at": null,
+ "top_level": "100",
+ "trigger_notice": null,
+ "triggers_armed": true,
+ "trim_fade_ms": 1500,
+ "trim_fadein_ms": 0,
+ "variable_prefix": "mp_",
+ "version": "2.8.0",
+ "warning": {
+  "c1": "#f97316",
+  "c2": "#ef4444",
+  "on": true,
+  "set": false,
+  "t1": 60,
+  "t2": 30,
+  "warnings": [
+   {
+    "c": "#f97316",
+    "t": 60
+   },
+   {
+    "c": "#ef4444",
+    "t": 30
+   }
+  ]
+ }
+}

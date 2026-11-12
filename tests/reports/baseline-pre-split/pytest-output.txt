@@ -1,0 +1,780 @@
+.....................................FFFF...F..FF..FF.FFF.........F..... [ 19%]
+....................F..........s....................................F... [ 39%]
+..................F......FF.F............FFFFFFFFFF.........FFFFFF...... [ 58%]
+........................................................................ [ 78%]
+.................................FFF.................................... [ 98%]
+.......                                                                  [100%]pygame 2.6.1 (SDL 2.28.4, Python 3.12.14)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+
+=================================== FAILURES ===================================
+__ test_stopall_while_ducked_does_not_leak_the_duck_into_the_next_play_on_top __
+
+std = <harness.client.Api object at 0x106003530>
+
+    @pytest.mark.sev(2)
+    @pytest.mark.covers("cmd.track.top", "cmd.stopall")
+    def test_stopall_while_ducked_does_not_leak_the_duck_into_the_next_play_on_top(std):
+        """The depth the ducking had when playback was stopped is released over several seconds in the background. A background track started
+        meanwhile, with a Play on Top that asks for no ducking at all, must not be turned down by that leftover."""
+        api = std
+        api.post("/api/settings/top", {"threshold_db": -60, "ratio": 20})
+        play_over(api)
+        time.sleep(0.6)
+        assert float(api.state()["duck_gr"]) > 30
+        api.cmd("stopall")
+        api.post("/api/settings/top", {"threshold_db": 0, "ratio": 6})      # now a top track that never needs ducking
+        time.sleep(0.4)
+        api.cmd("0/2")
+        api.wait_playing("0/2")
+        api.cmd("1/1/top")
+        api.wait_for(lambda s: s["on_top"] == "1", 5, desc="top")
+        low = []
+        for _ in range(8):
+            time.sleep(0.1)
+            bg = [d["vol"] for d in api.get("/api/monitor").json["decks"] if "tone_c" in d["fid"]]
+            low += bg
+>       assert low and min(low) > 0.9, f"the background dipped to {min(low) if low else None} although the threshold is 0 dB"
+E       AssertionError: the background dipped to 0.1698 although the threshold is 0 dB
+E       assert ([0.1698, 0.2414, 0.319, 0.3989, 0.4774, 0.5462, ...] and 0.1698 > 0.9)
+E        +  where 0.1698 = min([0.1698, 0.2414, 0.319, 0.3989, 0.4774, 0.5462, ...])
+
+tests/api/test_ducking.py:177: AssertionError
+________ test_odd_values_in_commands_never_cause_a_server_error[{v}/0] _________
+
+std = <harness.client.Api object at 0x106003530>, tpl = '{v}/0'
+
+    @pytest.mark.sev(3)
+    @pytest.mark.parametrize("tpl", TEMPLATES)
+    def test_odd_values_in_commands_never_cause_a_server_error(std, tpl):
+        api = std
+        bad = []
+        for v in ODD:
+            r = api.request("GET", "/api/" + "/".join(__import__("urllib.parse").parse.quote(x, safe="") for x in tpl.format(v=v).split("/")))
+            if r.status != 200:
+                bad.append((v, r.status))
+            else:
+                assert isinstance(r.json["result"], str)
+>       assert not bad, f"/{tpl}: {bad[:6]}"
+E       AssertionError: /{v}/0: [('²', 500)]
+E       assert not [('²', 500)]
+
+tests/api/test_fuzz_commands.py:23: AssertionError
+________ test_odd_values_in_commands_never_cause_a_server_error[0/{v}] _________
+
+std = <harness.client.Api object at 0x106003530>, tpl = '0/{v}'
+
+    @pytest.mark.sev(3)
+    @pytest.mark.parametrize("tpl", TEMPLATES)
+    def test_odd_values_in_commands_never_cause_a_server_error(std, tpl):
+        api = std
+        bad = []
+        for v in ODD:
+            r = api.request("GET", "/api/" + "/".join(__import__("urllib.parse").parse.quote(x, safe="") for x in tpl.format(v=v).split("/")))
+            if r.status != 200:
+                bad.append((v, r.status))
+            else:
+                assert isinstance(r.json["result"], str)
+>       assert not bad, f"/{tpl}: {bad[:6]}"
+E       AssertionError: /0/{v}: [('²', 500)]
+E       assert not [('²', 500)]
+
+tests/api/test_fuzz_commands.py:23: AssertionError
+_______ test_odd_values_in_commands_never_cause_a_server_error[{v}/{v}] ________
+
+std = <harness.client.Api object at 0x106003530>, tpl = '{v}/{v}'
+
+    @pytest.mark.sev(3)
+    @pytest.mark.parametrize("tpl", TEMPLATES)
+    def test_odd_values_in_commands_never_cause_a_server_error(std, tpl):
+        api = std
+        bad = []
+        for v in ODD:
+            r = api.request("GET", "/api/" + "/".join(__import__("urllib.parse").parse.quote(x, safe="") for x in tpl.format(v=v).split("/")))
+            if r.status != 200:
+                bad.append((v, r.status))
+            else:
+                assert isinstance(r.json["result"], str)
+>       assert not bad, f"/{tpl}: {bad[:6]}"
+E       AssertionError: /{v}/{v}: [('²', 500)]
+E       assert not [('²', 500)]
+
+tests/api/test_fuzz_commands.py:23: AssertionError
+____ test_odd_values_in_commands_never_cause_a_server_error[0/0/xftime/{v}] ____
+
+std = <harness.client.Api object at 0x106003530>, tpl = '0/0/xftime/{v}'
+
+    @pytest.mark.sev(3)
+    @pytest.mark.parametrize("tpl", TEMPLATES)
+    def test_odd_values_in_commands_never_cause_a_server_error(std, tpl):
+        api = std
+        bad = []
+        for v in ODD:
+            r = api.request("GET", "/api/" + "/".join(__import__("urllib.parse").parse.quote(x, safe="") for x in tpl.format(v=v).split("/")))
+            if r.status != 200:
+                bad.append((v, r.status))
+            else:
+                assert isinstance(r.json["result"], str)
+>       assert not bad, f"/{tpl}: {bad[:6]}"
+E       AssertionError: /0/0/xftime/{v}: [('inf', 500), ('-inf', 500), ('1e999', 500)]
+E       assert not [('inf', 500), ('-inf', 500), ('1e999', 500)]
+
+tests/api/test_fuzz_commands.py:23: AssertionError
+_______ test_odd_values_in_commands_never_cause_a_server_error[{v}/play] _______
+
+std = <harness.client.Api object at 0x106003530>, tpl = '{v}/play'
+
+    @pytest.mark.sev(3)
+    @pytest.mark.parametrize("tpl", TEMPLATES)
+    def test_odd_values_in_commands_never_cause_a_server_error(std, tpl):
+        api = std
+        bad = []
+        for v in ODD:
+            r = api.request("GET", "/api/" + "/".join(__import__("urllib.parse").parse.quote(x, safe="") for x in tpl.format(v=v).split("/")))
+            if r.status != 200:
+                bad.append((v, r.status))
+            else:
+                assert isinstance(r.json["result"], str)
+>       assert not bad, f"/{tpl}: {bad[:6]}"
+E       AssertionError: /{v}/play: [('²', 500)]
+E       assert not [('²', 500)]
+
+tests/api/test_fuzz_commands.py:23: AssertionError
+____ test_odd_values_in_commands_never_cause_a_server_error[{v}/mode/stop] _____
+
+std = <harness.client.Api object at 0x106003530>, tpl = '{v}/mode/stop'
+
+    @pytest.mark.sev(3)
+    @pytest.mark.parametrize("tpl", TEMPLATES)
+    def test_odd_values_in_commands_never_cause_a_server_error(std, tpl):
+        api = std
+        bad = []
+        for v in ODD:
+            r = api.request("GET", "/api/" + "/".join(__import__("urllib.parse").parse.quote(x, safe="") for x in tpl.format(v=v).split("/")))
+            if r.status != 200:
+                bad.append((v, r.status))
+            else:
+                assert isinstance(r.json["result"], str)
+>       assert not bad, f"/{tpl}: {bad[:6]}"
+E       AssertionError: /{v}/mode/stop: [('²', 500)]
+E       assert not [('²', 500)]
+
+tests/api/test_fuzz_commands.py:23: AssertionError
+___ test_odd_values_in_commands_never_cause_a_server_error[0/norm/track/{v}] ___
+
+std = <harness.client.Api object at 0x106003530>, tpl = '0/norm/track/{v}'
+
+    @pytest.mark.sev(3)
+    @pytest.mark.parametrize("tpl", TEMPLATES)
+    def test_odd_values_in_commands_never_cause_a_server_error(std, tpl):
+        api = std
+        bad = []
+        for v in ODD:
+            r = api.request("GET", "/api/" + "/".join(__import__("urllib.parse").parse.quote(x, safe="") for x in tpl.format(v=v).split("/")))
+            if r.status != 200:
+                bad.append((v, r.status))
+            else:
+                assert isinstance(r.json["result"], str)
+>       assert not bad, f"/{tpl}: {bad[:6]}"
+E       AssertionError: /0/norm/track/{v}: [('²', 500)]
+E       assert not [('²', 500)]
+
+tests/api/test_fuzz_commands.py:23: AssertionError
+____ test_odd_values_in_commands_never_cause_a_server_error[0/norm/ref/{v}] ____
+
+std = <harness.client.Api object at 0x106003530>, tpl = '0/norm/ref/{v}'
+
+    @pytest.mark.sev(3)
+    @pytest.mark.parametrize("tpl", TEMPLATES)
+    def test_odd_values_in_commands_never_cause_a_server_error(std, tpl):
+        api = std
+        bad = []
+        for v in ODD:
+            r = api.request("GET", "/api/" + "/".join(__import__("urllib.parse").parse.quote(x, safe="") for x in tpl.format(v=v).split("/")))
+            if r.status != 200:
+                bad.append((v, r.status))
+            else:
+                assert isinstance(r.json["result"], str)
+>       assert not bad, f"/{tpl}: {bad[:6]}"
+E       AssertionError: /0/norm/ref/{v}: [('²', 500)]
+E       assert not [('²', 500)]
+
+tests/api/test_fuzz_commands.py:23: AssertionError
+______ test_odd_values_in_commands_never_cause_a_server_error[volume/{v}] ______
+
+std = <harness.client.Api object at 0x106003530>, tpl = 'volume/{v}'
+
+    @pytest.mark.sev(3)
+    @pytest.mark.parametrize("tpl", TEMPLATES)
+    def test_odd_values_in_commands_never_cause_a_server_error(std, tpl):
+        api = std
+        bad = []
+        for v in ODD:
+            r = api.request("GET", "/api/" + "/".join(__import__("urllib.parse").parse.quote(x, safe="") for x in tpl.format(v=v).split("/")))
+            if r.status != 200:
+                bad.append((v, r.status))
+            else:
+                assert isinstance(r.json["result"], str)
+>       assert not bad, f"/{tpl}: {bad[:6]}"
+E       AssertionError: /volume/{v}: [('²', 500)]
+E       assert not [('²', 500)]
+
+tests/api/test_fuzz_commands.py:23: AssertionError
+____ test_odd_values_in_commands_never_cause_a_server_error[volume/up/{v}] _____
+
+std = <harness.client.Api object at 0x106003530>, tpl = 'volume/up/{v}'
+
+    @pytest.mark.sev(3)
+    @pytest.mark.parametrize("tpl", TEMPLATES)
+    def test_odd_values_in_commands_never_cause_a_server_error(std, tpl):
+        api = std
+        bad = []
+        for v in ODD:
+            r = api.request("GET", "/api/" + "/".join(__import__("urllib.parse").parse.quote(x, safe="") for x in tpl.format(v=v).split("/")))
+            if r.status != 200:
+                bad.append((v, r.status))
+            else:
+                assert isinstance(r.json["result"], str)
+>       assert not bad, f"/{tpl}: {bad[:6]}"
+E       AssertionError: /volume/up/{v}: [('²', 500)]
+E       assert not [('²', 500)]
+
+tests/api/test_fuzz_commands.py:23: AssertionError
+___ test_odd_values_in_commands_never_cause_a_server_error[volume/down/{v}] ____
+
+std = <harness.client.Api object at 0x106003530>, tpl = 'volume/down/{v}'
+
+    @pytest.mark.sev(3)
+    @pytest.mark.parametrize("tpl", TEMPLATES)
+    def test_odd_values_in_commands_never_cause_a_server_error(std, tpl):
+        api = std
+        bad = []
+        for v in ODD:
+            r = api.request("GET", "/api/" + "/".join(__import__("urllib.parse").parse.quote(x, safe="") for x in tpl.format(v=v).split("/")))
+            if r.status != 200:
+                bad.append((v, r.status))
+            else:
+                assert isinstance(r.json["result"], str)
+>       assert not bad, f"/{tpl}: {bad[:6]}"
+E       AssertionError: /volume/down/{v}: [('²', 500)]
+E       assert not [('²', 500)]
+
+tests/api/test_fuzz_commands.py:23: AssertionError
+______ test_odd_values_in_commands_never_cause_a_server_error[device/{v}] ______
+
+std = <harness.client.Api object at 0x106003530>, tpl = 'device/{v}'
+
+    @pytest.mark.sev(3)
+    @pytest.mark.parametrize("tpl", TEMPLATES)
+    def test_odd_values_in_commands_never_cause_a_server_error(std, tpl):
+        api = std
+        bad = []
+        for v in ODD:
+            r = api.request("GET", "/api/" + "/".join(__import__("urllib.parse").parse.quote(x, safe="") for x in tpl.format(v=v).split("/")))
+            if r.status != 200:
+                bad.append((v, r.status))
+            else:
+                assert isinstance(r.json["result"], str)
+>       assert not bad, f"/{tpl}: {bad[:6]}"
+E       AssertionError: /device/{v}: [('²', 500)]
+E       assert not [('²', 500)]
+
+tests/api/test_fuzz_commands.py:23: AssertionError
+__________________ test_upload_with_no_file_part_is_harmless ___________________
+
+api = <harness.client.Api object at 0x106003530>
+
+    @pytest.mark.sev(3)
+    @pytest.mark.covers("http.POST /api/library/upload")
+    def test_upload_with_no_file_part_is_harmless(api):
+        r = api.request("POST", "/api/library/upload", raw=b"", headers={"Content-Type": "multipart/form-data; boundary=x"})
+>       assert r.status < 500, r.text[:100]
+E       AssertionError: 500 Internal Server Error
+E         
+E         Server got itself in trouble
+E       assert 500 < 500
+E        +  where 500 = <500 '500 Internal Server Error\n\nServer got itself in trouble'>.status
+
+tests/api/test_library.py:99: AssertionError
+___________________ test_variable_descriptions_are_complete ____________________
+
+api = <harness.client.Api object at 0x106003530>
+std = <harness.client.Api object at 0x106003530>
+
+    @pytest.mark.sev(4)
+    def test_variable_descriptions_are_complete(api, std):
+        bad = []
+        for v in api.get("/api/variables").json["vars"]:
+            info = v.get("info") or ""
+            if not info.strip():
+                bad.append(f"{v['name']}: no description")
+            elif "  " in info:
+                bad.append(f"{v['name']}: {info!r} (a word is missing)")
+>       assert not bad, bad[:5]
+E       AssertionError: ["focus_t0: 'Name of track  in the focused playlist (- when unused)' (a word is missing)", "focus_t1: 'Name of track  ...nused)' (a word is missing)", "focus_t4: 'Name of track  in the focused playlist (- when unused)' (a word is missing)"]
+E       assert not ["focus_t0: 'Name of track  in the focused playlist (- when unused)' (a word is missing)", "focus_t1: 'Name of track  ...)' (a word is missing)", "focus_t5: 'Name of track  in the focused playlist (- when unused)' (a word is missing)", ...]
+
+tests/api/test_pages_state.py:55: AssertionError
+___________ test_create_playlist_name_length_is_limited_like_rename ____________
+
+api = <harness.client.Api object at 0x106003530>
+
+    @pytest.mark.sev(3)
+    @pytest.mark.covers("http.POST /api/playlists")
+    def test_create_playlist_name_length_is_limited_like_rename(api):
+        api.post("/api/playlists", {"name": "x" * 5000})
+>       assert len(names(api)[0]) <= 80, f"a {len(names(api)[0])} character name was accepted (rename limits it to 80)"
+E       AssertionError: a 5000 character name was accepted (rename limits it to 80)
+E       assert 5000 <= 80
+E        +  where 5000 = len('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx...xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
+
+tests/api/test_playlists.py:34: AssertionError
+_ test_malformed_bodies_never_cause_a_server_error[/api/playlists/0/add-body0] _
+
+std = <harness.client.Api object at 0x106003530>, path = '/api/playlists/0/add'
+body = {'files': None}
+
+    @pytest.mark.sev(3)
+    @pytest.mark.parametrize("path,body", [("/api/playlists/0/add", {"files": None}), ("/api/playlists/0/add", {"files": 5}),
+                                           ("/api/playlists/0/add", {"files": "tone_a.wav"}), ("/api/playlists/0/add", {"files": ["tone_a.wav"], "index": "x"}),
+                                           ("/api/playlists/0/add", {"files": ["tone_a.wav"], "index": None}), ("/api/playlists/reorder", None),
+                                           ("/api/move", {"from": [0], "to": [0, 0]}), ("/api/move", {"from": 5, "to": [0, 0]}),
+                                           ("/api/move", {"from": [0, 0], "to": ["a", "b"]}), ("/api/playlists/0/trim", {"track": None}),
+                                           ("/api/playlists/0/trim", {"track": 0, "in": "abc"}), ("/api/playlists/0/trim", {"track": 0, "in": [1]}),
+                                           ("/api/playlists/0/norm", {"mode": {"a": 1}}), ("/api/playlists/0/norm", {"ref": []}),
+                                           ("/api/playlists/0/norm", {"lufs": "x"}), ("/api/playlists/0/triggers", {"track": 0, "action": "add", "at": "x", "file": "tone_a.wav"})])
+    def test_malformed_bodies_never_cause_a_server_error(std, path, body):
+        api = std
+        r = api.post(path, body) if body is not None else api.request("POST", path, raw="[1,2")
+>       assert r.status < 500, f"{path} {body} -> HTTP {r.status} {r.text[:120]}"
+E       AssertionError: /api/playlists/0/add {'files': None} -> HTTP 500 500 Internal Server Error
+E         
+E         Server got itself in trouble
+E       assert 500 < 500
+E        +  where 500 = <500 '500 Internal Server Error\n\nServer got itself in trouble'>.status
+
+tests/api/test_playlists.py:145: AssertionError
+_ test_malformed_bodies_never_cause_a_server_error[/api/playlists/0/add-body1] _
+
+std = <harness.client.Api object at 0x106003530>, path = '/api/playlists/0/add'
+body = {'files': 5}
+
+    @pytest.mark.sev(3)
+    @pytest.mark.parametrize("path,body", [("/api/playlists/0/add", {"files": None}), ("/api/playlists/0/add", {"files": 5}),
+                                           ("/api/playlists/0/add", {"files": "tone_a.wav"}), ("/api/playlists/0/add", {"files": ["tone_a.wav"], "index": "x"}),
+                                           ("/api/playlists/0/add", {"files": ["tone_a.wav"], "index": None}), ("/api/playlists/reorder", None),
+                                           ("/api/move", {"from": [0], "to": [0, 0]}), ("/api/move", {"from": 5, "to": [0, 0]}),
+                                           ("/api/move", {"from": [0, 0], "to": ["a", "b"]}), ("/api/playlists/0/trim", {"track": None}),
+                                           ("/api/playlists/0/trim", {"track": 0, "in": "abc"}), ("/api/playlists/0/trim", {"track": 0, "in": [1]}),
+                                           ("/api/playlists/0/norm", {"mode": {"a": 1}}), ("/api/playlists/0/norm", {"ref": []}),
+                                           ("/api/playlists/0/norm", {"lufs": "x"}), ("/api/playlists/0/triggers", {"track": 0, "action": "add", "at": "x", "file": "tone_a.wav"})])
+    def test_malformed_bodies_never_cause_a_server_error(std, path, body):
+        api = std
+        r = api.post(path, body) if body is not None else api.request("POST", path, raw="[1,2")
+>       assert r.status < 500, f"{path} {body} -> HTTP {r.status} {r.text[:120]}"
+E       AssertionError: /api/playlists/0/add {'files': 5} -> HTTP 500 500 Internal Server Error
+E         
+E         Server got itself in trouble
+E       assert 500 < 500
+E        +  where 500 = <500 '500 Internal Server Error\n\nServer got itself in trouble'>.status
+
+tests/api/test_playlists.py:145: AssertionError
+_ test_malformed_bodies_never_cause_a_server_error[/api/playlists/0/add-body3] _
+
+std = <harness.client.Api object at 0x106003530>, path = '/api/playlists/0/add'
+body = {'files': ['tone_a.wav'], 'index': 'x'}
+
+    @pytest.mark.sev(3)
+    @pytest.mark.parametrize("path,body", [("/api/playlists/0/add", {"files": None}), ("/api/playlists/0/add", {"files": 5}),
+                                           ("/api/playlists/0/add", {"files": "tone_a.wav"}), ("/api/playlists/0/add", {"files": ["tone_a.wav"], "index": "x"}),
+                                           ("/api/playlists/0/add", {"files": ["tone_a.wav"], "index": None}), ("/api/playlists/reorder", None),
+                                           ("/api/move", {"from": [0], "to": [0, 0]}), ("/api/move", {"from": 5, "to": [0, 0]}),
+                                           ("/api/move", {"from": [0, 0], "to": ["a", "b"]}), ("/api/playlists/0/trim", {"track": None}),
+                                           ("/api/playlists/0/trim", {"track": 0, "in": "abc"}), ("/api/playlists/0/trim", {"track": 0, "in": [1]}),
+                                           ("/api/playlists/0/norm", {"mode": {"a": 1}}), ("/api/playlists/0/norm", {"ref": []}),
+                                           ("/api/playlists/0/norm", {"lufs": "x"}), ("/api/playlists/0/triggers", {"track": 0, "action": "add", "at": "x", "file": "tone_a.wav"})])
+    def test_malformed_bodies_never_cause_a_server_error(std, path, body):
+        api = std
+        r = api.post(path, body) if body is not None else api.request("POST", path, raw="[1,2")
+>       assert r.status < 500, f"{path} {body} -> HTTP {r.status} {r.text[:120]}"
+E       AssertionError: /api/playlists/0/add {'files': ['tone_a.wav'], 'index': 'x'} -> HTTP 500 500 Internal Server Error
+E         
+E         Server got itself in trouble
+E       assert 500 < 500
+E        +  where 500 = <500 '500 Internal Server Error\n\nServer got itself in trouble'>.status
+
+tests/api/test_playlists.py:145: AssertionError
+_ test_non_numeric_playlist_id_in_the_url_is_a_client_error[POST-/api/playlists/abc/rename] _
+
+std = <harness.client.Api object at 0x106003530>, method = 'POST'
+path = '/api/playlists/abc/rename'
+
+    @pytest.mark.sev(3)
+    @pytest.mark.parametrize("method,path", [("POST", "/api/playlists/abc/rename"), ("POST", "/api/playlists/abc/trim"), ("POST", "/api/playlists/abc/norm"),
+                                             ("POST", "/api/playlists/abc/add"), ("DELETE", "/api/playlists/abc"), ("DELETE", "/api/playlists/abc/def"),
+                                             ("DELETE", "/api/playlists/0/def"), ("GET", "/api/playlists/abc/triggers"), ("POST", "/api/playlists/abc/triggers"),
+                                             ("POST", "/api/playlists/1.5/rename"), ("DELETE", "/api/playlists/99999999999999999999")])
+    def test_non_numeric_playlist_id_in_the_url_is_a_client_error(std, method, path):
+        r = std.request(method, path, body={"name": "x", "track": 0, "files": ["tone_a.wav"]} if method == "POST" else None)
+>       assert r.status < 500, f"{method} {path} -> HTTP {r.status} (a server error for a typo in the URL)"
+E       AssertionError: POST /api/playlists/abc/rename -> HTTP 500 (a server error for a typo in the URL)
+E       assert 500 < 500
+E        +  where 500 = <500 '500 Internal Server Error\n\nServer got itself in trouble'>.status
+
+tests/api/test_playlists.py:156: AssertionError
+_ test_non_numeric_playlist_id_in_the_url_is_a_client_error[POST-/api/playlists/abc/trim] _
+
+std = <harness.client.Api object at 0x106003530>, method = 'POST'
+path = '/api/playlists/abc/trim'
+
+    @pytest.mark.sev(3)
+    @pytest.mark.parametrize("method,path", [("POST", "/api/playlists/abc/rename"), ("POST", "/api/playlists/abc/trim"), ("POST", "/api/playlists/abc/norm"),
+                                             ("POST", "/api/playlists/abc/add"), ("DELETE", "/api/playlists/abc"), ("DELETE", "/api/playlists/abc/def"),
+                                             ("DELETE", "/api/playlists/0/def"), ("GET", "/api/playlists/abc/triggers"), ("POST", "/api/playlists/abc/triggers"),
+                                             ("POST", "/api/playlists/1.5/rename"), ("DELETE", "/api/playlists/99999999999999999999")])
+    def test_non_numeric_playlist_id_in_the_url_is_a_client_error(std, method, path):
+        r = std.request(method, path, body={"name": "x", "track": 0, "files": ["tone_a.wav"]} if method == "POST" else None)
+>       assert r.status < 500, f"{method} {path} -> HTTP {r.status} (a server error for a typo in the URL)"
+E       AssertionError: POST /api/playlists/abc/trim -> HTTP 500 (a server error for a typo in the URL)
+E       assert 500 < 500
+E        +  where 500 = <500 '500 Internal Server Error\n\nServer got itself in trouble'>.status
+
+tests/api/test_playlists.py:156: AssertionError
+_ test_non_numeric_playlist_id_in_the_url_is_a_client_error[POST-/api/playlists/abc/norm] _
+
+std = <harness.client.Api object at 0x106003530>, method = 'POST'
+path = '/api/playlists/abc/norm'
+
+    @pytest.mark.sev(3)
+    @pytest.mark.parametrize("method,path", [("POST", "/api/playlists/abc/rename"), ("POST", "/api/playlists/abc/trim"), ("POST", "/api/playlists/abc/norm"),
+                                             ("POST", "/api/playlists/abc/add"), ("DELETE", "/api/playlists/abc"), ("DELETE", "/api/playlists/abc/def"),
+                                             ("DELETE", "/api/playlists/0/def"), ("GET", "/api/playlists/abc/triggers"), ("POST", "/api/playlists/abc/triggers"),
+                                             ("POST", "/api/playlists/1.5/rename"), ("DELETE", "/api/playlists/99999999999999999999")])
+    def test_non_numeric_playlist_id_in_the_url_is_a_client_error(std, method, path):
+        r = std.request(method, path, body={"name": "x", "track": 0, "files": ["tone_a.wav"]} if method == "POST" else None)
+>       assert r.status < 500, f"{method} {path} -> HTTP {r.status} (a server error for a typo in the URL)"
+E       AssertionError: POST /api/playlists/abc/norm -> HTTP 500 (a server error for a typo in the URL)
+E       assert 500 < 500
+E        +  where 500 = <500 '500 Internal Server Error\n\nServer got itself in trouble'>.status
+
+tests/api/test_playlists.py:156: AssertionError
+_ test_non_numeric_playlist_id_in_the_url_is_a_client_error[POST-/api/playlists/abc/add] _
+
+std = <harness.client.Api object at 0x106003530>, method = 'POST'
+path = '/api/playlists/abc/add'
+
+    @pytest.mark.sev(3)
+    @pytest.mark.parametrize("method,path", [("POST", "/api/playlists/abc/rename"), ("POST", "/api/playlists/abc/trim"), ("POST", "/api/playlists/abc/norm"),
+                                             ("POST", "/api/playlists/abc/add"), ("DELETE", "/api/playlists/abc"), ("DELETE", "/api/playlists/abc/def"),
+                                             ("DELETE", "/api/playlists/0/def"), ("GET", "/api/playlists/abc/triggers"), ("POST", "/api/playlists/abc/triggers"),
+                                             ("POST", "/api/playlists/1.5/rename"), ("DELETE", "/api/playlists/99999999999999999999")])
+    def test_non_numeric_playlist_id_in_the_url_is_a_client_error(std, method, path):
+        r = std.request(method, path, body={"name": "x", "track": 0, "files": ["tone_a.wav"]} if method == "POST" else None)
+>       assert r.status < 500, f"{method} {path} -> HTTP {r.status} (a server error for a typo in the URL)"
+E       AssertionError: POST /api/playlists/abc/add -> HTTP 500 (a server error for a typo in the URL)
+E       assert 500 < 500
+E        +  where 500 = <500 '500 Internal Server Error\n\nServer got itself in trouble'>.status
+
+tests/api/test_playlists.py:156: AssertionError
+_ test_non_numeric_playlist_id_in_the_url_is_a_client_error[DELETE-/api/playlists/abc] _
+
+std = <harness.client.Api object at 0x106003530>, method = 'DELETE'
+path = '/api/playlists/abc'
+
+    @pytest.mark.sev(3)
+    @pytest.mark.parametrize("method,path", [("POST", "/api/playlists/abc/rename"), ("POST", "/api/playlists/abc/trim"), ("POST", "/api/playlists/abc/norm"),
+                                             ("POST", "/api/playlists/abc/add"), ("DELETE", "/api/playlists/abc"), ("DELETE", "/api/playlists/abc/def"),
+                                             ("DELETE", "/api/playlists/0/def"), ("GET", "/api/playlists/abc/triggers"), ("POST", "/api/playlists/abc/triggers"),
+                                             ("POST", "/api/playlists/1.5/rename"), ("DELETE", "/api/playlists/99999999999999999999")])
+    def test_non_numeric_playlist_id_in_the_url_is_a_client_error(std, method, path):
+        r = std.request(method, path, body={"name": "x", "track": 0, "files": ["tone_a.wav"]} if method == "POST" else None)
+>       assert r.status < 500, f"{method} {path} -> HTTP {r.status} (a server error for a typo in the URL)"
+E       AssertionError: DELETE /api/playlists/abc -> HTTP 500 (a server error for a typo in the URL)
+E       assert 500 < 500
+E        +  where 500 = <500 '500 Internal Server Error\n\nServer got itself in trouble'>.status
+
+tests/api/test_playlists.py:156: AssertionError
+_ test_non_numeric_playlist_id_in_the_url_is_a_client_error[DELETE-/api/playlists/abc/def] _
+
+std = <harness.client.Api object at 0x106003530>, method = 'DELETE'
+path = '/api/playlists/abc/def'
+
+    @pytest.mark.sev(3)
+    @pytest.mark.parametrize("method,path", [("POST", "/api/playlists/abc/rename"), ("POST", "/api/playlists/abc/trim"), ("POST", "/api/playlists/abc/norm"),
+                                             ("POST", "/api/playlists/abc/add"), ("DELETE", "/api/playlists/abc"), ("DELETE", "/api/playlists/abc/def"),
+                                             ("DELETE", "/api/playlists/0/def"), ("GET", "/api/playlists/abc/triggers"), ("POST", "/api/playlists/abc/triggers"),
+                                             ("POST", "/api/playlists/1.5/rename"), ("DELETE", "/api/playlists/99999999999999999999")])
+    def test_non_numeric_playlist_id_in_the_url_is_a_client_error(std, method, path):
+        r = std.request(method, path, body={"name": "x", "track": 0, "files": ["tone_a.wav"]} if method == "POST" else None)
+>       assert r.status < 500, f"{method} {path} -> HTTP {r.status} (a server error for a typo in the URL)"
+E       AssertionError: DELETE /api/playlists/abc/def -> HTTP 500 (a server error for a typo in the URL)
+E       assert 500 < 500
+E        +  where 500 = <500 '500 Internal Server Error\n\nServer got itself in trouble'>.status
+
+tests/api/test_playlists.py:156: AssertionError
+_ test_non_numeric_playlist_id_in_the_url_is_a_client_error[DELETE-/api/playlists/0/def] _
+
+std = <harness.client.Api object at 0x106003530>, method = 'DELETE'
+path = '/api/playlists/0/def'
+
+    @pytest.mark.sev(3)
+    @pytest.mark.parametrize("method,path", [("POST", "/api/playlists/abc/rename"), ("POST", "/api/playlists/abc/trim"), ("POST", "/api/playlists/abc/norm"),
+                                             ("POST", "/api/playlists/abc/add"), ("DELETE", "/api/playlists/abc"), ("DELETE", "/api/playlists/abc/def"),
+                                             ("DELETE", "/api/playlists/0/def"), ("GET", "/api/playlists/abc/triggers"), ("POST", "/api/playlists/abc/triggers"),
+                                             ("POST", "/api/playlists/1.5/rename"), ("DELETE", "/api/playlists/99999999999999999999")])
+    def test_non_numeric_playlist_id_in_the_url_is_a_client_error(std, method, path):
+        r = std.request(method, path, body={"name": "x", "track": 0, "files": ["tone_a.wav"]} if method == "POST" else None)
+>       assert r.status < 500, f"{method} {path} -> HTTP {r.status} (a server error for a typo in the URL)"
+E       AssertionError: DELETE /api/playlists/0/def -> HTTP 500 (a server error for a typo in the URL)
+E       assert 500 < 500
+E        +  where 500 = <500 '500 Internal Server Error\n\nServer got itself in trouble'>.status
+
+tests/api/test_playlists.py:156: AssertionError
+_ test_non_numeric_playlist_id_in_the_url_is_a_client_error[GET-/api/playlists/abc/triggers] _
+
+std = <harness.client.Api object at 0x106003530>, method = 'GET'
+path = '/api/playlists/abc/triggers'
+
+    @pytest.mark.sev(3)
+    @pytest.mark.parametrize("method,path", [("POST", "/api/playlists/abc/rename"), ("POST", "/api/playlists/abc/trim"), ("POST", "/api/playlists/abc/norm"),
+                                             ("POST", "/api/playlists/abc/add"), ("DELETE", "/api/playlists/abc"), ("DELETE", "/api/playlists/abc/def"),
+                                             ("DELETE", "/api/playlists/0/def"), ("GET", "/api/playlists/abc/triggers"), ("POST", "/api/playlists/abc/triggers"),
+                                             ("POST", "/api/playlists/1.5/rename"), ("DELETE", "/api/playlists/99999999999999999999")])
+    def test_non_numeric_playlist_id_in_the_url_is_a_client_error(std, method, path):
+        r = std.request(method, path, body={"name": "x", "track": 0, "files": ["tone_a.wav"]} if method == "POST" else None)
+>       assert r.status < 500, f"{method} {path} -> HTTP {r.status} (a server error for a typo in the URL)"
+E       AssertionError: GET /api/playlists/abc/triggers -> HTTP 500 (a server error for a typo in the URL)
+E       assert 500 < 500
+E        +  where 500 = <500 '500 Internal Server Error\n\nServer got itself in trouble'>.status
+
+tests/api/test_playlists.py:156: AssertionError
+_ test_non_numeric_playlist_id_in_the_url_is_a_client_error[POST-/api/playlists/abc/triggers] _
+
+std = <harness.client.Api object at 0x106003530>, method = 'POST'
+path = '/api/playlists/abc/triggers'
+
+    @pytest.mark.sev(3)
+    @pytest.mark.parametrize("method,path", [("POST", "/api/playlists/abc/rename"), ("POST", "/api/playlists/abc/trim"), ("POST", "/api/playlists/abc/norm"),
+                                             ("POST", "/api/playlists/abc/add"), ("DELETE", "/api/playlists/abc"), ("DELETE", "/api/playlists/abc/def"),
+                                             ("DELETE", "/api/playlists/0/def"), ("GET", "/api/playlists/abc/triggers"), ("POST", "/api/playlists/abc/triggers"),
+                                             ("POST", "/api/playlists/1.5/rename"), ("DELETE", "/api/playlists/99999999999999999999")])
+    def test_non_numeric_playlist_id_in_the_url_is_a_client_error(std, method, path):
+        r = std.request(method, path, body={"name": "x", "track": 0, "files": ["tone_a.wav"]} if method == "POST" else None)
+>       assert r.status < 500, f"{method} {path} -> HTTP {r.status} (a server error for a typo in the URL)"
+E       AssertionError: POST /api/playlists/abc/triggers -> HTTP 500 (a server error for a typo in the URL)
+E       assert 500 < 500
+E        +  where 500 = <500 '500 Internal Server Error\n\nServer got itself in trouble'>.status
+
+tests/api/test_playlists.py:156: AssertionError
+_ test_non_numeric_playlist_id_in_the_url_is_a_client_error[POST-/api/playlists/1.5/rename] _
+
+std = <harness.client.Api object at 0x106003530>, method = 'POST'
+path = '/api/playlists/1.5/rename'
+
+    @pytest.mark.sev(3)
+    @pytest.mark.parametrize("method,path", [("POST", "/api/playlists/abc/rename"), ("POST", "/api/playlists/abc/trim"), ("POST", "/api/playlists/abc/norm"),
+                                             ("POST", "/api/playlists/abc/add"), ("DELETE", "/api/playlists/abc"), ("DELETE", "/api/playlists/abc/def"),
+                                             ("DELETE", "/api/playlists/0/def"), ("GET", "/api/playlists/abc/triggers"), ("POST", "/api/playlists/abc/triggers"),
+                                             ("POST", "/api/playlists/1.5/rename"), ("DELETE", "/api/playlists/99999999999999999999")])
+    def test_non_numeric_playlist_id_in_the_url_is_a_client_error(std, method, path):
+        r = std.request(method, path, body={"name": "x", "track": 0, "files": ["tone_a.wav"]} if method == "POST" else None)
+>       assert r.status < 500, f"{method} {path} -> HTTP {r.status} (a server error for a typo in the URL)"
+E       AssertionError: POST /api/playlists/1.5/rename -> HTTP 500 (a server error for a typo in the URL)
+E       assert 500 < 500
+E        +  where 500 = <500 '500 Internal Server Error\n\nServer got itself in trouble'>.status
+
+tests/api/test_playlists.py:156: AssertionError
+____________ test_preview_ctl_bad_numbers_are_client_errors[body0] _____________
+
+std = <harness.client.Api object at 0x106003530>
+preview = 'System audio output device', body = {'cmd': 'seek', 'pos': 'abc'}
+
+    @pytest.mark.sev(3)
+    @pytest.mark.covers("http.POST /api/preview/ctl")
+    @pytest.mark.parametrize("body", [{"cmd": "seek", "pos": "abc"}, {"cmd": "seek", "pos": None}, {"cmd": "seek", "pos": [1]}, {"cmd": "vol", "v": "abc"},
+                                      {"cmd": "vol", "v": None}, {"cmd": "vol", "v": [1]}, {"cmd": "seek", "pos": "inf"}, {"cmd": "vol", "v": "nan"}])
+    def test_preview_ctl_bad_numbers_are_client_errors(std, preview, body):
+        r = std.post("/api/preview/ctl", body)
+>       assert r.status < 500, f"{body} -> HTTP {r.status}"
+E       AssertionError: {'cmd': 'seek', 'pos': 'abc'} -> HTTP 500
+E       assert 500 < 500
+E        +  where 500 = <500 '500 Internal Server Error\n\nServer got itself in trouble'>.status
+
+tests/api/test_preview.py:64: AssertionError
+____________ test_preview_ctl_bad_numbers_are_client_errors[body1] _____________
+
+std = <harness.client.Api object at 0x106003530>
+preview = 'System audio output device', body = {'cmd': 'seek', 'pos': None}
+
+    @pytest.mark.sev(3)
+    @pytest.mark.covers("http.POST /api/preview/ctl")
+    @pytest.mark.parametrize("body", [{"cmd": "seek", "pos": "abc"}, {"cmd": "seek", "pos": None}, {"cmd": "seek", "pos": [1]}, {"cmd": "vol", "v": "abc"},
+                                      {"cmd": "vol", "v": None}, {"cmd": "vol", "v": [1]}, {"cmd": "seek", "pos": "inf"}, {"cmd": "vol", "v": "nan"}])
+    def test_preview_ctl_bad_numbers_are_client_errors(std, preview, body):
+        r = std.post("/api/preview/ctl", body)
+>       assert r.status < 500, f"{body} -> HTTP {r.status}"
+E       AssertionError: {'cmd': 'seek', 'pos': None} -> HTTP 500
+E       assert 500 < 500
+E        +  where 500 = <500 '500 Internal Server Error\n\nServer got itself in trouble'>.status
+
+tests/api/test_preview.py:64: AssertionError
+____________ test_preview_ctl_bad_numbers_are_client_errors[body2] _____________
+
+std = <harness.client.Api object at 0x106003530>
+preview = 'System audio output device', body = {'cmd': 'seek', 'pos': [1]}
+
+    @pytest.mark.sev(3)
+    @pytest.mark.covers("http.POST /api/preview/ctl")
+    @pytest.mark.parametrize("body", [{"cmd": "seek", "pos": "abc"}, {"cmd": "seek", "pos": None}, {"cmd": "seek", "pos": [1]}, {"cmd": "vol", "v": "abc"},
+                                      {"cmd": "vol", "v": None}, {"cmd": "vol", "v": [1]}, {"cmd": "seek", "pos": "inf"}, {"cmd": "vol", "v": "nan"}])
+    def test_preview_ctl_bad_numbers_are_client_errors(std, preview, body):
+        r = std.post("/api/preview/ctl", body)
+>       assert r.status < 500, f"{body} -> HTTP {r.status}"
+E       AssertionError: {'cmd': 'seek', 'pos': [1]} -> HTTP 500
+E       assert 500 < 500
+E        +  where 500 = <500 '500 Internal Server Error\n\nServer got itself in trouble'>.status
+
+tests/api/test_preview.py:64: AssertionError
+____________ test_preview_ctl_bad_numbers_are_client_errors[body3] _____________
+
+std = <harness.client.Api object at 0x106003530>
+preview = 'System audio output device', body = {'cmd': 'vol', 'v': 'abc'}
+
+    @pytest.mark.sev(3)
+    @pytest.mark.covers("http.POST /api/preview/ctl")
+    @pytest.mark.parametrize("body", [{"cmd": "seek", "pos": "abc"}, {"cmd": "seek", "pos": None}, {"cmd": "seek", "pos": [1]}, {"cmd": "vol", "v": "abc"},
+                                      {"cmd": "vol", "v": None}, {"cmd": "vol", "v": [1]}, {"cmd": "seek", "pos": "inf"}, {"cmd": "vol", "v": "nan"}])
+    def test_preview_ctl_bad_numbers_are_client_errors(std, preview, body):
+        r = std.post("/api/preview/ctl", body)
+>       assert r.status < 500, f"{body} -> HTTP {r.status}"
+E       AssertionError: {'cmd': 'vol', 'v': 'abc'} -> HTTP 500
+E       assert 500 < 500
+E        +  where 500 = <500 '500 Internal Server Error\n\nServer got itself in trouble'>.status
+
+tests/api/test_preview.py:64: AssertionError
+____________ test_preview_ctl_bad_numbers_are_client_errors[body4] _____________
+
+std = <harness.client.Api object at 0x106003530>
+preview = 'System audio output device', body = {'cmd': 'vol', 'v': None}
+
+    @pytest.mark.sev(3)
+    @pytest.mark.covers("http.POST /api/preview/ctl")
+    @pytest.mark.parametrize("body", [{"cmd": "seek", "pos": "abc"}, {"cmd": "seek", "pos": None}, {"cmd": "seek", "pos": [1]}, {"cmd": "vol", "v": "abc"},
+                                      {"cmd": "vol", "v": None}, {"cmd": "vol", "v": [1]}, {"cmd": "seek", "pos": "inf"}, {"cmd": "vol", "v": "nan"}])
+    def test_preview_ctl_bad_numbers_are_client_errors(std, preview, body):
+        r = std.post("/api/preview/ctl", body)
+>       assert r.status < 500, f"{body} -> HTTP {r.status}"
+E       AssertionError: {'cmd': 'vol', 'v': None} -> HTTP 500
+E       assert 500 < 500
+E        +  where 500 = <500 '500 Internal Server Error\n\nServer got itself in trouble'>.status
+
+tests/api/test_preview.py:64: AssertionError
+____________ test_preview_ctl_bad_numbers_are_client_errors[body5] _____________
+
+std = <harness.client.Api object at 0x106003530>
+preview = 'System audio output device', body = {'cmd': 'vol', 'v': [1]}
+
+    @pytest.mark.sev(3)
+    @pytest.mark.covers("http.POST /api/preview/ctl")
+    @pytest.mark.parametrize("body", [{"cmd": "seek", "pos": "abc"}, {"cmd": "seek", "pos": None}, {"cmd": "seek", "pos": [1]}, {"cmd": "vol", "v": "abc"},
+                                      {"cmd": "vol", "v": None}, {"cmd": "vol", "v": [1]}, {"cmd": "seek", "pos": "inf"}, {"cmd": "vol", "v": "nan"}])
+    def test_preview_ctl_bad_numbers_are_client_errors(std, preview, body):
+        r = std.post("/api/preview/ctl", body)
+>       assert r.status < 500, f"{body} -> HTTP {r.status}"
+E       AssertionError: {'cmd': 'vol', 'v': [1]} -> HTTP 500
+E       assert 500 < 500
+E        +  where 500 = <500 '500 Internal Server Error\n\nServer got itself in trouble'>.status
+
+tests/api/test_preview.py:64: AssertionError
+________ test_xftime_infinite_value_is_refused_not_a_server_error[inf] _________
+
+std = <harness.client.Api object at 0x106003530>, v = 'inf'
+
+    @pytest.mark.sev(3)
+    @pytest.mark.covers("cmd.track.xftime")
+    @pytest.mark.parametrize("v", ["inf", "-inf", "1e999"])
+    def test_xftime_infinite_value_is_refused_not_a_server_error(std, v):
+        r = std.request("GET", f"/api/0/1/xftime/{v}")
+>       assert r.status == 200, f"HTTP {r.status}: {r.text[:80]}"
+E       AssertionError: HTTP 500: 500 Internal Server Error
+E         
+E         Server got itself in trouble
+E       assert 500 == 200
+E        +  where 500 = <500 '500 Internal Server Error\n\nServer got itself in trouble'>.status
+
+tests/api/test_trim_xfade.py:144: AssertionError
+________ test_xftime_infinite_value_is_refused_not_a_server_error[-inf] ________
+
+std = <harness.client.Api object at 0x106003530>, v = '-inf'
+
+    @pytest.mark.sev(3)
+    @pytest.mark.covers("cmd.track.xftime")
+    @pytest.mark.parametrize("v", ["inf", "-inf", "1e999"])
+    def test_xftime_infinite_value_is_refused_not_a_server_error(std, v):
+        r = std.request("GET", f"/api/0/1/xftime/{v}")
+>       assert r.status == 200, f"HTTP {r.status}: {r.text[:80]}"
+E       AssertionError: HTTP 500: 500 Internal Server Error
+E         
+E         Server got itself in trouble
+E       assert 500 == 200
+E        +  where 500 = <500 '500 Internal Server Error\n\nServer got itself in trouble'>.status
+
+tests/api/test_trim_xfade.py:144: AssertionError
+_______ test_xftime_infinite_value_is_refused_not_a_server_error[1e999] ________
+
+std = <harness.client.Api object at 0x106003530>, v = '1e999'
+
+    @pytest.mark.sev(3)
+    @pytest.mark.covers("cmd.track.xftime")
+    @pytest.mark.parametrize("v", ["inf", "-inf", "1e999"])
+    def test_xftime_infinite_value_is_refused_not_a_server_error(std, v):
+        r = std.request("GET", f"/api/0/1/xftime/{v}")
+>       assert r.status == 200, f"HTTP {r.status}: {r.text[:80]}"
+E       AssertionError: HTTP 500: 500 Internal Server Error
+E         
+E         Server got itself in trouble
+E       assert 500 == 200
+E        +  where 500 = <500 '500 Internal Server Error\n\nServer got itself in trouble'>.status
+
+tests/api/test_trim_xfade.py:144: AssertionError
+=========================== short test summary info ============================
+FAILED tests/api/test_ducking.py::test_stopall_while_ducked_does_not_leak_the_duck_into_the_next_play_on_top
+FAILED tests/api/test_fuzz_commands.py::test_odd_values_in_commands_never_cause_a_server_error[{v}/0]
+FAILED tests/api/test_fuzz_commands.py::test_odd_values_in_commands_never_cause_a_server_error[0/{v}]
+FAILED tests/api/test_fuzz_commands.py::test_odd_values_in_commands_never_cause_a_server_error[{v}/{v}]
+FAILED tests/api/test_fuzz_commands.py::test_odd_values_in_commands_never_cause_a_server_error[0/0/xftime/{v}]
+FAILED tests/api/test_fuzz_commands.py::test_odd_values_in_commands_never_cause_a_server_error[{v}/play]
+FAILED tests/api/test_fuzz_commands.py::test_odd_values_in_commands_never_cause_a_server_error[{v}/mode/stop]
+FAILED tests/api/test_fuzz_commands.py::test_odd_values_in_commands_never_cause_a_server_error[0/norm/track/{v}]
+FAILED tests/api/test_fuzz_commands.py::test_odd_values_in_commands_never_cause_a_server_error[0/norm/ref/{v}]
+FAILED tests/api/test_fuzz_commands.py::test_odd_values_in_commands_never_cause_a_server_error[volume/{v}]
+FAILED tests/api/test_fuzz_commands.py::test_odd_values_in_commands_never_cause_a_server_error[volume/up/{v}]
+FAILED tests/api/test_fuzz_commands.py::test_odd_values_in_commands_never_cause_a_server_error[volume/down/{v}]
+FAILED tests/api/test_fuzz_commands.py::test_odd_values_in_commands_never_cause_a_server_error[device/{v}]
+FAILED tests/api/test_library.py::test_upload_with_no_file_part_is_harmless
+FAILED tests/api/test_pages_state.py::test_variable_descriptions_are_complete
+FAILED tests/api/test_playlists.py::test_create_playlist_name_length_is_limited_like_rename
+FAILED tests/api/test_playlists.py::test_malformed_bodies_never_cause_a_server_error[/api/playlists/0/add-body0]
+FAILED tests/api/test_playlists.py::test_malformed_bodies_never_cause_a_server_error[/api/playlists/0/add-body1]
+FAILED tests/api/test_playlists.py::test_malformed_bodies_never_cause_a_server_error[/api/playlists/0/add-body3]
+FAILED tests/api/test_playlists.py::test_non_numeric_playlist_id_in_the_url_is_a_client_error[POST-/api/playlists/abc/rename]
+FAILED tests/api/test_playlists.py::test_non_numeric_playlist_id_in_the_url_is_a_client_error[POST-/api/playlists/abc/trim]
+FAILED tests/api/test_playlists.py::test_non_numeric_playlist_id_in_the_url_is_a_client_error[POST-/api/playlists/abc/norm]
+FAILED tests/api/test_playlists.py::test_non_numeric_playlist_id_in_the_url_is_a_client_error[POST-/api/playlists/abc/add]
+FAILED tests/api/test_playlists.py::test_non_numeric_playlist_id_in_the_url_is_a_client_error[DELETE-/api/playlists/abc]
+FAILED tests/api/test_playlists.py::test_non_numeric_playlist_id_in_the_url_is_a_client_error[DELETE-/api/playlists/abc/def]
+FAILED tests/api/test_playlists.py::test_non_numeric_playlist_id_in_the_url_is_a_client_error[DELETE-/api/playlists/0/def]
+FAILED tests/api/test_playlists.py::test_non_numeric_playlist_id_in_the_url_is_a_client_error[GET-/api/playlists/abc/triggers]
+FAILED tests/api/test_playlists.py::test_non_numeric_playlist_id_in_the_url_is_a_client_error[POST-/api/playlists/abc/triggers]
+FAILED tests/api/test_playlists.py::test_non_numeric_playlist_id_in_the_url_is_a_client_error[POST-/api/playlists/1.5/rename]
+FAILED tests/api/test_preview.py::test_preview_ctl_bad_numbers_are_client_errors[body0]
+FAILED tests/api/test_preview.py::test_preview_ctl_bad_numbers_are_client_errors[body1]
+FAILED tests/api/test_preview.py::test_preview_ctl_bad_numbers_are_client_errors[body2]
+FAILED tests/api/test_preview.py::test_preview_ctl_bad_numbers_are_client_errors[body3]
+FAILED tests/api/test_preview.py::test_preview_ctl_bad_numbers_are_client_errors[body4]
+FAILED tests/api/test_preview.py::test_preview_ctl_bad_numbers_are_client_errors[body5]
+FAILED tests/api/test_trim_xfade.py::test_xftime_infinite_value_is_refused_not_a_server_error[inf]
+FAILED tests/api/test_trim_xfade.py::test_xftime_infinite_value_is_refused_not_a_server_error[-inf]
+FAILED tests/api/test_trim_xfade.py::test_xftime_infinite_value_is_refused_not_a_server_error[1e999]
+SKIPPED [1] tests/api/test_lifecycle.py:14: the memory readout is not implemented on macOS
+38 failed, 328 passed, 1 skipped in 98.94s (0:01:38)
+$SP/venv/bin/python tests/run.py --report-dir $SP/base/api  12.55s user 6.04s system 18% cpu 1:39.43 total

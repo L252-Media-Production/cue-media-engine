@@ -1,0 +1,71 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1">
+<title>Time remaining</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Crect%20width='100'%20height='100'%20rx='22'%20fill='%232b2b2b'/%3E%3Crect%20x='16'%20y='32'%20width='30'%20height='30'%20fill='none'%20stroke='%23f5f5f5'%20stroke-width='9'/%3E%3Crect%20x='54'%20y='28'%20width='38'%20height='38'%20fill='%2347c86e'/%3E%3C/svg%3E">
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#000;color:#fff}
+html.transparent,html.transparent body{background:transparent}
+body{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"DejaVu Sans Mono","Liberation Mono",monospace}
+#st{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;box-sizing:border-box;padding:1.5vmin 2vmin}
+#nm{flex:none;width:100%;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font:600 max(12px,min(4.5vmin,36px))/1.3 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;opacity:.85;min-height:1.3em}
+#tm{flex:1 1 0;min-height:0;width:100%;display:flex;align-items:center;justify-content:center;overflow:hidden}
+#tx{display:inline-block;white-space:nowrap;line-height:1;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:0;transition:opacity .2s}
+.dim #tx{opacity:.35}
+#pz{flex:none;height:1.5em;font:600 max(10px,min(3vmin,26px))/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;letter-spacing:.12em;opacity:.8;visibility:hidden}
+.paused #pz{visibility:visible}
+#bar{flex:none;width:100%;height:max(4px,1.4vmin);margin-top:.6vmin;background:rgba(255,255,255,.18);border-radius:99px;overflow:hidden;display:none}
+#bar i{display:block;height:100%;width:0;background:var(--c,#fff);transition:width .26s linear}
+.dim #bar i{opacity:.35}
+html.nonm #nm{display:none}
+html.bar #bar{display:block}
+</style></head><body>
+<div id=st><div id=nm></div><div id=tm><span id=tx>--:--</span></div><div id=pz>PAUSED</div><div id=bar><i id=bf></i></div></div>
+<script>
+(function(){
+ var q=new URLSearchParams(location.search),sc=(location.pathname.match(/\/stage\/([abc])\/?$/)||[])[1]||'';
+ var on=function(v){return /^(1|true|yes|on)$/i.test(v||'')};
+ var showName=sc==='b'||sc==='c'||on(q.get('name')),showBar=sc==='c'||on(q.get('bar'));
+ if(q.has('name')&&!on(q.get('name')))showName=false;if(q.has('bar')&&!on(q.get('bar')))showBar=false;
+ var root=document.documentElement;
+ if((q.get('bg')||'').toLowerCase()==='transparent')root.classList.add('transparent');
+ if(!showName)root.classList.add('nonm');if(showBar)root.classList.add('bar');
+ var st=document.getElementById('st'),nm=document.getElementById('nm'),tm=document.getElementById('tm'),tx=document.getElementById('tx'),bf=document.getElementById('bf');
+ var S=null,lastOk=0,timer=0,lastTxt='',lastFit='',holdKey='';
+ function pad(n){return n<10?'0'+n:''+n}
+ function fmt(s){var h=Math.floor(s/3600),m=Math.floor(s%3600/60);return h?h+':'+pad(m)+':'+pad(s%60):pad(m)+':'+pad(s%60)}
+ function fit(){var b=tm.getBoundingClientRect();if(!b.width||!b.height)return;tx.style.fontSize='100px';
+  var w=tx.offsetWidth||1,h=tx.offsetHeight||100,k=Math.min(b.width*.96/w,b.height*.94/h);tx.style.fontSize=Math.max(6,k*100)+'px';lastFit=lastTxt.length+'|'+b.width+'|'+b.height}
+ function take(s,t){
+  var rem=s.live_rem!=null?s.live_rem:Math.max(0,(s.live_out||0)-(s.live_pos||0)),key=(s.live_id||'-')+'|'+(s.live_fid||'');
+  var n={state:s.state,live:s.live_id&&s.live_id!=='-'&&s.live_pos!=null,key:key,name:s.live_name&&s.live_name!=='-'?s.live_name:'',
+   rem:rem,pos:s.live_pos||0,lo:s.live_in||0,hi:s.live_out||s.live_dur||0,t:t,warn:s.warning||null};
+  if(S&&S.live&&n.live&&S.key===n.key&&S.state===n.state&&n.state!=='paused'){      // same track still running: keep the local clock unless it is clearly off (network jitter must not make the seconds wobble)
+   var dev=Math.abs(n.rem-(S.rem-(t-S.t)/1000));if(dev<.1){n.rem=S.rem;n.pos=S.pos;n.t=S.t}}
+  S=n}
+ function colour(sec,w){      // the colour of the shortest warning time still reached (the same rule as the Live countdown)
+  if(!w||!w.warnings)return '';var best=null;
+  for(var k=0;k<w.warnings.length;k++){var x=w.warnings[k];if(sec<=x.t&&(!best||x.t<=best.t))best=x}
+  return best?best.c:''}
+ function render(){
+  clearTimeout(timer);var now=performance.now(),online=S&&now-lastOk<3000,txt='--:--',col='',frac=0,cls='dim',name='',wait=0;
+  if(online&&S.live&&(S.state==='playing'||S.state==='fading'||S.state==='paused')){
+   var paused=S.state==='paused',el=paused?0:(now-S.t)/1000,rem=Math.max(0,S.rem-el),shown=Math.ceil(rem-.001);
+   txt=fmt(shown);col=colour(shown,S.warn);name=S.name;cls=paused?'dim paused':'';
+   var span=S.hi-S.lo;frac=span>0?Math.min(1,Math.max(0,(S.pos+el-S.lo)/span)):0;
+   if(!paused)wait=Math.max(20,(rem-(shown-1+.001))*1000+8)}
+  st.className=cls;if(txt!==lastTxt){tx.textContent=txt;if(txt.length!==lastTxt.length)lastFit='';lastTxt=txt}
+  tx.style.color=col||'';st.style.setProperty('--c',col||'#fff');
+  if(showName&&nm.textContent!==name)nm.textContent=name;
+  bf.style.width=(frac*100).toFixed(2)+'%';
+  if(!lastFit)fit();
+  if(wait)timer=setTimeout(render,wait)}
+ async function poll(){
+  var t1=performance.now(),ok=false,ac=window.AbortController?new AbortController():null,to=setTimeout(function(){ac&&ac.abort()},1500);
+  try{var r=await fetch('/api/state',{cache:'no-store',signal:ac?ac.signal:undefined});
+   if(r.ok){var s=await r.json(),t2=performance.now();take(s,(t1+t2)/2);lastOk=t2;ok=true}}catch(e){}
+  clearTimeout(to);render();setTimeout(poll,document.hidden?1000:ok?250:500)}
+ window.addEventListener('resize',function(){lastFit='';render()});
+ if(window.ResizeObserver)new ResizeObserver(function(){lastFit='';fit()}).observe(tm);
+ setInterval(render,1000);      // also notices a lost connection when no answer arrives at all
+ render();fit();poll();
+})();
+</script></body></html>

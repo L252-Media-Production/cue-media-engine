@@ -1,0 +1,3 @@
+{"_comment": "P2 (docs/split-plan.md 3.2): the four helper blocks leave cpl/legacy.py (checked separately by verify_blocks.py), compute_env + METER_WIN + the numpy import move to cpl/dsp.py",
+ "allowed_other_removed": ["if len(sys.argv) > 1 and sys.argv[1] == '--", "try:\n    import numpy as np"],
+ "allowed_other_added": ["try:\n    import numpy as np"]}

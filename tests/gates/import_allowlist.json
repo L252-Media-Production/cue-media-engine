@@ -1,0 +1,174 @@
+{
+  "_comment": "Allowed cpl-internal imports: {module: [modules it may import]}. Modules are named relative to cpl (e.g. 'state', 'web.library'). P2: dsp and the helpers; each split step adds its modules (docs/split-plan.md section 2.1). 'legacy' is a temporary module and may import any module but no module may import it. P5/P6: the lists are the MAXIMUM of table 2.1 (plus util and clock, which any module may import); a module may import fewer.",
+  "modules": {
+    "dsp": [],
+    "audiodrv": [],
+    "helpers": [],
+    "helpers.common": [],
+    "helpers.probe": [],
+    "helpers.decode": [],
+    "helpers.dl": [],
+    "helpers.ring": [],
+    "helpers.preview_worker": [
+      "dsp",
+      "helpers.common",
+      "helpers.ring"
+    ],
+    "helpers.input_worker": [
+      "helpers.common",
+      "helpers.ring"
+    ],
+    "clock": [],
+    "state": [],
+    "util": [
+      "clock"
+    ],
+    "config": [
+      "util"
+    ],
+    "persist": [
+      "clock",
+      "config",
+      "state",
+      "util"
+    ],
+    "cache": [
+      "clock",
+      "config",
+      "dsp",
+      "util"
+    ],
+    "devices": [
+      "clock",
+      "config",
+      "helpers.common",
+      "state",
+      "util"
+    ],
+    "health": [],
+    "outalias": [
+      "config"
+    ],
+    "devwatch": [
+      "clock"
+    ],
+    "alerts": [
+      "clock"
+    ],
+    "watchdog": [
+      "clock"
+    ],
+    "durations": [
+      "clock",
+      "config",
+      "state",
+      "util"
+    ],
+    "infostore": [
+      "clock",
+      "config",
+      "state",
+      "util"
+    ],
+    "ffmpeg": [
+      "cache",
+      "clock",
+      "config",
+      "dsp",
+      "util"
+    ],
+    "playlists": [
+      "clock",
+      "config",
+      "persist",
+      "state",
+      "util"
+    ],
+    "library": [
+      "cache",
+      "clock",
+      "config",
+      "persist",
+      "playlists",
+      "state",
+      "util"
+    ],
+    "triggers_data": [
+      "clock",
+      "config",
+      "persist",
+      "playlists",
+      "state",
+      "util"
+    ],
+    "loudness": [
+      "cache",
+      "clock",
+      "config",
+      "dsp",
+      "ffmpeg",
+      "infostore",
+      "persist",
+      "playlists",
+      "state",
+      "util"
+    ],
+    "formats": [
+      "clock",
+      "config",
+      "ffmpeg",
+      "state",
+      "util"
+    ],
+    "warm": [
+      "cache",
+      "clock",
+      "config",
+      "playlists",
+      "state",
+      "triggers_data",
+      "util"
+    ],
+    "fileinfo": [
+      "cache",
+      "clock",
+      "config",
+      "dsp",
+      "ffmpeg",
+      "formats",
+      "infostore",
+      "loudness",
+      "state",
+      "util"
+    ],
+    "upload": [
+      "clock",
+      "config",
+      "ffmpeg",
+      "library",
+      "state",
+      "util"
+    ],
+    "boot": [
+      "cache",
+      "clock",
+      "config",
+      "library",
+      "persist",
+      "playlists",
+      "state",
+      "upload",
+      "util"
+    ],
+    "liveinput": [
+      "clock",
+      "config",
+      "devices",
+      "dsp",
+      "helpers.ring",
+      "persist",
+      "state",
+      "util"
+    ]
+  }
+}

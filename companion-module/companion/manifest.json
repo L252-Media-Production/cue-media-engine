@@ -1,0 +1,17 @@
+{
+  "type": "connection",
+  "id": "cue-media-engine",
+  "name": "Cue Media Engine",
+  "shortname": "CueME",
+  "description": "Control Cue Media Engine (CueME), a playlist and cue audio player with A/B trim and sidechain ducking, from Bitfocus Companion",
+  "manufacturer": "L252 Media Production",
+  "products": ["Cue Media Engine"],
+  "keywords": ["audio", "playlist", "player", "ducking", "cue", "cueme", "cue media engine"],
+  "version": "0.0.0",
+  "license": "MIT",
+  "repository": "git+https://github.com/L252-Media-Production/cue-media-engine.git",
+  "bugs": "https://github.com/L252-Media-Production/cue-media-engine/issues",
+  "maintainers": [{ "name": "L252 Media Production", "email": "support@twomediapros.com" }],
+  "legacyIds": ["companionplayer"],
+  "runtime": { "type": "node22", "api": "nodejs-ipc", "apiVersion": "0.0.0", "entrypoint": "../src/main.js" }
+}

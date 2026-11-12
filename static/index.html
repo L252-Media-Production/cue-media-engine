@@ -1,0 +1,319 @@
+<!doctype html><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1">
+<title>Cue Media Engine</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Crect%20width='100'%20height='100'%20rx='22'%20fill='%232b2b2b'/%3E%3Crect%20x='16'%20y='32'%20width='30'%20height='30'%20fill='none'%20stroke='%23f5f5f5'%20stroke-width='9'/%3E%3Crect%20x='54'%20y='28'%20width='38'%20height='38'%20fill='%2347c86e'/%3E%3C/svg%3E">
+<script>
+/* look = skin (console | studio | stage) + theme (system | light | dark); remembered per browser */
+var LOOK={skin:'console',theme:'system'};
+try{LOOK.skin=localStorage.getItem('cp_skin')||LOOK.skin;LOOK.theme=localStorage.getItem('cp_theme')||LOOK.theme}catch(e){}
+function applyLook(){
+ var d=document.documentElement,dark=matchMedia('(prefers-color-scheme: dark)').matches;
+ if(['console','studio','stage'].indexOf(LOOK.skin)<0)LOOK.skin='console';
+ if(['system','light','dark'].indexOf(LOOK.theme)<0)LOOK.theme='system';
+ d.dataset.skin=LOOK.skin;d.dataset.pref=LOOK.theme;d.dataset.theme=LOOK.theme==='system'?(dark?'dark':'light'):LOOK.theme}
+function setLook(k,v){LOOK[k]=v;try{localStorage.setItem('cp_'+k,v)}catch(e){}applyLook();if(window.syncLook)syncLook()}
+applyLook();
+try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',applyLook)}catch(e){}
+</script>
+<style><!--@include style.css--></style>
+<div class=top><div class=brand><button id=hdot type=button data-h=starting title="Health: starting" aria-label="Health: starting" aria-haspopup=dialog aria-expanded=false aria-controls=hpop onclick="hpTog()"></button><svg class=bmark viewBox="0 0 100 100" role=img aria-label="Cue Media Engine"><rect width=100 height=100 rx=22 fill="#2b2b2b"/><rect x=16 y=32 width=30 height=30 fill=none stroke="#f5f5f5" stroke-width=9 /><rect x=54 y=28 width=38 height=38 fill="#47c86e"/></svg><h2>Cue Media Engine</h2></div>
+ <div id=memro class=memro title="Memory">
+  <div id=ramchip class=ramchip data-st=idle role=status hidden><i class=rcr aria-hidden=true></i><svg class=rck aria-hidden=true viewBox="0 0 24 24" width=14 height=14 fill=none stroke=currentColor stroke-width=3 stroke-linecap=round stroke-linejoin=round><path d="M20 6 9 17l-5-5"/></svg><svg class=rca aria-hidden=true viewBox="0 0 24 24" width=14 height=14 fill=none stroke=currentColor stroke-width=2.4 stroke-linecap=round stroke-linejoin=round><circle cx=12 cy=12 r=10 /><path d="M12 8v4M12 16h.01"/></svg><span class=rct>--</span><i class=rcb aria-hidden=true><b></b></i></div>
+  <span id=mem_cachew class=mc>Cache <b id=mem_cache class=mfull>--</b><b id=mem_cache_s class=mshort>--</b></span>
+  <span class=mr>RAM <b id=mem_ram>--</b><span id=mem_ramx class=mfull></span></span></div>
+ <div class=tools><button class=stopall onclick="stopAll()" title="Stop the live audio and the preview, and clear the cue">STOP ALL</button><button id=thm onclick="cycleTheme()" title="Light / Dark / System (follows the device)">Theme</button>
+ <button id=setbtn onclick="openSettings()" title="Appearance, Companion address, preview output, maintenance">⚙ Settings</button></div></div>
+<div id=hpop class=hpop role=dialog aria-label="Player health" aria-modal=false tabindex=-1 hidden>
+ <div class=hph><b>Health</b><span id=hp_state class=hps role=status></span><button id=hp_x class=hpx type=button onclick="hpClose(true)" aria-label="Close the health panel">✕</button></div>
+ <ul id=hp_list class=hpl></ul>
+ <div id=hp_push class=hint2 hidden></div>
+ <div class=hpf><button id=hp_copy type=button onclick="hpCopy()" title="Copy a plain-text report to paste into a chat. It holds no addresses.">Copy report</button><button id=hp_vars type=button onclick="window.open('/variables','_blank')" title="Every variable sent to Companion, with its live value (Settings > Companion > Variables > View)">Open Variables</button></div>
+ <div id=hp_msg class=hint2 role=status></div>
+</div>
+<dialog id=settings>
+ <button class=setx onclick="settings.close()" title="Close" aria-label="Close settings">✕</button>
+ <h3>Settings</h3>
+ <div class=hint2 id=set_note>Changes save as you make them.</div>
+ <div id=setmsg class=msg role=status></div>
+ <div class=stabs id=set_tabs role=tablist><button role=tab data-tab=look onclick="setTab('look')">Look</button><button role=tab data-tab=audio onclick="setTab('audio')">Audio</button><button role=tab data-tab=companion onclick="setTab('companion')">Companion</button><button role=tab data-tab=system onclick="setTab('system')">System</button></div>
+ <input id=set_search type=search placeholder="Search settings…" autocomplete=off aria-label="Search settings" oninput="setFind(this.value)">
+
+ <section class=ss data-tab=look data-sec=appearance><button class=sh onclick="setSec('appearance')" aria-expanded=false><b>Appearance</b><span class=chipb>This browser only</span><span class=ssum id=sum_appearance></span><em class=chev>⌄</em></button>
+  <div class=sb>
+  <div class=sr data-s="style skin look"><label for=set_skin>Style</label><select id=set_skin onchange="setLook('skin',this.value)">
+   <option value=console>Console - dense, amber</option><option value=studio>Studio - clean, soft cards</option><option value=stage>Stage - big, touch friendly</option></select></div>
+  <div class=sr data-s="theme light dark system"><label>Theme</label><span class=seg id=set_theme>
+   <button data-v=system onclick="setLook('theme','system')">System</button><button data-v=light onclick="setLook('theme','light')">Light</button><button data-v=dark onclick="setLook('theme','dark')">Dark</button></span></div>
+  <div class=sr data-s="show waveforms wave"><label for=set_wave>Show waveforms</label><span class=swl><input type=checkbox id=set_wave onchange="setWave(this.checked)" aria-label="Show waveforms"><i></i></span></div>
+  <div class=sr data-s="pin live panel keep in view scroll"><span class=lb2><label for=set_pin>Pin the Live panel</label><button class=ib2 data-tip="Keeps the Live panel in view while you scroll. The pin button on the panel does the same." aria-label="More information about pinning the Live panel">i</button></span><span class=swl><input type=checkbox id=set_pin onchange="pinSet(this.checked)" aria-label="Pin the Live panel"><i></i></span></div>
+  <div class=sr data-s="shrink one line scrolled live panel"><span class=lb2><label for=set_pinmini>Shrink to one line when scrolled</label><button class=ib2 data-tip="When the full Live panel has scrolled out of view, a one-line version stays at the top: title, pause, time and the meters. Off: the whole panel stays at the top." aria-label="More information about the one-line Live panel">i</button></span><span class=swl><input type=checkbox id=set_pinmini onchange="pinOpt('mini',this.checked)" aria-label="Shrink to one line when scrolled"><i></i></span></div>
+  <div class=sr data-s="remember pin this browser"><span class=lb2><label for=set_pinkeep>Remember the pin in this browser</label><button class=ib2 data-tip="Keeps your pin choice the next time this browser opens the player. Off: it starts pinned every time." aria-label="More information about remembering the pin">i</button></span><span class=swl><input type=checkbox id=set_pinkeep onchange="pinOpt('keep',this.checked)" aria-label="Remember the pin in this browser"><i></i></span></div>
+  <div class="sr wnrow" data-s="time warnings countdown colour"><span class=lb2><button class=wnh id=wn_toggle onclick="wnTog()" aria-expanded=false aria-controls=wn_body title="Show or hide the time warnings"><span id=wn_ar>▸</span>Time warnings</button><button class=ib2 data-tip="The countdown changes colour as the track runs out. Applies to every page, including the stage page." aria-label="More information about time warnings">i</button></span><span id=wn_sum class=wsum></span></div>
+  <div id=wn_body hidden>
+   <div id=wn_rows></div>
+   <div class=wadd><button id=wn_add onclick="wnAdd()" title="Add another warning, for example a longer one before the first">+ Add a warning</button></div>
+  </div>
+  <div class=sr data-s="new folder icon library"><label>New folder icon</label><span class=dfiw><button class=dfih id=dfi_cur onclick="dfiTog()" aria-expanded=false aria-controls=dfi_grid title="Show all icons"><span id=dfi_curi></span><span id=dfi_curn>Circle</span><span id=dfi_ar>▾</span></button></span></div>
+  <div class=icg id=dfi_grid hidden style="max-height:9.5rem;overflow:auto;margin:.2rem 0 .4rem"></div>
+  </div></section>
+
+ <section class=ss data-tab=look data-sec=layout><button class=sh onclick="setSec('layout')" aria-expanded=false><b>Layout</b><span class=chipb>This browser only</span><span class=ssum id=sum_layout>This browser</span><em class=chev>⌄</em></button>
+  <div class=sb>
+  <div class=sr data-s="main screen blocks layout edit reset export import more"><span class=lb2>Main screen blocks<button class=ib2 data-tip="Applies to wide screens. Export to use the layout on another device." aria-label="More information about the layout">i</button></span><span class="btns lbtn"><button onclick="layEdit()">Edit layout</button><button id=lay_more onclick="layMenu()" aria-haspopup=menu aria-expanded=false aria-label="More layout actions">More ⋯</button></span></div>
+  <div class=lmenu id=lay_menu role=menu hidden><button role=menuitem onclick="layMenu(false);layReset()">Reset layout</button><button role=menuitem onclick="layMenu(false);layExport()" title="Save this layout as a small file">Export layout</button><button role=menuitem onclick="layMenu(false);layImport()" title="Load a layout file, or pasted layout text">Import layout</button></div>
+  </div></section>
+
+ <section class=ss data-tab=audio data-sec=audio><button class=sh onclick="setSec('audio')" aria-expanded=false><b>Audio</b><span class=ssum id=sum_audio></span><em class=chev>⌄</em></button>
+  <div class=sb>
+  <div class=sr data-s="preview plays on browser player output both"><label for=set_pvt>Preview plays on</label><select id=set_pvt onchange="setPvTarget(this.value)"></select></div>
+  <div class=hint2 id=set_pvnote></div>
+  <div class="sr sub" data-s="player output device preview"><label for=set_pv>Player output</label><select id=set_pv data-cbpin="" data-cbdev onchange=savePreviewDev()></select></div>
+  <div class=hint2 id=set_devnote role=status hidden></div>
+  <div class=sr data-s="show hidden outputs aliases loopback"><span class=lb2><label for=set_hidout>Show hidden outputs</label><button class=ib2 data-tip="Outputs hidden by an output alias (for example the far end of a loopback card) are not listed in the menus. Switch this on to list them, dimmed and marked hidden. The output in use is always listed." aria-label="More information about hidden outputs">i</button></span><span class=swl><input type=checkbox id=set_hidout onchange="setHidOut(this.checked)" aria-label="Show hidden outputs"><i></i></span></div>
+  <div class=sr data-s="mirror second device headphones dante"><span class=lb2>Mirror live to a second device<button class=ib2 data-tip="A copy of the live audio on headphones or a second Dante adapter." aria-label="More information about Mirror">i</button></span><span class=swl><input type=checkbox id=set_mir onchange="setMirrorOn(this.checked)" aria-label="Mirror live to a second device"><i></i></span></div>
+  <div class="sr sub" id=set_mdevrow data-s="mirror device" hidden><label for=set_mdev>Mirror device</label><select id=set_mdev data-cbdev onchange="setMirrorDev(this.value)"></select></div>
+  <div class=sr data-s="live input armed duck speech talk microphone dante analog capture"><span class=lb2>Live input armed<button class=ib2 data-tip="The player listens to one input channel and turns the playlist audio down while someone talks. The input is never mixed into the Live output (Duck only). It uses the Play on Top ducking settings." aria-label="More information about the Live input">i</button></span><span class=swl><input type=checkbox id=set_inparm onchange="inpSave({armed:this.checked})" aria-label="Live input armed: let the input duck the playlist audio"><i></i></span></div>
+  <div class="sr sub" data-s="input device capture dante analog microphone"><span class=lb2><label for=set_inpdev>Input device</label><button class=ib2 data-tip="Where the voice comes from: a Dante channel from the Dante USB adapter, or an analog interface. Press the menu to refresh the list." aria-label="More information about the input device">i</button></span><select id=set_inpdev data-cbpin="" data-cbdev onchange="inpSave({device:this.value||null})"></select></div>
+  <div class="sr sub" data-s="input channel"><span class=lb2><label for=set_inpch>Input channels</label><button class=ib2 data-tip="Which channel of the device is listened to: a stereo pair (the louder channel ducks, so one active mic is enough) or a single channel." aria-label="More information about the input channels">i</button></span><select id=set_inpch onchange="inpChSave(this.value)"></select></div>
+  <div class="sr sub" data-s="input gain db"><span class=lb2><label for=set_inpgain>Input gain</label><button class=ib2 data-tip="Raises or lowers the input before the ducking threshold, from -12 to +24 dB." aria-label="More information about the input gain">i</button></span><span class=nfs><input id=set_inpgain type=number min=-12 max=24 step=0.5 value=0 onchange="inpSave({gain_db:+this.value})" aria-label="Input gain in dB, from -12 to +24"><em>dB</em></span></div>
+  <div class="sr sub" data-s="input threshold duck above level db"><span class=lb2><label for=set_inpthr>Duck above</label><button class=ib2 data-tip="The input level, after the gain, above which the Live input turns the playlist audio down, from -60 to 0 dB. It is separate from the Play on Top threshold. You can also drag the mark on the Live input card." aria-label="More information about the input threshold">i</button></span><span class=nfs><input id=set_inpthr type=number min=-60 max=0 step=1 value=-30 onchange="inpThrApply(this.value===''?NaN:+this.value,true)" aria-label="Live input threshold in dB, from -60 to 0"><em>dB</em></span></div>
+  <div class=hint2 id=set_inpnote role=status hidden></div>
+  </div></section>
+
+ <section class=ss data-tab=audio data-sec=transitions><button class=sh onclick="setSec('transitions')" aria-expanded=false><b>Transitions</b><span class=ssum id=sum_transitions></span><em class=chev>⌄</em></button>
+  <div class=sb>
+  <div class=sr data-s="default cut crossfade go take transition"><span class=lb2>Default<button class=ib2 data-tip="What Go and /take do. A track's own Crossfade button always crossfades." aria-label="More information about the default transition">i</button></span><span class=seg id=tr_seg><button data-v=cut onclick="tranSave('cut')">Cut</button><button data-v=crossfade onclick="tranSave('crossfade')">Crossfade</button></span></div>
+  <div class=sr data-s="crossfade time seconds"><label for=tr_ms>Crossfade time</label><span class=nfs><input id=tr_ms type=number min=0 max=30 step=0.1 value=3 onchange="tranSave()" aria-label="Crossfade time in seconds"><em>s</em></span></div>
+  <div class=sr data-s="fade in a trim seconds"><span class=lb2><label for=tr_fi>Fade-in at A</label><button class=ib2 data-tip="Used by tracks whose A is set to Fade in. 0 means none. Each track can override it." aria-label="More information about the fade-in">i</button></span><span class=nfs><input id=tr_fi type=number min=0 max=10 step=0.1 value=0 onchange="tranSave()" aria-label="Default fade-in length at point A in seconds, 0 for none"><em>s</em></span></div>
+  <div class=sr data-s="fade out b trim seconds"><span class=lb2><label for=tr_fd>Fade-out at B</label><button class=ib2 data-tip="Used when a track's end is set to Fade out. Each track can override it." aria-label="More information about the fade-out">i</button></span><span class=nfs><input id=tr_fd type=number min=0.1 max=10 step=0.1 value=1.5 onchange="tranSave()" aria-label="Default fade-out length at point B in seconds"><em>s</em></span></div>
+  </div></section>
+
+ <section class=ss data-tab=companion data-sec=companion><button class=sh onclick="setSec('companion')" aria-expanded=false><b>Companion</b><span class=ssum id=sum_companion></span><em class=chev>⌄</em></button>
+  <div class=sb>
+  <div class=sr data-s="companion address host ip"><span class=lb2><label for=set_host>Address</label><button class=ib2 data-tip="Where the player sends its variables. In Companion, Settings › Protocols › OSC must listen on this port." aria-label="More information about the Companion address">i</button></span><input id=set_host placeholder="192.168.1.50 or host name" autocomplete=off spellcheck=false onchange="cmpSave()" onkeydown="if(event.key==='Enter')this.blur()"></div>
+  <div class="warnbox bad" id=cmp_warn role=alert hidden></div>
+  <div class="warnbox" id=cmp_note role=status hidden>Couldn't find this host right now. The player keeps trying and starts sending as soon as it can be found.</div>
+  <div class=sr data-s="osc port companion"><label for=set_port>OSC port</label><input id=set_port type=number min=1 max=65535 placeholder=12321 onchange="cmpSave()" onkeydown="if(event.key==='Enter')this.blur()"></div>
+  <div class=sr data-s="variable prefix companion variables names"><span class=lb2><label for=set_prefix>Variable prefix</label><button class=ib2 data-tip="Put in front of the name of every variable the player sends to Companion, for example mp_remaining. Letters, digits and underscores, starting with a letter, up to 16. Changing it means updating the buttons that use the old names." aria-label="More information about the variable prefix">i</button></span><input id=set_prefix maxlength=16 autocomplete=off autocapitalize=off spellcheck=false oninput="pfxPreview()" onchange="pfxSave()" onkeydown="if(event.key==='Enter')this.blur()"></div>
+  <div class=hint2 id=pfx_ex></div>
+  <div class="warnbox bad" id=pfx_warn role=alert hidden></div>
+  <div class=sr id=pfx_resrow data-s="variable prefix result" hidden><span>Prefix change</span><span class="chipb ok" id=pfx_res></span></div>
+  <div class=sr data-s="sending to address in use"><span>Sending to</span><span class="chipb ok" id=cmp_to>…</span></div>
+  <div class=sr data-s="send a test message test companion"><span class=lb2>Send a test message<button class=ib2 data-tip="Sends a test value to the address in use. OSC gives no reply, so check that it shows up in Companion." aria-label="More information about the test message">i</button></span><button id=cmp_test onclick="cmpTest()">Send test</button></div>
+  <div class=resbox id=cmp_res role=status hidden></div>
+  <div class=sr data-s="variables view resend companion"><span class=lb2 id=cmp_vars>Variables</span><span class=btns><button onclick="window.open('/variables','_blank')" title="Every variable sent to Companion, with its live value">View</button><button onclick="resendVars()" title="Send every variable to Companion again">Resend now</button></span></div>
+  </div></section>
+
+ <section class=ss data-tab=system data-sec=library><button class=sh onclick="setSec('library')" aria-expanded=false><b>Library</b><span class=ssum id=sum_library>…</span><em class=chev>⌄</em></button>
+  <div class=sb>
+  <div class=sr data-s="library folders rescan"><span>Library folders</span><button onclick="rescanLib()" title="Re-read the library folder after adding or removing files offline">Rescan</button></div>
+  <div class=sr data-s="file check all files"><span>File check</span><span class=btns><span class=chipb id=fmt_chip>…</span><button class=btn onclick=fmtDeep()>Check all</button></span></div>
+  <div class=hint2 id=fmt_status></div>
+  </div></section>
+
+ <section class=ss data-tab=system data-sec=health><button class=sh onclick="setSec('health')" aria-expanded=false><b>Health and alerts</b><span class=ssum id=sum_health></span><em class=chev>⌄</em></button>
+  <div class=sb>
+  <div class=sr data-s="player name host name push messages report"><label for=set_pname>Player name</label><input type=text id=set_pname maxlength=40 autocomplete=off spellcheck=false placeholder="Host name" aria-describedby=hs_name onchange="hsName()"></div>
+  <div class=hint2 id=hs_name role=status></div>
+  <div class=sr data-s="watchdog restart audio engine stall output"><span class=lb2><label for=set_wd>Watchdog</label></span><span class=swl><input type=checkbox id=set_wd onchange="hsSave({watchdog:this.checked})" aria-label="Watchdog: restart the audio engine if the output stalls"><i></i></span></div>
+  <div class=hint2>Restarts the audio engine if output stops for 10 seconds while playing. Never restarts the service.</div>
+  <div class=sr data-s="amber missing preview output health"><span class=lb2><label for=set_pva>Amber for a missing Preview output</label></span><span class=swl><input type=checkbox id=set_pva onchange="hsSave({preview_amber:this.checked})" aria-label="Amber for a missing Preview output"><i></i></span></div>
+  <div class=sr data-s="push on state change webhook alerts message"><span class=lb2><label for=set_push>Push on state change</label></span><span class=swl><input type=checkbox id=set_push onchange="hsPush({enabled:this.checked})" aria-label="Push on state change"><i></i></span></div>
+  <div class=sr data-s="push send to webhook"><label for=set_pushto>Send to</label><select id=set_pushto aria-label="Send push messages to"><option value=webhook>Webhook</option></select></div>
+  <div class=sr data-s="webhook address url n8n slack discord"><label for=set_pushurl>Webhook address</label><span class=btns><input type=url id=set_pushurl placeholder="https://" autocomplete=off spellcheck=false aria-describedby=hs_host onchange="hsUrlSave()"><button id=hs_clear type=button onclick="hsUrlClear()" hidden>Remove</button></span></div>
+  <div class=hint2 id=hs_host></div>
+  <div class=sr data-s="push events problem recovered degraded watchdog"><span class=lb2 id=hs_evl>Send a message when</span></div>
+  <div class="sr sub"><label class=chk><input type=checkbox id=set_ev_problem onchange="hsEvents()"> A problem starts</label></div>
+  <div class="sr sub"><label class=chk><input type=checkbox id=set_ev_recovered onchange="hsEvents()"> It recovers</label></div>
+  <div class="sr sub"><label class=chk><input type=checkbox id=set_ev_degraded_long onchange="hsEvents()"> Degraded lasts more than 5 minutes</label></div>
+  <div class="sr sub"><label class=chk><input type=checkbox id=set_ev_watchdog onchange="hsEvents()"> The watchdog restarts the audio engine</label></div>
+  <div class=sr data-s="hold messages until nothing is playing"><span class=lb2><label for=set_pushhold>Hold messages until nothing is playing</label></span><span class=swl><input type=checkbox id=set_pushhold onchange="hsPush({hold:this.checked})" aria-label="Hold messages until nothing is playing"><i></i></span></div>
+  <div class=sr data-s="send a test message webhook"><span>Send a test message</span><span class=btns><span class=chipb id=hs_chip role=status hidden></span><button id=hs_test type=button onclick="hsTest()">Send</button></span></div>
+  <div class=hint2 id=hs_err role=status></div>
+  </div></section>
+
+ <section class=ss data-tab=system data-sec=engine><button class=sh onclick="setSec('engine')" aria-expanded=false><b>Maintenance</b><span class=ssum id=sum_engine></span><em class=chev>⌄</em></button>
+  <div class=sb>
+  <div class=sr data-s="guides help guide tour"><span>Guides</span><span class=btns>
+   <button onclick="window.open('/help','_blank')" title="A plain-language guide to using the player">Help guide</button>
+   <button onclick="startTour()" title="Replay the first-visit tour">Tour</button></span></div>
+  <div class=sr data-s="ffmpeg engine"><span class=lb2>FFmpeg<button class=ib2 id=ff_tip data-tip="Used to import other formats and convert uploads to 48 kHz." aria-label="More information about ffmpeg">i</button></span><span class=chipb id=ff_chip>…</span></div>
+  <div class=sr data-s="restart player"><span>Player</span><button class=dng onclick="restartPlayer()" title="Restart the player program. Audio stops for a few seconds; a track that was playing carries on from where it was.">Restart player</button></div>
+  <div class=hint2 id=appver style="text-align:center;margin-top:.6rem"></div>
+  </div></section>
+</dialog>
+<dialog id=pfxdlg aria-labelledby=pfx_h>
+ <h3 id=pfx_h>Change the variable prefix?</h3>
+ <p>Variables will be sent as <b id=pfx_new></b>… instead of <b id=pfx_old></b>…</p>
+ <p>Buttons and triggers in Companion that use the old variable names must be updated to the new names. The old variables stay in Companion until the module is reloaded.</p>
+ <div class=row style="justify-content:flex-end"><button value=cancel onclick="pfxdlg.close('cancel')">Cancel</button><button value=ok class=pri id=pfx_ok onclick="pfxdlg.close('ok')">Change prefix</button></div>
+</dialog>
+<div id=ms hidden role=region aria-label="Live panel, one line">
+ <div class=mr1><button type=button id=ms_pin class="pinb on" onclick="pinToggle()" aria-pressed=true aria-label="Unpin the Live panel" title="Pinned"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></svg></button><span class=pill id=ms_pill>LIVE</span><span class=mst id=ms_name onclick="liveGo()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();liveGo()}">-</span>
+  <button class="ic" id=ms_pp onclick="cmd('playpause')" aria-label="Pause or resume"></button><button class="ic dng msstop" onclick="cmd('stop')" aria-label="Stop"></button></div>
+ <div class=mr2><span class=msw><i id=ms_prog></i></span><span class=mstm><b id=ms_rem>--:--</b><small id=ms_tot></small></span>
+  <span class=mgp><span class=mg><span class=ml>LIVE</span><span class=hm><span><u id=h_live_l></u></span><span><u id=h_live_r></u></span></span></span>
+  <span class="mg pvc" id=ms_pv hidden><span class="ml pvl">PRV</span><span class=hm><span><u id=h_preview_l></u></span><span><u id=h_preview_r></u></span></span></span></span></div>
+</div>
+<div id=now>
+ <div class="card l idle" id=cl>
+  <div class=lmain>
+   <div class=lhead><div class=lname><span class=lb><button type=button id=pinbtn class="pinb on" onclick="pinToggle()" aria-pressed=true aria-label="Unpin the Live panel" title="Pinned: the Live panel stays in view while you scroll. Click to unpin."><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></svg></button>Live <span class=pill id=stpill>STOPPED</span><button class="trgarm on" id=trgarm onclick="trgArm()" hidden aria-pressed=true title="Auto triggers: trigger points play their track on top of the live track by themselves. Click to switch them off."></button></span><span class=nm id=livenm onclick="liveGo()" onkeydown="if(event.key==='Enter')liveGo()">-</span><div class=lsub id=livesub hidden></div><div class=ltrg id=ltrg hidden><span id=ltrg_txt class=ltt></span><button id=ltrg_skip onclick="trgSkip()" title="Skip the next trigger point (once): it will not play when its time comes">Skip</button></div><div class=ltrn id=ltrn hidden role=status aria-live=polite></div></div>
+    <div><span class=rem id=remv title="Time remaining on the live track">--:--</span><span class=ldur id=ldurv></span></div></div>
+   <div class=ctrl>
+    <div class=tbar>
+     <button class=ic id=ppbtn onclick="cmd('playpause')" title="Pause / resume" aria-label="Pause or resume"></button>
+     <button class="ic dng" onclick="cmd('fadeout')" title="Fade out" aria-label="Fade out"></button>
+     <button class="ic dng" onclick="cmd('stop')" title="Stop" aria-label="Stop"></button>
+     </div>
+    <div class=volrow>
+     <span class=vsl><input type=range id=livevol min=0 max=100 step=1 value=100 aria-label="Live volume"><span id=livevolv>100%</span></span>
+     <label class=outsel id=mlbl hidden title="A second output that plays a copy of the live audio: headphones, or a second Dante adapter. It follows fades, ducking and volume. Two separate adapters run on their own clocks, so use it for monitoring or a backup, not for two speakers in the same room.">Mirror <select id=mdev data-cbpin="" data-cbdev onchange=setmirror()></select></label></div>
+    <div id=devnote class=devnote role=status hidden></div></div>
+   <canvas id=wfl class=wf title="Click or drag to jump the live track"></canvas>
+  </div>
+  <div class=vmeter id=lvl title="Live level"><div class=mrow>
+   <div class=bars id=lbars><span class=vm><i id=m_live_l></i></span><span class=vm><i id=m_live_r></i></span></div>
+   <div class="scl dbs">@@SCL@@</div>
+   <div class=pcol id=pvlvl hidden title="Preview level"><div class="bars pbars"><span class=vm><i id=m_preview_l></i></span><span class=vm><i id=m_preview_r></i></span></div></div>
+   <small id=lcap class=mcap>LIVE</small><small id=pcap class="mcap pvc" hidden>PRV</small>
+   <div class=mbtns>
+    <div class=msb><button class=msq id=mutebtn onclick="cmd('volume/mute')" title="Mute / unmute the live output" aria-label="Mute" aria-pressed=false>M</button><button class=msq id=pvsolo onclick="toggleSolo()" title="Solo live: hear the live audio on the preview output. The preview keeps playing, muted, until you turn this off." aria-label="Solo live" aria-pressed=false>S</button><button type=button class="msq out" id=dev_out onclick="outOpen(dev,this)" aria-haspopup=listbox aria-expanded=false aria-label="Live output" title="Live output"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></svg><svg class=chv viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button></div>
+    <div class="msb pvb" id=pvbtns hidden><button class=msq id=pvmute onclick="pvMute()" title="Mute / unmute the preview output only (the live audio is not touched)" aria-label="Mute preview output" aria-pressed=false>M</button><button type=button class="msq out" id=pv_out onclick="outOpen(pvsel,this)" aria-haspopup=listbox aria-expanded=false aria-label="Preview plays on" title="Preview plays on"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></svg><svg class=chv viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button></div>
+   </div>
+   <span hidden id=devh><select id=dev data-cbpin="" data-cbdev onchange=setdev()></select></span>
+  </div></div>
+ </div>
+</div>
+<div id=cuerow>
+<div id=fs class=strip><b>Cue</b><span class=dim id=focid></span><span class=fnm id=focnm onclick="cueGo()" onkeydown="if(event.key==='Enter')cueGo()">-</span><div class=lsub id=focsub hidden></div><div class="cia" id=cue_ia data-st=on hidden><i class=cdot></i><div class=cias><b id=cia_h>Input armed</b><div id=cia_s></div></div><span class="inpchip" id=cia_chip hidden></span><button type=button class=csw id=cia_sw aria-pressed=true aria-label="Input armed. Switch off to disarm" onclick="inpArmToggle()"></button></div><span class=trb id=foctrim hidden onclick="openTrimFocus()"></span><span class=prep id=prepmsg></span><span class="cpill" id=cue_pill data-st=on hidden><i class=cdot></i><span id=cue_pill_t>Input armed</span><button type=button class=csw id=cue_pill_sw aria-pressed=true aria-label="Input armed. Switch off to disarm" onclick="inpArmToggle()"></button></span>
+ <span class=cbtns><button id=foctrbtn onclick="openTrimFocus()" title="Set A and B points for the cued track: play only part of it" aria-label="Set A and B points"></button><button class=pri onclick="cmd('top')" title="Play on Top: play the cue over the live audio, which is turned down while the cue is loud (see Ducking below). When the cue track ends, the live audio comes back up and carries on.">Play on Top</button><button class=dng onclick="cmd('clear')" title="Clear the cue: nothing is up next until you pick a track or use Prev / Next">Clear</button><button onclick="cmd('prev')">&laquo; Prev</button><button onclick="cmd('next')">Next &raquo;</button><span class=gogrp><span class=gocol id=gocol><button id=go_tg class=gotg onclick="goSet(GO==='cut'?'crossfade':'cut')" aria-label="What Go does: cut or crossfade. Click to switch."></button><label class=xfc id=xfc title="Crossfade time into the cued track, in seconds. Leave it empty to use the master crossfade time (Settings). Used when Go crossfades."><input id=foc_xf type=number min=0 max=30 step=0.5 placeholder=master onchange="focXfSave()" aria-label="Crossfade time for the cued track in seconds, empty for the master time"><span>s</span></label></span><button class="pri go cuego" onclick="goNow()" title="Go: play the cue track now, cutting or crossfading as chosen beside it">Go</button></span></span>
+ <span class="potrow dkc" id=potrow title="Play on Top: the background is turned down while the track on top is loud"><div class=dkhead><button class=duckh id=duckt onclick="duckTog()" aria-expanded=false title="Show or hide the ducking controls"><span id=duckar>▸</span> Ducking</button><label class=dkhold title="Stay turned down from the first loud moment until the top track ends, instead of coming back up in pauses"><input id=dk_hold type=checkbox onchange="dkSave()" style="flex:0 0 auto;min-width:0"> Stay ducked until it ends</label><small id=duck_sum onclick="duckTog()"></small></div>
+  <label title="The background is turned down while the top track is louder than this">Threshold <input id=dk_thr oninput="dkInfo()" onchange="dkSave()" type=range min=-60 max=0 step=0.5 aria-label="Ducking threshold in dB"><output id=dk_thr_v></output></label>
+  <label title="How hard: dB over the threshold are reduced by this ratio. 11:1 is nearly a limiter.">Ratio <input id=dk_rat oninput="dkInfo()" onchange="dkSave()" type=range min=1 max=20 step=0.5 aria-label="Ducking ratio"><output id=dk_rat_v></output></label>
+  <label title="How fast the background goes down when the top track gets loud">Attack <input id=dk_att oninput="dkInfo()" onchange="dkSave()" type=range min=1 max=200 step=1 aria-label="Ducking attack in milliseconds"><output id=dk_att_v></output></label>
+  <label title="How fast the background comes back up">Release <input id=dk_rel oninput="dkInfo()" onchange="dkSave()" type=range min=10 max=3000 step=10 aria-label="Ducking release in milliseconds"><output id=dk_rel_v></output></label>
+  <label class=igl title="Level of the track played on top (the voice or announcement), measured before the threshold is applied">Input Gain <button type=button class=hinti id=hint_ig aria-label="About Input Gain" aria-expanded=false aria-controls=hintpop aria-describedby=hintpop data-hint="Level of the track played on top (Play on Top). This is not the Live input gain, which is on the Live input card.">i</button> <input id=top_trk oninput="dkInfo()" onchange="dkSave()" type=range min=0 max=100 step=1 aria-label="Input gain: level of the track played on top, in percent"><output id=top_trk_v></output></label>
+  <div class=grm id=dk_grm title="How far the background is turned down right now (scale 0 to -30 dB)"><span class=grl>Reduction</span><div class=grbar><i id=dk_gr></i></div><output id=dk_grv>-0.0 dB</output></div></span>
+</div>
+<div id=pv><div class=pvstub id=pvstub hidden></div><div class=pvmain>
+  <div class=pvhead><b>🎧 Preview <small id=pvlbl></small></b><span id=pvname>-</span><span id=pverr class=err></span></div>
+  <div class=pvseekrow><button class=pv onclick="pvCtl(pvState==='playing'?'pause':'resume')" id=pvpp title="Pause / resume the preview" aria-label="Pause or resume the preview"></button><button onclick="pvCtl('stop')" title="Stop the preview" aria-label="Stop the preview"><svg width=16 height=16 viewBox="0 0 24 24" fill=currentColor><rect x=5 y=5 width=14 height=14 rx=2 /></svg></button><input type=range id=pvseek min=0 max=1 step=0.1 value=0><span id=pvtime>00:00 / 00:00</span>
+   <label id=pvvoll title="Volume of the preview output"><span id=pvvl>Vol</span> <input type=range id=pvvol min=0 max=1 step=0.05 value=1 style="width:6rem" aria-label="Preview volume"></label><label class="outsel pvout" title="Where the preview plays: this browser (this device's speakers or headphones) or the player's own output, or both"><svg class=pvic width=16 height=16 viewBox="0 0 24 24" fill=none stroke=currentColor stroke-width=2 stroke-linecap=round stroke-linejoin=round aria-hidden=true><path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3" /></svg> <select id=pvsel class=pvsel onchange="setPvTarget(this.value)" title="Where the preview plays: this browser (this device's speakers or headphones) or the player's own output, or both" aria-label="Preview plays on" data-cbdev></select></label></div>
+  <div id=pvinfo class=pvinfo hidden></div>
+  <canvas id=wfp class=wf title="Click or drag to move through the track"></canvas></div>
+</div>
+</div>
+<div class="strip inpc ic" id=inpc role=group aria-label="Live input"><div class="dkhead inphead"><button class=duckh id=inp_t onclick="inpTog()" aria-expanded=false title="Show or hide the setup of the Live input: device, channel and gain"><span id=inp_ar>▸</span> Live input</button><span class="inpchip off" id=inp_chip role=status>No input</span><span class=inpmw><span class=inpbars id=inp_bars><span class=inpmr><em class=inpl id=inp_l1>1</em><div class=inpm id=inp_m role=meter aria-label="Input level in dB, after the input gain" aria-valuemin=-60 aria-valuemax=0 aria-valuenow=-60 title="Input level after the gain. The mark is where ducking starts: drag it, or click the bar, to change it."><i id=inp_lv></i></div></span><span class=inpmr id=inp_r2 hidden><em class=inpl>R</em><div class=inpm id=inp_m2 role=meter aria-label="Right channel level in dB, after the input gain" aria-valuemin=-60 aria-valuemax=0 aria-valuenow=-60 title="Right channel level after the gain. The mark is where ducking starts: drag it, or click the bar, to change it."><i id=inp_lv2></i></div></span><span class=inpthw id=inp_thw><span class=inpthb id=inp_th role=slider tabindex=0 aria-label="Duck above: the input level at which ducking starts" aria-orientation=horizontal aria-valuemin=-60 aria-valuemax=0 aria-valuenow=-30 aria-valuetext="-30 dB" title="Where ducking starts. Drag it, click the bar, or use the arrow keys (1 dB, Shift 5 dB), Home and End. Double-click to go back to the default (-30 dB)."></span></span></span><span class=inpthl id=inp_thl></span></span><output id=inp_lvv>-</output><label class="swl inparm" title="Armed: speech on the input turns the playlist audio down. Off: the meter and the chip still show the input, but nothing is ducked."><span>Armed</span><input type=checkbox id=inp_arm onchange="inpSave({armed:this.checked})" aria-label="Armed: let the Live input duck the playlist audio"><i></i></label><button class=inpb id=inp_dn onclick="inpDuckNow()" aria-pressed=false title="Duck now: hold the playlist audio down until you press it again, whatever the input level and even with no input. It does not depend on Armed.">Duck now</button><button class=inpb id=inp_so onclick="inpSolo()" aria-pressed=false title="Solo: listen to the input on the Preview output. It never reaches the Live output and changes nothing about ducking.">Solo</button><small id=inp_sum></small></div>
+  <div class=inpbody><div class=inprow><label class="inpf inpdev">Device <select id=inp_dev data-cbpin="" data-cbdev onchange="inpSave({device:this.value||null})" aria-label="Input device"></select></label><label class="inpf inpchf">Channels <select id=inp_ch onchange="inpChSave(this.value)" aria-label="Input channels"></select></label></div><label class="inpf inpg" title="Gain applied to the input before the ducking threshold (-12 to +24 dB)">Input gain <input id=inp_gain type=range min=-12 max=24 step=0.5 value=0 oninput="inpGainInfo()" onchange="inpSave({gain_db:+this.value})" aria-label="Input gain in dB"><output id=inp_gain_v>0 dB</output></label><div class="inpf inpt"><label for=inp_thr>Duck above</label><input id=inp_thr type=range min=-60 max=0 step=1 value=-30 oninput="inpThrApply(+this.value)" aria-label="Duck above, in dB"><span class=nfs><input id=inp_thn type=number min=-60 max=0 step=1 value=-30 onchange="inpThrApply(this.value===''?NaN:+this.value,true)" aria-label="Duck above, in dB (-60 to 0)"><em>dB</em></span><button class=inpb id=inp_thx type=button onclick="inpThrReset()" title="Back to the default (-30 dB)">Reset</button></div><span class=inpmode title="Play only and Both come in a later release">Duck only</span><div class=inpwhy id=inp_note role=status hidden></div><div class=inpwhy id=inp_why role=status hidden></div><div class=inpwhy id=inp_err role=alert hidden></div></div>
+ </div>
+<div id=scan></div>
+<div id=cols>
+ <section id=libcol>
+  <div class=libtop>
+   <div class=libhd id=libhd><h3 id=libh3>Library <small id=libcount></small><span class=libsum id=libsum hidden></span><span class=libwarn id=libwarn hidden></span></h3>
+   <div class=libtools><button id=lib_hidden class=lbt type=button onclick="libHidden()" hidden aria-pressed=false></button><button id=lib_expand class=lbt type=button onclick="libCollapse(false)" title="Expand all" aria-label="Expand all"></button><button id=lib_collapse class=lbt type=button onclick="libCollapse(true)" title="Collapse all" aria-label="Collapse all"></button></div>
+   <div class=libbar id=libbar hidden><i></i></div></div>
+   <div class=srch><input id=q placeholder="Search library" oninput=renderLib()>
+    <button class="newf pri" onclick="upMenu(this)" title="Upload audio files or a whole folder (wav, mp3, ogg, flac, and more when ffmpeg is installed). You can also drop files and folders together anywhere on the library." aria-label="Upload files or a folder">
+     <svg width=20 height=20 viewBox="0 0 24 24" fill=none stroke=currentColor stroke-width=2 stroke-linecap=round stroke-linejoin=round><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg></button>
+    <button class=newf onclick="openFd('newf','',this)" title="New folder (a real folder in media/library)" aria-label="New folder">
+     <svg width=20 height=20 viewBox="0 0 24 24" fill=none stroke=currentColor stroke-width=2 stroke-linecap=round stroke-linejoin=round><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M12 11v5M9.5 13.5h5"/></svg></button>
+    <button id=dlbtn class=newf onclick="openDl()" title="Download audio from a link. It is saved in the Downloads folder of the library." aria-label="Download audio from a link">
+     <svg width=20 height=20 viewBox="0 0 24 24" fill=none stroke=currentColor stroke-width=2 stroke-linecap=round stroke-linejoin=round><path d="M12 4v11M7 11l5 5 5-5"/><path d="M4 19h16"/></svg></button></div>
+   <div id=selbar hidden></div>
+  </div>
+  <div id=lib></div>
+ </section>
+ <section id=plcol>
+  <h3>Playlists</h3>
+  <div class=newpl><input id=newpl placeholder="New playlist name" onkeydown="if(event.key==='Enter'&&!event.isComposing)addpl()"><button onclick=addpl()>Create</button><div class=newdrop title="Drag a folder, tracks or audio files from the library onto this box to start a new playlist from them">＋ Drop a folder or tracks here to start a new playlist</div></div>
+  <div id=lists></div>
+ </section>
+</div>
+<div id=cpop hidden></div>
+<div id=lebar hidden><span><b>Editing the layout.</b> Drag a block by its &#10303; handle to move it, or by the orange edges to resize it. Blocks snap to the grid and push each other down. Esc cancels a drag.</span><button onclick="layExport()">Export layout</button><button onclick="layImport()">Import layout</button><button onclick="layReset()">Reset</button><button class=pri onclick="layDone()">Done</button></div>
+<div id=dlchip hidden role=status onclick=dlChipClick() title="Click to open"><span id=dlchipt></span><button id=dlchipx onclick=dlChipClose(event) aria-label=Dismiss>&times;</button></div>
+<div id=plchip hidden role=status tabindex=0 onclick=plChipClick() onkeydown="if(event.key==='Enter'&&event.target===this)plChipClick()" title="Click to show it in the playlists"><span id=plchipt></span><button onclick=plChipClose(event) aria-label=Dismiss>&times;</button></div>
+<div id=lvpop hidden role=dialog aria-label="Level match"></div>
+<div id=infopop hidden role=dialog aria-label="File information"></div>
+<div id=hintpop class=hintpop role=note hidden></div>
+<dialog id=dldlg>
+ <h3>Download from a link</h3>
+ <div class=hint2>Paste a link to a video or audio page. Its audio is saved in the <b>Downloads</b> folder of the library. Only download things you have the right to use.</div>
+ <div class=fld><label for=dl_url>Link</label><input id=dl_url placeholder="https://..." autocomplete=off></div>
+ <div class=fld><label for=dl_fmt>Format</label><select id=dl_fmt><option value=flac selected>FLAC (lossless, recommended)</option><option value=mp3>MP3 (smaller, lossy)</option><option value=wav>WAV (lossless, large)</option></select></div>
+ <div class=fld><label>Playlists</label><label class=chk><input type=checkbox id=dl_pl> Whole playlist, if the link is one (up to 100 tracks)</label></div>
+ <div id=dl_prog hidden><div class=dlbar><i id=dl_bar></i></div><div id=dl_msg class=msg></div></div>
+ <div class=row style="justify-content:flex-end"><button onclick="dldlg.close()" id=dl_close>Close</button><button id=dl_show hidden onclick="dlGoto()">Show in library</button><button class=pri id=dl_go onclick=dlStart()>Download</button></div>
+</dialog>
+<dialog id=lxdlg>
+ <h3>Export layout</h3>
+ <div class=hint2>Saves this browser's layout as a small file to keep, send or import on another device.</div>
+ <div class=fld><label for=lx_name>Name</label><input id=lx_name maxlength=60 value=layout autocomplete=off onkeydown="if(event.key==='Enter'&&!event.isComposing){event.preventDefault();layExportGo()}"></div>
+ <div class=fld><label>Appearance</label><label class=chk><input type=checkbox id=lx_app> Include appearance (skin, theme, waveforms)</label></div>
+ <div class=hint2 id=lx_note hidden></div>
+ <div id=lx_msg class=msg role=status></div>
+ <div class=row style="justify-content:flex-end"><button onclick="lxdlg.close()">Close</button><button class=pri onclick="layExportGo()">Download</button></div>
+</dialog>
+<dialog id=lidlg>
+ <h3>Import layout</h3>
+ <div class=hint2>Choose a layout file, drop it here, or paste its text. Nothing changes until you press Apply.</div>
+ <div class=lidrop>Drop a layout file here, or <input type=file id=li_file accept=".json,application/json,text/plain" aria-label="Layout file"></div>
+ <textarea id=li_txt placeholder="…or paste the layout text here" spellcheck=false aria-label="Pasted layout text"></textarea>
+ <div id=li_msg class=msg role=status></div>
+ <div id=li_pv hidden>
+  <div class=hint2>Layout name: <b id=li_name></b></div>
+  <div class=limap id=li_map aria-label="Preview of the layout"></div>
+  <div class=hint2 id=li_hid></div>
+  <div class=fld id=li_appf hidden><label>Appearance</label><label class=chk><input type=checkbox id=li_app><span id=li_apptxt></span></label></div>
+  <div class=hint2 id=li_narrow hidden>This screen is narrower than 850 px. The layout will be saved now and applies on a wider screen.</div>
+ </div>
+ <div class=row style="justify-content:flex-end"><button id=li_undo hidden onclick="layUndo()">Undo import</button><button onclick="lidlg.close()">Close</button><button class=pri id=li_go disabled onclick="layApplyImport()">Apply</button></div>
+</dialog>
+<dialog id=trdlg>
+ <div class=trtabs role=tablist aria-label="Trim tools"><span role=tab id=tab_trim class=on aria-selected=true>Trim</span><span role=tab id=tab_smart aria-selected=false aria-disabled=true tabindex=-1 title="Not available yet">Smart Loop <em>coming soon</em></span></div>
+ <div class=trh2><div class=trht><h3>Set A and B</h3><div class="trinfo pth" id=trname2></div></div><button type=button class=trx id=tr_x onclick="trdlg.close()" aria-label="Close" title="Close without saving"></button></div>
+ <div class=hint2>The track starts at <b style="color:#2fa84f">A</b> and ends at <b style="color:var(--live)">B</b>. Everything outside is dimmed and never plays.</div>
+ <div class=trinfo id=trname></div>
+ <div id=trtip hidden aria-hidden=true><span id=trtip_a></span><small id=trtip_b></small></div><i id=trcur hidden aria-hidden=true></i>
+ <canvas id=trwf tabindex=0 aria-label="Waveform with the A and B points and the trigger points"></canvas>
+ <div class=trgrid id=trgrid>
+  <div class="trpt i"><b>A</b><button class=setpt data-mo=" at playhead" onclick="trHere('inn')" title="Use the current play position as point A">Set A</button><button class=trprec onclick="trPrec()" aria-pressed=true title="Precision: show or hide the time and nudge controls" aria-label="Precision for A"></button><span class=tmf><input id=tr_in autocomplete=off onchange="trField('inn',this.value)" title="Where the track starts (m:ss.s)" aria-label="A, minutes and seconds"><span class=tma><button type=button tabindex=-1 data-f=inn data-d=1 aria-label="A later" title="Later (hold to repeat, Shift = 10x)">&#9652;</button><button type=button tabindex=-1 data-f=inn data-d=-1 aria-label="A earlier" title="Earlier (hold to repeat, Shift = 10x)">&#9662;</button></span></span><button onclick="TR.inn=0;trUpd()" title="Start from the beginning of the file">Reset</button></div>
+  <div class="trpt o"><b>B</b><button class=setpt data-mo=" at playhead" onclick="trHere('out')" title="Use the current play position as point B">Set B</button><button class=trprec onclick="trPrec()" aria-pressed=true title="Precision: show or hide the time and nudge controls" aria-label="Precision for B"></button><span class=tmf><input id=tr_out autocomplete=off onchange="trField('out',this.value)" title="Where the track ends (m:ss.s)" aria-label="B, minutes and seconds"><span class=tma><button type=button tabindex=-1 data-f=out data-d=1 aria-label="B later" title="Later (hold to repeat, Shift = 10x)">&#9652;</button><button type=button tabindex=-1 data-f=out data-d=-1 aria-label="B earlier" title="Earlier (hold to repeat, Shift = 10x)">&#9662;</button></span></span><button onclick="TR.out=TR.full;trUpd()" title="Play to the end of the file">Reset</button></div>
+  <div class="trstep"><span class=trinfo><span class=dsk>Precision step</span><span class=mo>Nudge step</span></span><span class=trseg role=group aria-label="Precision step"><button type=button data-s=0.01>0.01 s</button><button type=button data-s=0.1>0.1 s</button><button type=button data-s=1>1 s</button></span></div>
+  <div class="trstep"><span class=trinfo><span class=dsk>Precision step</span><span class=mo>Nudge step</span></span><span class=trseg role=group aria-label="Precision step"><button type=button data-s=0.01>0.01 s</button><button type=button data-s=0.1>0.1 s</button><button type=button data-s=1>1 s</button></span></div>
+  <div class=trpt><b style="min-width:auto">At A</b><select id=tr_start onchange="trStart(this.value)" aria-label="What happens at A"><option value=cut>Cut</option><option value=fade>Fade in</option></select><span class=trfade id=tr_fadein><span class=dsk>for </span><button type=button class=stp data-fd=in data-d=-1 aria-label="Shorter fade-in">&minus;</button><span class=nfs><input id=tr_fiv type=number min=0.1 max=10 step=0.1 autocomplete=off onchange="trFadeInSet(this.value)" aria-label="Fade-in length in seconds" title="Fade-in length at A, 0.1 to 10 seconds"><em>s</em></span><button type=button class=stp data-fd=in data-d=1 aria-label="Longer fade-in">+</button></span><span class=trinfo id=tr_fidef>(default)</span><button class=trlink id=tr_fiuse onclick="trFadeInDef()" title="Go back to the default fade-in length (Settings)">Use default</button><span class=trinfo id=tr_fiinfo></span></div>
+  <div class=trpt><b style="min-width:auto">At B</b><select id=tr_end onchange="TR.end=this.value;trUpd()"><option value=fade>Fade out</option><option value=cut>Cut</option></select><span class=trfade id=tr_fade><span class=dsk>for </span><button type=button class=stp data-fd=out data-d=-1 aria-label="Shorter fade-out">&minus;</button><span class=nfs><input id=tr_fv type=number min=0.1 max=10 step=0.1 autocomplete=off onchange="trFadeSet(this.value)" aria-label="Fade-out length in seconds" title="Fade-out length at B, 0.1 to 10 seconds"><em>s</em></span><button type=button class=stp data-fd=out data-d=1 aria-label="Longer fade-out">+</button></span><span class=trinfo id=tr_fdef>(default)</span><button class=trlink id=tr_fuse onclick="trFadeDef()" title="Go back to the default fade length (Settings)">Use default</button><span class=trinfo id=tr_fadeinfo></span></div>
+  <div class="trinfo trfn" id=tr_fnote></div>
+  <div class=trinfo id=tr_len><span id=tr_plays></span><b id=tr_ph></b></div>
+ </div>
+ <div class=btns><b class=trpv title="These buttons play the track through the preview, not on air">Preview</b>
+  <label class=trout><span>Output</span><select id=tr_pvt onchange="setPvTarget(this.value)" aria-label="Preview output"></select></label>
+  <button id=tr_ab onclick="trAud(TR.inn,TR.out,false,TR.loop)" title="Play A to B, exactly as it will play on air (with the fades or cuts)" aria-label="Play A to B"></button>
+  <button onclick="trAud(Math.max(TR.inn,TR.out-6),TR.out)" title="Hear the last 6 seconds up to B, to check the ending">&#9654; Last 6 s</button>
+  <button id=tr_pp onclick="trPP()" aria-label="Play or pause the whole track" title="Play the whole file from the play position, ignoring B (to find the points). Press again to pause."></button>
+  <button id=tr_stop onclick="trStop()" aria-label="Stop" title="Stop the preview"></button>
+  <button id=tr_loop class=trloop onclick="trLoopTog()" aria-pressed=false title="Loop A to B: Play A-B repeats from A each time it reaches B, with the fades applied" aria-label="Loop A to B"></button>
+ </div>
+ <div class=trinfo id=tr_loopnote hidden></div>
+ <div class="trnotes mo"><p>Loop is for previewing only: with it on, Play A-B repeats from A each time it reaches B, fades applied. It never loops the live program. Stop or switch Loop off to end it.</p><p>Preview plays through this browser by default, so you hear it on the phone. The player&rsquo;s own preview output is in the list for when you want it.</p></div>
+ <div class=trgsec id=trgsec>
+  <div class=trgh><h4>Trigger points</h4><button id=trg_add onclick="trgAdd()" title="Add a trigger at the play position (click the waveform or use the preview to choose it first)"></button></div>
+  <div class=hint2>When the live track reaches a trigger point, the chosen library track plays on top of it, with the Play on Top ducking settings. Times are positions in the file. Needs <b>Auto triggers</b> to be on.</div>
+  <div id=trg_empty class=trinfo>No trigger points on this track.</div>
+  <div id=trg_list></div>
+ </div>
+ <div id=cbo popover=manual role=dialog><input id=cbo_q role=combobox aria-expanded=true aria-controls=cbo_l aria-autocomplete=list autocomplete=off autocapitalize=off spellcheck=false><div id=cbo_l role=listbox></div></div>
+ <div id=trmsg class="msg bad"></div>
+ <div class=row style="justify-content:space-between"><button onclick="trClear()" id=tr_clear title="Remove trim: play the whole file again" aria-label="Remove trim"><svg class=mo width=18 height=18 viewBox="0 0 24 24" fill=none stroke=currentColor stroke-width=2 stroke-linecap=round stroke-linejoin=round aria-hidden=true><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg><span class=dsk>Remove trim</span></button><span class=row style="margin:0"><button onclick="trdlg.close()">Cancel</button><button class=pri onclick="trSave()">Save</button></span></div>
+</dialog>
+<dialog id=fdlg>
+ <h3 id=fdtitle></h3>
+ <div class=fld><label for=fd_name>Name</label><span class=nmx><input id=fd_name autocomplete=off><small id=fd_ext></small></span></div>
+ <div class=fld id=fd_frow><label for=fd_folder>Parent Folder</label><select id=fd_folder></select></div>
+ <div id=fdmsg class="msg bad"></div>
+ <div class=row style="justify-content:flex-end"><button onclick="fdlg.close()">Cancel</button><button class=pri onclick="fdSave()">Save</button></div>
+</dialog>
+<input type=file id=picker multiple accept="audio/*,video/*,.wav,.mp3,.ogg,.flac,.m4a,.aac,.aif,.aiff,.aifc,.caf,.wma,.opus,.oga,.mp2,.ac3,.wv,.mp4,.m4v,.mov,.mkv,.webm,.avi,.3gp" hidden>
+<input type=file id=picker2 webkitdirectory multiple hidden>
+<script><!--@include app.js--></script>

@@ -1,0 +1,134 @@
+test_add_update_delete_set_and_order (__main__.TriggerTests.test_add_update_delete_set_and_order) ... Executing <Task finished name='Task-1' coro=<TriggerTests.asyncSetUp() done, defined at <repo>/tests/test_triggers.py:43> result=None created at /opt/homebrew/Cellar/python@3.12/3.12.14/Frameworks/Python.framework/Versions/3.12/lib/python3.12/asyncio/runners.py:100> took 0.222 seconds
+ok
+test_api_validation (__main__.TriggerTests.test_api_validation) ... ok
+test_crossfade_to_another_track_does_not_fire (__main__.TriggerTests.test_crossfade_to_another_track_does_not_fire) ... ok
+test_device_change_keeps_state (__main__.TriggerTests.test_device_change_keeps_state) ... trigger fired: vo
+trigger fired: vo2
+trigger vo2: fired 0.50 s late (the track was still loading)
+ok
+test_disabled_and_outside_triggers_are_not_listed_live (__main__.TriggerTests.test_disabled_and_outside_triggers_are_not_listed_live) ... ok
+test_disabled_trigger_never_fires (__main__.TriggerTests.test_disabled_trigger_never_fires) ... ok
+test_disarmed_never_fires_and_rearms (__main__.TriggerTests.test_disarmed_never_fires_and_rearms) ... trigger skipped: vo (Auto triggers are off)
+trigger fired: vo
+ok
+test_fade_out_does_not_fire (__main__.TriggerTests.test_fade_out_does_not_fire) ... ok
+test_fires_once_at_the_time (__main__.TriggerTests.test_fires_once_at_the_time) ... trigger fired: vo
+ok
+test_live_triggers_json_greys_fired_and_voiceover_has_a_fid (__main__.TriggerTests.test_live_triggers_json_greys_fired_and_voiceover_has_a_fid) ... trigger fired: vo
+trigger fired: vo2
+ok
+test_loop_fires_every_pass (__main__.TriggerTests.test_loop_fires_every_pass) ... trigger fired: vo
+trigger fired: vo
+trigger fired: vo
+ok
+test_loop_once_end_action_second_pass (__main__.TriggerTests.test_loop_once_end_action_second_pass) ... trigger fired: vo
+trigger fired: vo2
+trigger fired: vo
+Executing <Task finished name='Task-179' coro=<TriggerTests.asyncTearDown() done, defined at <repo>/tests/test_triggers.py:83> result=None created at /opt/homebrew/Cellar/python@3.12/3.12.14/Frameworks/Python.framework/Versions/3.12/lib/python3.12/asyncio/runners.py:100> took 0.105 seconds
+ok
+test_loop_once_flag_fires_first_pass_only (__main__.TriggerTests.test_loop_once_flag_fires_first_pass_only) ... trigger fired: vo
+ok
+test_manual_top_does_not_stop_tracking (__main__.TriggerTests.test_manual_top_does_not_stop_tracking) ... trigger fired: vo
+ok
+test_missing_target_is_kept_and_reported (__main__.TriggerTests.test_missing_target_is_kept_and_reported) ... trigger failed: vo is missing from the library
+ok
+test_move_to_another_playlist_carries_triggers (__main__.TriggerTests.test_move_to_another_playlist_carries_triggers) ... ok
+test_next_trigger_and_end_of_track (__main__.TriggerTests.test_next_trigger_and_end_of_track) ... trigger fired: vo2
+ok
+test_not_ready_target_fires_as_soon_as_it_is_loaded (__main__.TriggerTests.test_not_ready_target_fires_as_soon_as_it_is_loaded) ... /opt/homebrew/Cellar/python@3.12/3.12.14/Frameworks/Python.framework/Versions/3.12/lib/python3.12/traceback.py:265: ResourceWarning: unclosed <socket.socket fd=6, family=2, type=2, proto=0, laddr=('0.0.0.0', 0)>
+  def __init__(self, filename, lineno, name, *, lookup_line=True,
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.12/3.12.14/Frameworks/Python.framework/Versions/3.12/lib/python3.12/traceback.py:265: ResourceWarning: unclosed <socket.socket fd=10, family=2, type=2, proto=0, laddr=('0.0.0.0', 0)>
+  def __init__(self, filename, lineno, name, *, lookup_line=True,
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.12/3.12.14/Frameworks/Python.framework/Versions/3.12/lib/python3.12/traceback.py:265: ResourceWarning: unclosed <socket.socket fd=7, family=2, type=2, proto=0, laddr=('0.0.0.0', 0)>
+  def __init__(self, filename, lineno, name, *, lookup_line=True,
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.12/3.12.14/Frameworks/Python.framework/Versions/3.12/lib/python3.12/traceback.py:265: ResourceWarning: unclosed <socket.socket fd=8, family=2, type=2, proto=0, laddr=('0.0.0.0', 0)>
+  def __init__(self, filename, lineno, name, *, lookup_line=True,
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.12/3.12.14/Frameworks/Python.framework/Versions/3.12/lib/python3.12/traceback.py:265: ResourceWarning: unclosed <socket.socket fd=9, family=2, type=2, proto=0, laddr=('0.0.0.0', 0)>
+  def __init__(self, filename, lineno, name, *, lookup_line=True,
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.12/3.12.14/Frameworks/Python.framework/Versions/3.12/lib/python3.12/traceback.py:265: ResourceWarning: unclosed <socket.socket fd=16, family=2, type=2, proto=0, laddr=('0.0.0.0', 0)>
+  def __init__(self, filename, lineno, name, *, lookup_line=True,
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.12/3.12.14/Frameworks/Python.framework/Versions/3.12/lib/python3.12/traceback.py:265: ResourceWarning: unclosed <socket.socket fd=11, family=2, type=2, proto=0, laddr=('0.0.0.0', 0)>
+  def __init__(self, filename, lineno, name, *, lookup_line=True,
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.12/3.12.14/Frameworks/Python.framework/Versions/3.12/lib/python3.12/traceback.py:265: ResourceWarning: unclosed <socket.socket fd=12, family=2, type=2, proto=0, laddr=('0.0.0.0', 0)>
+  def __init__(self, filename, lineno, name, *, lookup_line=True,
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.12/3.12.14/Frameworks/Python.framework/Versions/3.12/lib/python3.12/traceback.py:265: ResourceWarning: unclosed <socket.socket fd=13, family=2, type=2, proto=0, laddr=('0.0.0.0', 0)>
+  def __init__(self, filename, lineno, name, *, lookup_line=True,
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.12/3.12.14/Frameworks/Python.framework/Versions/3.12/lib/python3.12/traceback.py:265: ResourceWarning: unclosed <socket.socket fd=14, family=2, type=2, proto=0, laddr=('0.0.0.0', 0)>
+  def __init__(self, filename, lineno, name, *, lookup_line=True,
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.12/3.12.14/Frameworks/Python.framework/Versions/3.12/lib/python3.12/traceback.py:265: ResourceWarning: unclosed <socket.socket fd=15, family=2, type=2, proto=0, laddr=('0.0.0.0', 0)>
+  def __init__(self, filename, lineno, name, *, lookup_line=True,
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.12/3.12.14/Frameworks/Python.framework/Versions/3.12/lib/python3.12/traceback.py:265: ResourceWarning: unclosed <socket.socket fd=17, family=2, type=2, proto=0, laddr=('0.0.0.0', 0)>
+  def __init__(self, filename, lineno, name, *, lookup_line=True,
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.12/3.12.14/Frameworks/Python.framework/Versions/3.12/lib/python3.12/traceback.py:265: ResourceWarning: unclosed <socket.socket fd=18, family=2, type=2, proto=0, laddr=('0.0.0.0', 0)>
+  def __init__(self, filename, lineno, name, *, lookup_line=True,
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.12/3.12.14/Frameworks/Python.framework/Versions/3.12/lib/python3.12/traceback.py:265: ResourceWarning: unclosed <socket.socket fd=19, family=2, type=2, proto=0, laddr=('0.0.0.0', 0)>
+  def __init__(self, filename, lineno, name, *, lookup_line=True,
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.12/3.12.14/Frameworks/Python.framework/Versions/3.12/lib/python3.12/traceback.py:265: ResourceWarning: unclosed <socket.socket fd=20, family=2, type=2, proto=0, laddr=('0.0.0.0', 0)>
+  def __init__(self, filename, lineno, name, *, lookup_line=True,
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.12/3.12.14/Frameworks/Python.framework/Versions/3.12/lib/python3.12/traceback.py:265: ResourceWarning: unclosed <socket.socket fd=21, family=2, type=2, proto=0, laddr=('0.0.0.0', 0)>
+  def __init__(self, filename, lineno, name, *, lookup_line=True,
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.12/3.12.14/Frameworks/Python.framework/Versions/3.12/lib/python3.12/traceback.py:265: ResourceWarning: unclosed <socket.socket fd=22, family=2, type=2, proto=0, laddr=('0.0.0.0', 0)>
+  def __init__(self, filename, lineno, name, *, lookup_line=True,
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+trigger fired: vo2
+trigger vo2: fired 0.50 s late (the track was still loading)
+ok
+test_nothing_reaches_companion (__main__.TriggerTests.test_nothing_reaches_companion) ... ok
+test_pause_holds (__main__.TriggerTests.test_pause_holds) ... trigger fired: vo
+ok
+test_removed_from_playlist_keeps_its_triggers_like_trims (__main__.TriggerTests.test_removed_from_playlist_keeps_its_triggers_like_trims) ... ok
+test_rename_follows_both_the_track_and_the_target (__main__.TriggerTests.test_rename_follows_both_the_track_and_the_target) ... ok
+test_reorder_inside_a_playlist_keeps_triggers (__main__.TriggerTests.test_reorder_inside_a_playlist_keeps_triggers) ... ok
+test_seek_back_rearms (__main__.TriggerTests.test_seek_back_rearms) ... trigger fired: vo
+trigger fired: vo
+ok
+test_seek_forward_to_just_before_still_fires (__main__.TriggerTests.test_seek_forward_to_just_before_still_fires) ... trigger fired: vo
+ok
+test_seek_over_does_not_fire (__main__.TriggerTests.test_seek_over_does_not_fire) ... ok
+test_skip_next_skips_exactly_one (__main__.TriggerTests.test_skip_next_skips_exactly_one) ... trigger skipped: vo (skipped by the operator)
+trigger fired: vo
+ok
+test_survive_save_and_load (__main__.TriggerTests.test_survive_save_and_load) ... ok
+test_target_is_warmed_before_the_time_comes (__main__.TriggerTests.test_target_is_warmed_before_the_time_comes) ... Executing <Task pending name='Task-386' coro=<TriggerTests.test_target_is_warmed_before_the_time_comes() running at <repo>/tests/test_triggers.py:357> wait_for=<Future pending cb=[shield.<locals>._outer_done_callback() at /opt/homebrew/Cellar/python@3.12/3.12.14/Frameworks/Python.framework/Versions/3.12/lib/python3.12/asyncio/tasks.py:922, Task.task_wakeup()] created at /opt/homebrew/Cellar/python@3.12/3.12.14/Frameworks/Python.framework/Versions/3.12/lib/python3.12/asyncio/base_events.py:448> cb=[_run_until_complete_cb() at /opt/homebrew/Cellar/python@3.12/3.12.14/Frameworks/Python.framework/Versions/3.12/lib/python3.12/asyncio/base_events.py:181] created at /opt/homebrew/Cellar/python@3.12/3.12.14/Frameworks/Python.framework/Versions/3.12/lib/python3.12/asyncio/runners.py:100> took 0.116 seconds
+Library: 4 file(s), 8.0 MB | disk free 74.4 GB
+trigger fired: vo2
+ok
+test_top_already_playing_skips_with_notice (__main__.TriggerTests.test_top_already_playing_skips_with_notice) ... trigger skipped: vo (a Play on Top is already running)
+ok
+test_track_end_is_clean (__main__.TriggerTests.test_track_end_is_clean) ... ok
+test_trigger_at_loop_end_is_not_missed (__main__.TriggerTests.test_trigger_at_loop_end_is_not_missed) ... <frozen importlib._bootstrap>:488: ResourceWarning: unclosed <socket.socket fd=16, family=2, type=2, proto=0, laddr=('0.0.0.0', 0)>
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+trigger fired: vo
+ok
+test_trigger_at_the_in_point_fires (__main__.TriggerTests.test_trigger_at_the_in_point_fires) ... trigger fired: vo
+ok
+test_trigger_inside_trim_with_offset (__main__.TriggerTests.test_trigger_inside_trim_with_offset) ... trigger fired: vo
+ok
+test_trim_in_after_trigger_never_fires (__main__.TriggerTests.test_trim_in_after_trigger_never_fires) ... ok
+test_trim_out_before_trigger_never_fires (__main__.TriggerTests.test_trim_out_before_trigger_never_fires) ... ok
+test_two_triggers_in_order (__main__.TriggerTests.test_two_triggers_in_order) ... trigger fired: vo
+trigger fired: vo2
+ok
+test_warm_order_puts_trigger_targets_first (__main__.TriggerTests.test_warm_order_puts_trigger_targets_first) ... ok
+
+----------------------------------------------------------------------
+Ran 38 tests in 11.714s
+
+OK
+exit 0

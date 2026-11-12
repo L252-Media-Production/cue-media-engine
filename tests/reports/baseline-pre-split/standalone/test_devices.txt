@@ -1,0 +1,49 @@
+PASS server sorts naturally (1-2 before 11-12, Out 2 before Out 10, double spaces ignored in the key)
+PASS System default stays first
+PASS option values are the exact names (double spaces kept)
+PASS duplicate display names are told apart
+PASS Mirror and preview lists have the same exact values
+PASS stores exact name: 'DVS Transmit  1-2 (Dante Virtual Soundcard)'
+PASS   pygame.mixer.init got it: 'DVS Transmit  1-2 (Dante Virtual Soundcard)'
+PASS   selection survives reload: 'DVS Transmit  1-2 (Dante Virtual Soundcard)'
+PASS stores exact name: 'DVS Transmit  3-4 (Dante Virtual Soundcard)'
+PASS   pygame.mixer.init got it: 'DVS Transmit  3-4 (Dante Virtual Soundcard)'
+PASS   selection survives reload: 'DVS Transmit  3-4 (Dante Virtual Soundcard)'
+PASS stores exact name: 'DVS Transmit  5-6 (Dante Virtual Soundcard)'
+PASS   pygame.mixer.init got it: 'DVS Transmit  5-6 (Dante Virtual Soundcard)'
+PASS   selection survives reload: 'DVS Transmit  5-6 (Dante Virtual Soundcard)'
+PASS stores exact name: 'DVS Transmit  7-8 (Dante Virtual Soundcard)'
+PASS   pygame.mixer.init got it: 'DVS Transmit  7-8 (Dante Virtual Soundcard)'
+PASS   selection survives reload: 'DVS Transmit  7-8 (Dante Virtual Soundcard)'
+PASS stores exact name: 'DVS Transmit  9-10 (Dante Virtual Soundcard)'
+PASS   pygame.mixer.init got it: 'DVS Transmit  9-10 (Dante Virtual Soundcard)'
+PASS   selection survives reload: 'DVS Transmit  9-10 (Dante Virtual Soundcard)'
+PASS stores exact name: 'DVS Transmit 11-12 (Dante Virtual Soundcard)'
+PASS   pygame.mixer.init got it: 'DVS Transmit 11-12 (Dante Virtual Soundcard)'
+PASS   selection survives reload: 'DVS Transmit 11-12 (Dante Virtual Soundcard)'
+PASS stores exact name: 'DVS Transmit 13-14 (Dante Virtual Soundcard)'
+PASS   pygame.mixer.init got it: 'DVS Transmit 13-14 (Dante Virtual Soundcard)'
+PASS   selection survives reload: 'DVS Transmit 13-14 (Dante Virtual Soundcard)'
+PASS stores exact name: 'DVS Transmit 15-16 (Dante Virtual Soundcard)'
+PASS   pygame.mixer.init got it: 'DVS Transmit 15-16 (Dante Virtual Soundcard)'
+PASS   selection survives reload: 'DVS Transmit 15-16 (Dante Virtual Soundcard)'
+PASS mirror stores exact name 'DVS Transmit  1-2 (Dante Virtual Soundcard)'
+PASS   mirror worker started with the exact name
+PASS mirror stores exact name 'DVS Transmit  9-10 (Dante Virtual Soundcard)'
+PASS   mirror worker started with the exact name
+PASS Settings preview select has exact values
+PASS preview stores exact name
+PASS   preview worker started with the exact name
+PASS late device not listed before refresh
+PASS Refresh devices lists the late device, in order
+PASS   the output menu got it too
+PASS opening an output menu re-reads the list
+PASS missing saved output: logged clearly
+PASS missing saved output: notice in /api/devices
+PASS missing saved output: system default used
+PASS missing saved output: state.json keeps the name
+PASS page shows the notice
+PASS choosing it once it exists works and clears the notice
+
+0 failure(s)
+exit 0

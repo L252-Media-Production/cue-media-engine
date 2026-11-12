@@ -1,0 +1,22 @@
+{
+  "name": "companion-module-cue-media-engine",
+  "version": "2.8.0",
+  "description": "Bitfocus Companion module for Cue Media Engine (CueME), a playlist and cue audio player",
+  "main": "src/main.js",
+  "type": "module",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "package": "companion-module-build",
+    "test": "node --test test/*.test.mjs"
+  },
+  "engines": {
+    "node": "^22.8"
+  },
+  "dependencies": {
+    "@companion-module/base": "~2.2.2"
+  },
+  "devDependencies": {
+    "@companion-module/tools": "^3.2.0"
+  }
+}

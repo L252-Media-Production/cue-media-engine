@@ -1,0 +1,1 @@
+{"allowed_changed": ["bump", "save"], "allowed_added": ["on_change","on_save"], "allowed_other_added": ["S.on_change.append(request_warm)","S.on_save.append(request_loudness)"]}

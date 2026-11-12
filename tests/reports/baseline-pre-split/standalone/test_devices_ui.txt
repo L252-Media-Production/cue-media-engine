@@ -1,0 +1,38 @@
+PASS trigger is a combobox with aria
+PASS native select keeps id/value
+PASS opens with 30 devices + System default
+PASS search box focused automatically
+PASS aria: expanded, listbox, activedescendant
+PASS current (System default) highlighted
+PASS page did not scroll
+PASS filter 'dvs 1': default pinned + DVS pairs containing 1
+PASS punctuation/space ignored: 'transmit 3-4'
+PASS case/space ignored: 'OUT10'
+PASS no match: empty state, pinned stays
+PASS open dropdown survives the periodic refresh, text kept
+PASS Esc closes, focus back on the trigger
+PASS End -> last
+PASS Home -> first (System default)
+PASS Enter chooses the 2nd device; exact name stored
+PASS trigger label shows it
+PASS popover closed after choosing
+PASS current device is the highlighted one
+PASS Mirror dropdown: Off pinned first
+PASS Mirror stores exact name
+PASS popover works inside the Settings modal (not inert)
+PASS Settings preview device stores exact name
+PASS Settings dialog still open after Esc inside popover
+PASS preview target list has 'This browser'
+PASS Esc in popover does not close Settings
+PASS popover inside the viewport in a short window
+PASS trigger picker: opens in the modal with the library, search focused
+PASS trigger picker: filters
+PASS trigger picker: its own empty text
+PASS trigger picker: Esc closes it and keeps the trim dialog
+PASS trigger picker: choosing sets the target
+PASS touch rows are at least 40px (coarse=True, row=44px)
+PASS narrow (light): popover inside the viewport
+PASS narrow (dark): popover inside the viewport
+
+0 failure(s)
+exit 0

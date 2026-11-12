@@ -1,0 +1,4 @@
+{"_comment": "P3 commit 2 (docs/split-plan.md 3.3): util, config, dsp leave cpl/legacy.py verbatim. Reviewed changes: duck_curve takes its settings as arguments (fix F1), its two call sites in duck_arm pass them; _test_dev_dir becomes an import of the helper hook",
+ "allowed_changed": ["duck_curve", "duck_arm"],
+ "allowed_removed": ["_test_dev_dir"],
+ "allowed_added": []}

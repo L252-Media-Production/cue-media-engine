@@ -1,0 +1,227 @@
+PASS console/light/420px/mirror=off/wave=on: no overlap, inside the row, no page overflow
+PASS console/light/420px/mirror=off/wave=on: slider >= 8rem (128px)
+PASS console/light/420px/mirror=off/wave=on: tooltip holds the full name
+PASS console/light/420px/mirror=off/wave=off: no overlap, inside the row, no page overflow
+PASS console/light/420px/mirror=off/wave=off: slider >= 8rem (128px)
+PASS console/light/420px/mirror=off/wave=off: tooltip holds the full name
+PASS console/light/420px/mirror=on/wave=on: no overlap, inside the row, no page overflow
+PASS console/light/420px/mirror=on/wave=on: slider >= 8rem (128px)
+PASS console/light/420px/mirror=on/wave=on: tooltip holds the full name
+PASS console/light/420px/mirror=on/wave=off: no overlap, inside the row, no page overflow
+PASS console/light/420px/mirror=on/wave=off: slider >= 8rem (128px)
+PASS console/light/420px/mirror=on/wave=off: tooltip holds the full name
+PASS console/light/820px/mirror=off/wave=on: no overlap, inside the row, no page overflow
+PASS console/light/820px/mirror=off/wave=on: slider >= 8rem (128px)
+PASS console/light/820px/mirror=off/wave=on: full names shown (not truncated)
+PASS console/light/820px/mirror=off/wave=on: tooltip holds the full name
+PASS console/light/820px/mirror=off/wave=off: no overlap, inside the row, no page overflow
+PASS console/light/820px/mirror=off/wave=off: slider >= 8rem (128px)
+PASS console/light/820px/mirror=off/wave=off: full names shown (not truncated)
+PASS console/light/820px/mirror=off/wave=off: tooltip holds the full name
+PASS console/light/820px/mirror=on/wave=on: no overlap, inside the row, no page overflow
+PASS console/light/820px/mirror=on/wave=on: slider >= 8rem (128px)
+PASS console/light/820px/mirror=on/wave=on: full names shown (not truncated)
+PASS console/light/820px/mirror=on/wave=on: tooltip holds the full name
+PASS console/light/820px/mirror=on/wave=off: no overlap, inside the row, no page overflow
+PASS console/light/820px/mirror=on/wave=off: slider >= 8rem (128px)
+PASS console/light/820px/mirror=on/wave=off: full names shown (not truncated)
+PASS console/light/820px/mirror=on/wave=off: tooltip holds the full name
+PASS console/light/1150px/mirror=off/wave=on: no overlap, inside the row, no page overflow
+PASS console/light/1150px/mirror=off/wave=on: slider >= 8rem (128px)
+PASS console/light/1150px/mirror=off/wave=on: full names shown (not truncated)
+PASS console/light/1150px/mirror=off/wave=on: tooltip holds the full name
+PASS console/light/1150px/mirror=off/wave=off: no overlap, inside the row, no page overflow
+PASS console/light/1150px/mirror=off/wave=off: slider >= 8rem (128px)
+PASS console/light/1150px/mirror=off/wave=off: full names shown (not truncated)
+PASS console/light/1150px/mirror=off/wave=off: tooltip holds the full name
+PASS console/light/1150px/mirror=on/wave=on: no overlap, inside the row, no page overflow
+PASS console/light/1150px/mirror=on/wave=on: slider >= 8rem (128px)
+PASS console/light/1150px/mirror=on/wave=on: full names shown (not truncated)
+PASS console/light/1150px/mirror=on/wave=on: tooltip holds the full name
+PASS console/light/1150px/mirror=on/wave=off: no overlap, inside the row, no page overflow
+PASS console/light/1150px/mirror=on/wave=off: slider >= 8rem (128px)
+PASS console/light/1150px/mirror=on/wave=off: full names shown (not truncated)
+PASS console/light/1150px/mirror=on/wave=off: tooltip holds the full name
+PASS console/light/1400px/mirror=off/wave=on: no overlap, inside the row, no page overflow
+PASS console/light/1400px/mirror=off/wave=on: slider >= 8rem (128px)
+PASS console/light/1400px/mirror=off/wave=on: full names shown (not truncated)
+PASS console/light/1400px/mirror=off/wave=on: tooltip holds the full name
+PASS console/light/1400px/mirror=off/wave=off: no overlap, inside the row, no page overflow
+PASS console/light/1400px/mirror=off/wave=off: slider >= 8rem (128px)
+PASS console/light/1400px/mirror=off/wave=off: full names shown (not truncated)
+PASS console/light/1400px/mirror=off/wave=off: tooltip holds the full name
+PASS console/light/1400px/mirror=on/wave=on: no overlap, inside the row, no page overflow
+PASS console/light/1400px/mirror=on/wave=on: slider >= 8rem (128px)
+PASS console/light/1400px/mirror=on/wave=on: full names shown (not truncated)
+PASS console/light/1400px/mirror=on/wave=on: tooltip holds the full name
+PASS console/light/1400px/mirror=on/wave=off: no overlap, inside the row, no page overflow
+PASS console/light/1400px/mirror=on/wave=off: slider >= 8rem (128px)
+PASS console/light/1400px/mirror=on/wave=off: full names shown (not truncated)
+PASS console/light/1400px/mirror=on/wave=off: tooltip holds the full name
+PASS console/dark/420px/mirror=off/wave=on: no overlap, inside the row, no page overflow
+PASS console/dark/420px/mirror=off/wave=on: slider >= 8rem (128px)
+PASS console/dark/420px/mirror=off/wave=on: tooltip holds the full name
+PASS console/dark/420px/mirror=on/wave=on: no overlap, inside the row, no page overflow
+PASS console/dark/420px/mirror=on/wave=on: slider >= 8rem (128px)
+PASS console/dark/420px/mirror=on/wave=on: tooltip holds the full name
+PASS console/dark/1400px/mirror=off/wave=on: no overlap, inside the row, no page overflow
+PASS console/dark/1400px/mirror=off/wave=on: slider >= 8rem (128px)
+PASS console/dark/1400px/mirror=off/wave=on: full names shown (not truncated)
+PASS console/dark/1400px/mirror=off/wave=on: tooltip holds the full name
+PASS console/dark/1400px/mirror=on/wave=on: no overlap, inside the row, no page overflow
+PASS console/dark/1400px/mirror=on/wave=on: slider >= 8rem (128px)
+PASS console/dark/1400px/mirror=on/wave=on: full names shown (not truncated)
+PASS console/dark/1400px/mirror=on/wave=on: tooltip holds the full name
+PASS studio/light/420px/mirror=off/wave=on: no overlap, inside the row, no page overflow
+PASS studio/light/420px/mirror=off/wave=on: slider >= 8rem (128px)
+PASS studio/light/420px/mirror=off/wave=on: tooltip holds the full name
+PASS studio/light/420px/mirror=off/wave=off: no overlap, inside the row, no page overflow
+PASS studio/light/420px/mirror=off/wave=off: slider >= 8rem (128px)
+PASS studio/light/420px/mirror=off/wave=off: tooltip holds the full name
+PASS studio/light/420px/mirror=on/wave=on: no overlap, inside the row, no page overflow
+PASS studio/light/420px/mirror=on/wave=on: slider >= 8rem (128px)
+PASS studio/light/420px/mirror=on/wave=on: tooltip holds the full name
+PASS studio/light/420px/mirror=on/wave=off: no overlap, inside the row, no page overflow
+PASS studio/light/420px/mirror=on/wave=off: slider >= 8rem (128px)
+PASS studio/light/420px/mirror=on/wave=off: tooltip holds the full name
+PASS studio/light/820px/mirror=off/wave=on: no overlap, inside the row, no page overflow
+PASS studio/light/820px/mirror=off/wave=on: slider >= 8rem (128px)
+PASS studio/light/820px/mirror=off/wave=on: full names shown (not truncated)
+PASS studio/light/820px/mirror=off/wave=on: tooltip holds the full name
+PASS studio/light/820px/mirror=off/wave=off: no overlap, inside the row, no page overflow
+PASS studio/light/820px/mirror=off/wave=off: slider >= 8rem (128px)
+PASS studio/light/820px/mirror=off/wave=off: full names shown (not truncated)
+PASS studio/light/820px/mirror=off/wave=off: tooltip holds the full name
+PASS studio/light/820px/mirror=on/wave=on: no overlap, inside the row, no page overflow
+PASS studio/light/820px/mirror=on/wave=on: slider >= 8rem (128px)
+PASS studio/light/820px/mirror=on/wave=on: full names shown (not truncated)
+PASS studio/light/820px/mirror=on/wave=on: tooltip holds the full name
+PASS studio/light/820px/mirror=on/wave=off: no overlap, inside the row, no page overflow
+PASS studio/light/820px/mirror=on/wave=off: slider >= 8rem (128px)
+PASS studio/light/820px/mirror=on/wave=off: full names shown (not truncated)
+PASS studio/light/820px/mirror=on/wave=off: tooltip holds the full name
+PASS studio/light/1150px/mirror=off/wave=on: no overlap, inside the row, no page overflow
+PASS studio/light/1150px/mirror=off/wave=on: slider >= 8rem (128px)
+PASS studio/light/1150px/mirror=off/wave=on: full names shown (not truncated)
+PASS studio/light/1150px/mirror=off/wave=on: tooltip holds the full name
+PASS studio/light/1150px/mirror=off/wave=off: no overlap, inside the row, no page overflow
+PASS studio/light/1150px/mirror=off/wave=off: slider >= 8rem (128px)
+PASS studio/light/1150px/mirror=off/wave=off: full names shown (not truncated)
+PASS studio/light/1150px/mirror=off/wave=off: tooltip holds the full name
+PASS studio/light/1150px/mirror=on/wave=on: no overlap, inside the row, no page overflow
+PASS studio/light/1150px/mirror=on/wave=on: slider >= 8rem (128px)
+PASS studio/light/1150px/mirror=on/wave=on: full names shown (not truncated)
+PASS studio/light/1150px/mirror=on/wave=on: tooltip holds the full name
+PASS studio/light/1150px/mirror=on/wave=off: no overlap, inside the row, no page overflow
+PASS studio/light/1150px/mirror=on/wave=off: slider >= 8rem (128px)
+PASS studio/light/1150px/mirror=on/wave=off: full names shown (not truncated)
+PASS studio/light/1150px/mirror=on/wave=off: tooltip holds the full name
+PASS studio/light/1400px/mirror=off/wave=on: no overlap, inside the row, no page overflow
+PASS studio/light/1400px/mirror=off/wave=on: slider >= 8rem (128px)
+PASS studio/light/1400px/mirror=off/wave=on: full names shown (not truncated)
+PASS studio/light/1400px/mirror=off/wave=on: tooltip holds the full name
+PASS studio/light/1400px/mirror=off/wave=off: no overlap, inside the row, no page overflow
+PASS studio/light/1400px/mirror=off/wave=off: slider >= 8rem (128px)
+PASS studio/light/1400px/mirror=off/wave=off: full names shown (not truncated)
+PASS studio/light/1400px/mirror=off/wave=off: tooltip holds the full name
+PASS studio/light/1400px/mirror=on/wave=on: no overlap, inside the row, no page overflow
+PASS studio/light/1400px/mirror=on/wave=on: slider >= 8rem (128px)
+PASS studio/light/1400px/mirror=on/wave=on: full names shown (not truncated)
+PASS studio/light/1400px/mirror=on/wave=on: tooltip holds the full name
+PASS studio/light/1400px/mirror=on/wave=off: no overlap, inside the row, no page overflow
+PASS studio/light/1400px/mirror=on/wave=off: slider >= 8rem (128px)
+PASS studio/light/1400px/mirror=on/wave=off: full names shown (not truncated)
+PASS studio/light/1400px/mirror=on/wave=off: tooltip holds the full name
+PASS studio/dark/420px/mirror=off/wave=on: no overlap, inside the row, no page overflow
+PASS studio/dark/420px/mirror=off/wave=on: slider >= 8rem (128px)
+PASS studio/dark/420px/mirror=off/wave=on: tooltip holds the full name
+PASS studio/dark/420px/mirror=on/wave=on: no overlap, inside the row, no page overflow
+PASS studio/dark/420px/mirror=on/wave=on: slider >= 8rem (128px)
+PASS studio/dark/420px/mirror=on/wave=on: tooltip holds the full name
+PASS studio/dark/1400px/mirror=off/wave=on: no overlap, inside the row, no page overflow
+PASS studio/dark/1400px/mirror=off/wave=on: slider >= 8rem (128px)
+PASS studio/dark/1400px/mirror=off/wave=on: full names shown (not truncated)
+PASS studio/dark/1400px/mirror=off/wave=on: tooltip holds the full name
+PASS studio/dark/1400px/mirror=on/wave=on: no overlap, inside the row, no page overflow
+PASS studio/dark/1400px/mirror=on/wave=on: slider >= 8rem (128px)
+PASS studio/dark/1400px/mirror=on/wave=on: full names shown (not truncated)
+PASS studio/dark/1400px/mirror=on/wave=on: tooltip holds the full name
+PASS stage/light/420px/mirror=off/wave=on: no overlap, inside the row, no page overflow
+PASS stage/light/420px/mirror=off/wave=on: slider >= 8rem (128px)
+PASS stage/light/420px/mirror=off/wave=on: tooltip holds the full name
+PASS stage/light/420px/mirror=off/wave=off: no overlap, inside the row, no page overflow
+PASS stage/light/420px/mirror=off/wave=off: slider >= 8rem (128px)
+PASS stage/light/420px/mirror=off/wave=off: tooltip holds the full name
+PASS stage/light/420px/mirror=on/wave=on: no overlap, inside the row, no page overflow
+PASS stage/light/420px/mirror=on/wave=on: slider >= 8rem (128px)
+PASS stage/light/420px/mirror=on/wave=on: tooltip holds the full name
+PASS stage/light/420px/mirror=on/wave=off: no overlap, inside the row, no page overflow
+PASS stage/light/420px/mirror=on/wave=off: slider >= 8rem (128px)
+PASS stage/light/420px/mirror=on/wave=off: tooltip holds the full name
+PASS stage/light/820px/mirror=off/wave=on: no overlap, inside the row, no page overflow
+PASS stage/light/820px/mirror=off/wave=on: slider >= 8rem (128px)
+PASS stage/light/820px/mirror=off/wave=on: full names shown (not truncated)
+PASS stage/light/820px/mirror=off/wave=on: tooltip holds the full name
+PASS stage/light/820px/mirror=off/wave=off: no overlap, inside the row, no page overflow
+PASS stage/light/820px/mirror=off/wave=off: slider >= 8rem (128px)
+PASS stage/light/820px/mirror=off/wave=off: full names shown (not truncated)
+PASS stage/light/820px/mirror=off/wave=off: tooltip holds the full name
+PASS stage/light/820px/mirror=on/wave=on: no overlap, inside the row, no page overflow
+PASS stage/light/820px/mirror=on/wave=on: slider >= 8rem (128px)
+PASS stage/light/820px/mirror=on/wave=on: full names shown (not truncated)
+PASS stage/light/820px/mirror=on/wave=on: tooltip holds the full name
+PASS stage/light/820px/mirror=on/wave=off: no overlap, inside the row, no page overflow
+PASS stage/light/820px/mirror=on/wave=off: slider >= 8rem (128px)
+PASS stage/light/820px/mirror=on/wave=off: full names shown (not truncated)
+PASS stage/light/820px/mirror=on/wave=off: tooltip holds the full name
+PASS stage/light/1150px/mirror=off/wave=on: no overlap, inside the row, no page overflow
+PASS stage/light/1150px/mirror=off/wave=on: slider >= 8rem (128px)
+PASS stage/light/1150px/mirror=off/wave=on: full names shown (not truncated)
+PASS stage/light/1150px/mirror=off/wave=on: tooltip holds the full name
+PASS stage/light/1150px/mirror=off/wave=off: no overlap, inside the row, no page overflow
+PASS stage/light/1150px/mirror=off/wave=off: slider >= 8rem (128px)
+PASS stage/light/1150px/mirror=off/wave=off: full names shown (not truncated)
+PASS stage/light/1150px/mirror=off/wave=off: tooltip holds the full name
+PASS stage/light/1150px/mirror=on/wave=on: no overlap, inside the row, no page overflow
+PASS stage/light/1150px/mirror=on/wave=on: slider >= 8rem (128px)
+PASS stage/light/1150px/mirror=on/wave=on: full names shown (not truncated)
+PASS stage/light/1150px/mirror=on/wave=on: tooltip holds the full name
+PASS stage/light/1150px/mirror=on/wave=off: no overlap, inside the row, no page overflow
+PASS stage/light/1150px/mirror=on/wave=off: slider >= 8rem (128px)
+PASS stage/light/1150px/mirror=on/wave=off: full names shown (not truncated)
+PASS stage/light/1150px/mirror=on/wave=off: tooltip holds the full name
+PASS stage/light/1400px/mirror=off/wave=on: no overlap, inside the row, no page overflow
+PASS stage/light/1400px/mirror=off/wave=on: slider >= 8rem (128px)
+PASS stage/light/1400px/mirror=off/wave=on: full names shown (not truncated)
+PASS stage/light/1400px/mirror=off/wave=on: tooltip holds the full name
+PASS stage/light/1400px/mirror=off/wave=off: no overlap, inside the row, no page overflow
+PASS stage/light/1400px/mirror=off/wave=off: slider >= 8rem (128px)
+PASS stage/light/1400px/mirror=off/wave=off: full names shown (not truncated)
+PASS stage/light/1400px/mirror=off/wave=off: tooltip holds the full name
+PASS stage/light/1400px/mirror=on/wave=on: no overlap, inside the row, no page overflow
+PASS stage/light/1400px/mirror=on/wave=on: slider >= 8rem (128px)
+PASS stage/light/1400px/mirror=on/wave=on: full names shown (not truncated)
+PASS stage/light/1400px/mirror=on/wave=on: tooltip holds the full name
+PASS stage/light/1400px/mirror=on/wave=off: no overlap, inside the row, no page overflow
+PASS stage/light/1400px/mirror=on/wave=off: slider >= 8rem (128px)
+PASS stage/light/1400px/mirror=on/wave=off: full names shown (not truncated)
+PASS stage/light/1400px/mirror=on/wave=off: tooltip holds the full name
+PASS stage/dark/420px/mirror=off/wave=on: no overlap, inside the row, no page overflow
+PASS stage/dark/420px/mirror=off/wave=on: slider >= 8rem (128px)
+PASS stage/dark/420px/mirror=off/wave=on: tooltip holds the full name
+PASS stage/dark/420px/mirror=on/wave=on: no overlap, inside the row, no page overflow
+PASS stage/dark/420px/mirror=on/wave=on: slider >= 8rem (128px)
+PASS stage/dark/420px/mirror=on/wave=on: tooltip holds the full name
+PASS stage/dark/1400px/mirror=off/wave=on: no overlap, inside the row, no page overflow
+PASS stage/dark/1400px/mirror=off/wave=on: slider >= 8rem (128px)
+PASS stage/dark/1400px/mirror=off/wave=on: full names shown (not truncated)
+PASS stage/dark/1400px/mirror=off/wave=on: tooltip holds the full name
+PASS stage/dark/1400px/mirror=on/wave=on: no overlap, inside the row, no page overflow
+PASS stage/dark/1400px/mirror=on/wave=on: slider >= 8rem (128px)
+PASS stage/dark/1400px/mirror=on/wave=on: full names shown (not truncated)
+PASS stage/dark/1400px/mirror=on/wave=on: tooltip holds the full name
+PASS huge name: truncated with ellipsis inside the row, tooltip full
+PASS open list shows the full text of every device (wraps, not cut)
+
+0 failure(s)
+exit 0

@@ -1,0 +1,55 @@
+PASS round trip: import gives the identical layout
+PASS export has app/version/name/exported/layout
+PASS appearance only when ticked
+PASS file name is sanitised
+PASS empty name falls back to layout
+PASS download name
+PASS download content
+PASS layNorm repairs v1 rows
+PASS layNorm repairs v2 rows+w
+PASS layNorm repairs damaged numbers
+PASS layNorm repairs overlap
+PASS overlapping import is de-overlapped
+PASS rejected: oversize
+PASS rejected: not json
+PASS rejected: wrong app
+PASS rejected: newer version
+PASS rejected: no version
+PASS rejected: array
+PASS rejected: no layout
+PASS rejected: garbage layout
+PASS oversize file rejected
+PASS xss name shown as text (cut to 60 characters)
+PASS nothing stored by a preview
+PASS preview has five-block names / hidden list
+PASS apply stores the repaired layout
+PASS confirmation + undo button
+PASS previous kept in cp_layout_prev
+PASS undo restores the previous layout
+PASS undo is used up
+PASS undo offered after reload
+PASS undo after reload works
+PASS standard -> imported
+PASS undo to the standard layout
+PASS appearance offered, default off
+PASS appearance not applied unless ticked
+PASS appearance applied when ticked
+PASS undo restores appearance
+PASS bad appearance values are dropped
+PASS drop of text previews
+PASS drop of a file previews
+PASS standard layout is exported (measured)
+PASS note says standard layout
+PASS editor bar has Export/Import
+PASS import during edit survives Done
+PASS Reset layout still works
+PASS self-heal repairs damaged storage
+PASS narrow note shown
+PASS narrow: stored, not applied yet
+PASS applies after widening
+PASS narrow export falls back to default grid
+PASS editing stays wide-only
+PASS no page errors
+
+all passed
+exit 0
