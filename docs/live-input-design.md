@@ -1,6 +1,6 @@
 # Live input: design notes
 
-Moved from the user guide. The operator page is `docs/wiki/Live-Input.md`.
+Moved from the user guide. The operator page is the wiki page [Live Input](https://github.com/L252-Media-Production/cue-media-engine/wiki/Live-Input).
 
 ## Isolation
 

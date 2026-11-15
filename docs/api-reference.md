@@ -1,6 +1,6 @@
 # API and data reference
 
-Developer-level detail moved out of the user guide (`docs/wiki/`). Internal names and storage shapes: see also `CLAUDE.md`.
+Developer-level detail moved out of the user guide ([wiki](https://github.com/L252-Media-Production/cue-media-engine/wiki)). Internal names and storage shapes: see also `CLAUDE.md`.
 
 ## Library flags (favorite and hidden folders)
 

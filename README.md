@@ -25,7 +25,7 @@ The web page and the HTTP and OSC control have **no authentication**: anyone who
 
 ## Quick start
 
-Requirements: Python 3, and for the best results ffmpeg (optional; see [Configuration](docs/wiki/Configuration.md)).
+Requirements: Python 3, and for the best results ffmpeg (optional; see [Configuration](https://github.com/L252-Media-Production/cue-media-engine/wiki/Configuration)).
 
 First time only:
 
@@ -43,21 +43,21 @@ Every time after that, from this folder:
 
 Open <http://localhost:8080>. At startup the available audio output devices are printed.
 
-- **Linux (Debian), headless, with a USB audio interface** is the production target: run it as a systemd service (see [Install and run](docs/wiki/Install-and-Run.md)). Companion usually runs on the same machine.
+- **Linux (Debian), headless, with a USB audio interface** is the production target: run it as a systemd service (see [Install and run](https://github.com/L252-Media-Production/cue-media-engine/wiki/Install-and-Run)). Companion usually runs on the same machine.
 - **Raspberry Pi, Windows and macOS** are supported too. On Windows use `run-player.bat`; on macOS `run-player.command`. (The memory readout is not implemented on macOS.)
 
 **Updating:** copy `player.py`, `cpl/` and `static/` together over the old ones (the player refuses to start if `cpl/` or `static/` is missing or incomplete; on Windows also copy `run-player.bat`). Your playlists, library and settings are kept.
 
 ## Documentation
 
-The guide is in the project wiki (the pages are kept in [`docs/wiki/`](docs/wiki/) until the wiki is live).
+The guide is in the [project wiki](https://github.com/L252-Media-Production/cue-media-engine/wiki/Home).
 
 | Topic | Pages |
 |---|---|
-| Getting going | [Install and run](docs/wiki/Install-and-Run.md), [Configuration](docs/wiki/Configuration.md), [Audio outputs and Dante](docs/wiki/Audio-Outputs-and-Dante.md) |
-| Using it | [Library and playlists](docs/wiki/Library-and-Playlists.md), [Play modes and end actions](docs/wiki/Play-Modes-and-End-Actions.md), [Trim](docs/wiki/Trim-A-B.md), [Trigger points](docs/wiki/Trigger-Points.md), [Play on Top](docs/wiki/Play-on-Top.md), [Live input](docs/wiki/Live-Input.md), [Level match](docs/wiki/Level-Match.md), [Preview, Solo and Mirror](docs/wiki/Preview-and-Solo.md), [Live operation](docs/wiki/Live-Operation.md), [Appearance and layout](docs/wiki/Appearance-and-Layout.md), [Stage page](docs/wiki/Stage-Page.md) |
-| Companion | [OSC and HTTP commands](docs/wiki/OSC-and-HTTP-Commands.md), [Variables and settings](docs/wiki/Companion-Variables.md) |
-| Monitoring | [Health, watchdog and push](docs/wiki/Health-and-Monitoring.md) |
+| Getting going | [Install and run](https://github.com/L252-Media-Production/cue-media-engine/wiki/Install-and-Run), [Configuration](https://github.com/L252-Media-Production/cue-media-engine/wiki/Configuration), [Audio outputs and Dante](https://github.com/L252-Media-Production/cue-media-engine/wiki/Audio-Outputs-and-Dante) |
+| Using it | [Library and playlists](https://github.com/L252-Media-Production/cue-media-engine/wiki/Library-and-Playlists), [Play modes and end actions](https://github.com/L252-Media-Production/cue-media-engine/wiki/Play-Modes-and-End-Actions), [Trim](https://github.com/L252-Media-Production/cue-media-engine/wiki/Trim-A-B), [Trigger points](https://github.com/L252-Media-Production/cue-media-engine/wiki/Trigger-Points), [Play on Top](https://github.com/L252-Media-Production/cue-media-engine/wiki/Play-on-Top), [Live input](https://github.com/L252-Media-Production/cue-media-engine/wiki/Live-Input), [Level match](https://github.com/L252-Media-Production/cue-media-engine/wiki/Level-Match), [Preview, Solo and Mirror](https://github.com/L252-Media-Production/cue-media-engine/wiki/Preview-and-Solo), [Live operation](https://github.com/L252-Media-Production/cue-media-engine/wiki/Live-Operation), [Appearance and layout](https://github.com/L252-Media-Production/cue-media-engine/wiki/Appearance-and-Layout), [Stage page](https://github.com/L252-Media-Production/cue-media-engine/wiki/Stage-Page) |
+| Companion | [OSC and HTTP commands](https://github.com/L252-Media-Production/cue-media-engine/wiki/OSC-and-HTTP-Commands), [Variables and settings](https://github.com/L252-Media-Production/cue-media-engine/wiki/Companion-Variables) |
+| Monitoring | [Health, watchdog and push](https://github.com/L252-Media-Production/cue-media-engine/wiki/Health-and-Monitoring) |
 | Developers | [API and data reference](docs/api-reference.md), [Live input design](docs/live-input-design.md), [Changelog](CHANGELOG.md) |
 
 An operator's guide is also built into the player: **⚙ Settings > System > Maintenance > Help guide** (`http://<host>:8080/help`).
