@@ -2,6 +2,16 @@
 
 Newest first. The player (`player.py` + `static/`) and the Companion module share the major.minor version; the module warns when they differ.
 
+## Audio spec 1 (matches v2.8.0; no player change)
+
+A written contract for what the player does with sound, so that a second engine (CueME Stage, Swift / Core Audio) can be built to match it. **The player is unchanged**: no file under `cpl/`, `static/` or `player.py` was touched, and the version is still 2.8.0.
+
+- **`docs/AUDIO-SPEC.md`** (spec version 1): what counts as audio behaviour (fades and equal-power curves, crossfade time precedence, end actions and pass counts, trim A/B with fade-in at A and fade or cut at B, trigger points, Play on Top and sidechain ducking, level match and LUFS, play modes and the shuffle bag, resume) with the functions and tests that define each; what is not (web page, stage page, health, watchdog, downloads, settings, HTTP / OSC); and the rule below.
+- **`tests/golden-audio/`**: `generate.py` measures the real code (an in-process copy of the app, the fake clock of `cpl/clock.py`, SDL's dummy mixer) and writes spec-versioned JSON fixtures in `fixtures/` (fades, xfade, trim, end_actions, play_modes, triggers, ducking, levelmatch, resume_flow). `PYTHONHASHSEED=0 python tests/golden-audio/generate.py --write` regenerates them, without `--write` it checks. The files are byte-identical from run to run. README: `tests/golden-audio/README.md`.
+- **`tests/engine/test_golden_audio.py`**, run by `python tests/run.py`: fails with a readable diff when the committed fixtures differ from what the code does, and when the spec version in the document, the generator and the fixtures disagree, and when this CHANGELOG has no "Audio spec N" line for the current version.
+- **`tests/golden-audio/renders/`**: four short WAV renders of the real mixer (crossfade, ducked, loop, trim fade-out; 1.4 MB) captured with SDL's disk driver, with `renders.json` (sample rate, length, sha256 of the files, 50 ms tone envelopes) and `render.py --check`. Separate command, not in `tests/run.py`. The renders are not bit-for-bit repeatable (wall-clock scenarios; only the loop is), so tolerances are stored instead of a hash of a re-render.
+- **The rule:** any change that alters audio behaviour regenerates the fixtures, bumps the spec version and adds a line "Audio spec N" here. `.github/pull_request_template.md` carries the checklist; CLAUDE.md the same rule.
+
 ## Rename: Cue Media Engine (CueME)
 
 The product is now called **Cue Media Engine** (short form **CueME**; before: CompanionPlayer). The version is still 2.8.0. Only what a user sees changed: page title and header, Help, tour, Settings footer, README, messages and the Companion module's names. Unchanged on purpose, so nothing breaks: the `cpl/` package and `player.py`, API paths, OSC addresses, variable names and the `mp_` prefix, config and data file names, `cp_*` browser keys, the `X-CompanionPlayer-Client` header, and the `player_version` field.

@@ -33,19 +33,20 @@ class GoldenAudio(unittest.TestCase):
         for f in files:
             self.assertEqual(json.loads(f.read_text())["spec_version"], gen.SPEC_VERSION, f.name)
 
-    def test_the_spec_document_names_the_same_version(self):
+    def test_the_spec_document_and_the_changelog_name_the_same_version(self):
         spec = (ROOT / "docs" / "AUDIO-SPEC.md").read_text()
         m = re.search(r"^Spec version:\s*(\d+)", spec, re.M)
         self.assertIsNotNone(m, "docs/AUDIO-SPEC.md must start with 'Spec version: N'")
         self.assertEqual(int(m.group(1)), gen.SPEC_VERSION)
+        self.assertIn(f"Audio spec {gen.SPEC_VERSION}", (ROOT / "CHANGELOG.md").read_text(), f'CHANGELOG.md needs an "Audio spec {gen.SPEC_VERSION}" line')
 
     def test_the_comparison_notices_a_change_and_ignores_explanations(self):
         d = json.loads(json.dumps(self.docs["fades"]))
         d["cases"]["crossfade_1000ms"]["rows"][3]["new"] += 0.01
         d["cases"]["crossfade_1000ms"]["rows"][3]["_info_x"] = "ignored"
         d["about"] += "!"
-        self.assertEqual(gen.compare({**self.docs, "fades": d})[0].split(":")[0], "fades/cases/crossfade_1000ms/rows[3]/new")
-        self.assertEqual(len(gen.compare({**self.docs, "fades": d})), 2)          # the changed number and the changed text (about), nothing for _info*
+        found = sorted(x.split(":")[0] for x in gen.compare({**self.docs, "fades": d}))
+        self.assertEqual(found, ["fades/about", "fades/cases/crossfade_1000ms/rows[3]/new"])          # the changed text and the changed number, nothing for _info*
         self.assertEqual(gen.compare({**self.docs, "x": self.docs["fades"]})[0], "x.json: not committed")
 
 

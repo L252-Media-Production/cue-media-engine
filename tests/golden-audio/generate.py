@@ -576,7 +576,7 @@ def diff(a, b, tol, path="", out=None, limit=40):
     if len(out) >= limit:
         return out
     if isinstance(a, dict) and isinstance(b, dict):
-        for k in a.keys() | b.keys():
+        for k in list(a) + [k for k in b if k not in a]:                 # document order, never set order (stable output)
             if k not in a:
                 out.append(f"{path}/{k}: only in the new output = {json.dumps(b[k])[:80]}")
             elif k not in b:
