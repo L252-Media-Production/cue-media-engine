@@ -13,6 +13,7 @@ import json
 import math
 import os
 import random
+import re
 import sys
 from pathlib import Path
 
@@ -22,6 +23,8 @@ from rig import Rig                                   # noqa: E402
 
 SPEC_VERSION = 1                                      # docs/AUDIO-SPEC.md: bump it (and regenerate) whenever audio behaviour changes
 FIXTURES = HERE / "fixtures"
+END_TOL = 0.05                                        # one tick (the measured end is also on the 0.25 s sampling grid, which these ideal values sit on)
+TRIG_TOL = 0.05                                       # one tick of the Python player: measured times are ideal + 0 .. 1 tick
 TOL = 2e-6                                            # what the comparison allows (the files hold 6 decimals)
 FRACS = [0.0, 0.125, 0.25, 0.5, 0.75, 0.875, 1.0]
 
@@ -221,17 +224,21 @@ async def end_actions():
             d = r.live()
             first = {"passes": d.passes, "loop": d.loop}
             rows, ended, _ = timeline(r, 9.0)
-            cases[f"track_2s_end_{end}"] = {"_info": "2 s track, playlist mode stop; ticks every 0.25 s from the start. passes: 2 for once; loop = started with loops=-1", "deck_at_start": first, "ended_at_s": ended, "rows": rows}
+            ideal_end = {"default": 2.0, "once": 4.0, "loop": None, "stop": 2.0}[end]
+            assert (ended is None) == (ideal_end is None) and (ended is None or 0 <= ended - ideal_end <= END_TOL + 1e-6)
+            cases[f"track_2s_end_{end}"] = {"_info": "2 s track, playlist mode stop; ticks every 0.25 s from the start (so ended_at_s is on that 0.25 s grid, and ideal_ended_at_s is the end of the last pass). passes: 2 for once; loop = started with loops=-1", "deck_at_start": first, "ended_at_s": ended, "ideal_ended_at_s": ideal_end, "tolerance_s": END_TOL, "rows": rows}
         r.reset([{"name": "A", "tracks": ["a.wav"], "mode": "stop"}])
         r.P.set_end(0, 0, "once")
         r.P.play(0, 0)
         rows, ended, _ = timeline(r, 6.0, actions={1.0: lambda: r.P.set_end(0, 0, "default")})
-        cases["once_switched_off_in_pass_1"] = {"_info": "end action set back to default at 1.0 s: the pass that is running is played out, then it ends", "ended_at_s": ended, "rows": rows}
+        cases["once_switched_off_in_pass_1"] = {"_info": "end action set back to default at 1.0 s: the pass that is running is played out, then it ends", "ended_at_s": ended, "ideal_ended_at_s": 2.0, "tolerance_s": END_TOL, "rows": rows}
+        assert 0 <= ended - 2.0 <= END_TOL + 1e-6
         r.reset([{"name": "A", "tracks": ["a.wav"], "mode": "stop"}])
         r.P.set_end(0, 0, "loop")
         r.P.play(0, 0)
         rows, ended, _ = timeline(r, 6.0, actions={3.0: lambda: r.P.set_end(0, 0, "default")})
-        cases["loop_switched_off_in_pass_2"] = {"_info": "end action set back to default at 3.0 s (pass 2 running): that pass is played out, then it ends", "ended_at_s": ended, "rows": rows}
+        cases["loop_switched_off_in_pass_2"] = {"_info": "end action set back to default at 3.0 s (pass 2 running): that pass is played out, then it ends", "ended_at_s": ended, "ideal_ended_at_s": 4.0, "tolerance_s": END_TOL, "rows": rows}
+        assert 0 <= ended - 4.0 <= END_TOL + 1e-6
         r.reset([{"name": "A", "tracks": ["a.wav"], "mode": "stop"}])
         order = []
         for _ in range(8):
@@ -338,7 +345,7 @@ async def triggers():
         r.patch(P, "_play_on_top", spy)
         await r.load(*lib)
 
-        async def run(label, triggers_, secs, trim_=None, seek=None, loop=False, info=""):
+        async def run(label, triggers_, secs, trim_=None, seek=None, loop=False, info="", ideal=None):
             r.reset(pls)
             fires.clear()
             P.playlists[0].pop("trims", None)
@@ -353,19 +360,39 @@ async def triggers():
             r.rebase()
             fires.clear()
             r.run_for(secs, each=(lambda e: P.seek_live(seek[1]) if seek and abs(e - seek[0]) < 1e-9 else None))
-            cases[label] = {"_info": info, "triggers": triggers_, "trim": trim_ or {}, "fires": list(fires)}
+            if ideal is None:                                  # the playhead reaches `at` after (at - A) seconds, and again every pass of a loop (once: the first pass only)
+                lo = float((trim_ or {}).get("in", 0.0))
+                hi = float((trim_ or {}).get("out", lib["main.wav"]))
+                ideal = []
+                for tg in triggers_:
+                    if not tg.get("enabled", True) or not lo <= tg["at"] < hi:
+                        continue
+                    n = 0
+                    while True:
+                        t_ideal = (tg["at"] - lo) + n * (hi - lo)
+                        if t_ideal > secs or (n and (not loop or tg.get("once"))):
+                            break
+                        ideal.append({"t_s": round(t_ideal, 3), "file": tg["file"]})
+                        n += 1
+                ideal.sort(key=lambda x: x["t_s"])
+            else:
+                ideal = [dict(x) for x in ideal]
+            assert len(ideal) == len(fires), (label, ideal, fires)                 # the generator checks its own claim: measured = ideal + at most one tick
+            for m, i in zip(fires, ideal):
+                assert -1e-6 <= m["t_s"] - i["t_s"] <= TRIG_TOL + 1e-6 and m["file"] == i["file"], (label, m, i)
+            cases[label] = {"_info": info, "triggers": triggers_, "trim": trim_ or {}, "fires": list(fires), "ideal_fires": ideal, "tolerance_s": TRIG_TOL}
         await run("simple", [{"at": 10, "file": "vo.wav"}], 14, info="fires once when the playhead reaches `at` (within one 50 ms tick)")
         await run("two_in_order", [{"at": 5, "file": "vo.wav"}, {"at": 20, "file": "vo2.wav"}], 25, info="the first voice-over (3 s) is over before the second fires")
         await run("disabled", [{"at": 5, "file": "vo.wav", "enabled": False}], 8, info="a disabled trigger never fires")
         await run("trim_in_after_trigger", [{"at": 3, "file": "vo.wav"}], 6, trim_={"in": 4}, info="a trigger before the In point never fires")
         await run("trim_out_before_trigger", [{"at": 9, "file": "vo.wav"}], 10, trim_={"out": 8}, info="a trigger at or after the Out point never fires (track ends at 8 s)")
         await run("trigger_inside_trim", [{"at": 10, "file": "vo.wav"}], 10, trim_={"in": 6}, info="`at` is a position in the FILE: with A = 6 s it fires 4 s after the start")
-        await run("seek_over_does_not_fire", [{"at": 10, "file": "vo.wav"}], 14, seek=(1.0, 20.0), info="seeking from 1 s to 20 s jumps over the trigger at 10 s: it never fires (without the seek it would)")
-        await run("seek_back_rearms", [{"at": 10, "file": "vo.wav"}], 26, seek=(14.0, 2.0), info="fires at 10 s; the voice-over (3 s) is over, seek back to 2 s at 14 s of play: what is ahead is armed again, so it fires again 8 s later (22 s of play). A seek while a voice-over plays on top is ignored (the live deck is the voice-over)")
+        await run("seek_over_does_not_fire", [{"at": 10, "file": "vo.wav"}], 14, seek=(1.0, 20.0), ideal=[], info="seeking from 1 s to 20 s jumps over the trigger at 10 s: it never fires (without the seek it would)")
+        await run("seek_back_rearms", [{"at": 10, "file": "vo.wav"}], 26, seek=(14.0, 2.0), ideal=[{"t_s": 10.0, "file": "vo.wav"}, {"t_s": 22.0, "file": "vo.wav"}], info="fires at 10 s; the voice-over (3 s) is over, seek back to 2 s at 14 s of play: what is ahead is armed again, so it fires again 8 s later (22 s of play). A seek while a voice-over plays on top is ignored (the live deck is the voice-over)")
         await run("loop_fires_every_pass", [{"at": 1, "file": "vo.wav"}], 14, trim_={"out": 6}, loop=True, info="a looping 6 s window (A=0, B=6) fires in every pass (the 3 s voice-over is over before the next pass)")
         await run("once_flag", [{"at": 1, "file": "vo.wav", "once": True}], 14, trim_={"out": 6}, loop=True, info="once: first pass only")
-        await run("top_already_playing_skips", [{"at": 1, "file": "vo2.wav"}, {"at": 3, "file": "vo.wav"}], 14, info="vo2 (8 s) is on top at 3 s, so the second trigger is skipped, not queued")
-    return doc("triggers", "Trigger points: when the playlist's voice-overs fire (seconds after the start of the track, fake clock, 50 ms ticks; each fire is a Play on Top with no playlist entry).", cases)
+        await run("top_already_playing_skips", [{"at": 1, "file": "vo2.wav"}, {"at": 3, "file": "vo.wav"}], 14, ideal=[{"t_s": 1.0, "file": "vo2.wav"}], info="vo2 (8 s) is on top at 3 s, so the second trigger is skipped, not queued")
+    return doc("triggers", "Trigger points: when the playlist's voice-overs fire (seconds after the start of the track, fake clock, 50 ms ticks; each fire is a Play on Top with no playlist entry). `fires` is what the Python player measured (it includes the tick); `ideal_fires` is the time at which the playhead reaches `at` ((at - A) after the start, plus whole passes in a loop); another engine compares its own times with the IDEAL ones within `tolerance_s`.", cases)
 
 
 # ------------------------------------------------------------------------------------------------ ducking.json
@@ -375,6 +402,82 @@ def _pcm(windows):
     for i, (l, rr) in enumerate(windows):
         a[i * 480:(i + 1) * 480, 0], a[i * 480:(i + 1) * 480, 1] = l, rr
     return a.tobytes()
+
+
+async def duck_loop_cases():
+    """The real _duck_loop under the fake clock: one loop iteration = one 10 ms step of fake time (asyncio.sleep is replaced for the duration)."""
+    import wave
+    import numpy as np
+    out = {}
+    voice = [(0.3, 0), (0.7, 16384), (0.5, 4096), (0.5, 0)]            # (seconds, constant sample value in both channels): 2 s, loud then quieter then silent
+    async with Rig({"bg.wav": 30, "pad.wav": 1}, [{"name": "bg", "tracks": ["bg.wav"]}, {"name": "top", "tracks": ["voice.wav"]}]) as r:
+        P = r.P
+        y = np.concatenate([np.full(int(48000 * sec), v, dtype="<i2") for sec, v in voice])
+        with wave.open(str(r.dir / "media" / "library" / "voice.wav"), "wb") as w:
+            w.setnchannels(2)
+            w.setsampwidth(2)
+            w.setframerate(48000)
+            w.writeframes(np.repeat(y[:, None], 2, axis=1).tobytes())
+        P.scan_library()
+        P.DURS["voice.wav"] = (0, 0, 2.0)
+        await r.load("bg.wav", "voice.wav")
+        real_sleep = asyncio.sleep
+        for _ in range(100):                                               # the level key of a loaded track is worked out in the background
+            if str(P.LIB / "voice.wav") in P._key:
+                break
+            await real_sleep(0.05)
+        assert str(P.LIB / "voice.wav") in P._key
+        async def fake_sleep(delay, *a, **k):                              # yield first, advance after: when the loop computes, the clock already shows its time, and a sample taken between turns shows the state computed at that time
+            await real_sleep(0)
+            r.fake.t += delay
+        for label, settings in (("production_defaults_hold_on", {"duck_threshold_db": -30.0, "duck_ratio": 6.0, "duck_attack_ms": 10, "duck_release_ms": 500, "duck_hold": True, "top_track_pct": 100}),
+                                ("slow_attack_hold_off", {"duck_threshold_db": -30.0, "duck_ratio": 6.0, "duck_attack_ms": 40, "duck_release_ms": 200, "duck_hold": False, "top_track_pct": 100})):
+            r.reset([{"name": "bg", "tracks": ["bg.wav"]}, {"name": "top", "tracks": ["voice.wav"]}], cfg=settings)
+            P.DUCK["gr"] = 0.0
+            asyncio.sleep = fake_sleep
+            try:
+                P.play(0, 0)
+                bg = r.live()
+                r.rebase()
+                cols = {"t_s": [], "top_pos_s": [], "target_db": [], "gr_db": [], "bg_multiplier": []}
+
+                def sample(top=None):
+                    cols["t_s"].append(round(r.fake.t - r.t0, 3))
+                    pos, tgt = None, None
+                    if top is not None and top in P.decks:
+                        pos = top.fpos()
+                        cur = P.DUCK["curve"]
+                        i = int((pos - P.DUCK["origin"]) / P.DUCK_STEP) + 2                    # the loop reads the curve 20 ms ahead of the playhead
+                        tgt = float(cur[i]) if cur is not None and 0 <= i < len(cur) else 0.0
+                    cols["top_pos_s"].append(r6(pos))
+                    cols["target_db"].append(r6(tgt))
+                    cols["gr_db"].append(r6(P.DUCK["gr"]))
+                    cols["bg_multiplier"].append(r6(bg.duck))
+                for _ in range(50):                                                              # 0.5 s of background alone (no loop is running yet)
+                    r.fake.t += 0.01
+                    if round(r.fake.t - r.t0, 3) % 0.05 < 1e-6:
+                        P.tick()
+                    sample()
+                voice_start = round(r.fake.t - r.t0, 3)
+                assert P.play_on_top(1, 0)
+                top = r.live()
+                assert top.top
+                await real_sleep(0)                                                                # the loop starts and takes its first time stamp (0.5 s)
+                sample(top)
+                for k in range(1, 620):                                                          # until the voice-over (2 s) is over and the release has finished (the smoothing snaps to 0 dB below 0.05 dB)
+                    await real_sleep(0)
+                    if k % 5 == 0:
+                        P.tick()
+                    sample(top)
+                    if P.DUCK["task"] is None or P.DUCK["task"].done():                         # the loop ends by itself when the release is over (the clock only moves while it runs)
+                        break
+            finally:
+                asyncio.sleep = real_sleep
+            out[label] = {"settings": settings, "step_s": 0.01, "look_ahead_s": 0.02, "voice_over": {"file": "voice.wav", "starts_at_s": voice_start, "length_s": 2.0, "level_pct": settings["top_track_pct"],
+                                                                                                    "segments_s_and_sample_value": [[sec, v] for sec, v in voice]},
+                          "samples": cols, "peak_reduction_db": r6(max(cols["gr_db"])), "final_multiplier": cols["bg_multiplier"][-1]}
+            P.stop_all()
+    return out
 
 
 async def ducking():
@@ -406,7 +509,8 @@ async def ducking():
         for rms, gain, ratio, thr in ((0.5, 0.0, 6.0, -30.0), (0.01, 0.0, 6.0, -30.0), (0.01, 20.0, 6.0, -30.0), (0.1, -10.0, 3.0, -25.0), (0.0, 0.0, 6.0, -30.0)):
             rows.append({"rms": rms, "gain_db": gain, "ratio": ratio, "threshold_db": thr, "reduction_db": r6(dsp.input_target_db(rms, gain, ratio, thr))})
         cases["input_target_db"] = {"_info": "Live input detector: the same gain computation as duck_curve (hold off), with its own threshold", "rows": rows}
-        # the engine path: a top track over a background, with the real _duck_loop numbers at fixed times is covered by tests/engine/test_ducking_math.py
+        cases["duck_loop"] = {"_info": "the REAL _duck_loop and Play on Top under the fake clock: background deck + a 2 s voice-over (0.3 s silence, 0.7 s at 16384, 0.5 s at 4096, 0.5 s silence, stereo 48 kHz), sampled every 10 ms from 0.5 s before the voice-over until after the release. target_db = the duck_curve value the loop reads at top_pos + 20 ms (look-ahead); gr_db = smoothed reduction; bg_multiplier = Deck.duck of the background (applied only when it moved by more than 0.0005, so it can trail 10^(-gr/20) by that). Index 49 is the last background-only sample (t = 0.5 s, voice-over not started), index 50 is the voice-over starting at the same time (top_pos 0); from index 51 every row is 10 ms later, with the reduction computed by the loop at that time.",
+                              "cases": await duck_loop_cases()}
     return doc("ducking", "Sidechain ducking maths (cpl/dsp.py): level key, reduction curve, attack/release smoothing and the multiplier applied to the background.", cases)
 
 
@@ -558,7 +662,11 @@ def build_all():
 
 
 def dumps(obj):
-    return json.dumps(obj, indent=1, sort_keys=False, ensure_ascii=False) + "\n"
+    text = json.dumps(obj, indent=1, sort_keys=False, ensure_ascii=False)
+
+    def one_line(m):                                     # the sample columns of duck_loop: one line per column instead of one number per line
+        return re.sub(r"\[\s*([^\[\]{}]*?)\s*\]", lambda a: "[" + re.sub(r",\s+", ", ", a.group(1).strip()) + "]", m.group(0))
+    return re.sub(r'"samples": \{[^{}]*\}', one_line, text) + "\n"
 
 
 def strip_info(x):

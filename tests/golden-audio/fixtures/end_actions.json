@@ -5,12 +5,14 @@
  "tolerance": 2e-06,
  "cases": {
   "track_2s_end_default": {
-   "_info": "2 s track, playlist mode stop; ticks every 0.25 s from the start. passes: 2 for once; loop = started with loops=-1",
+   "_info": "2 s track, playlist mode stop; ticks every 0.25 s from the start (so ended_at_s is on that 0.25 s grid, and ideal_ended_at_s is the end of the last pass). passes: 2 for once; loop = started with loops=-1",
    "deck_at_start": {
     "passes": 1,
     "loop": false
    },
    "ended_at_s": 2.0,
+   "ideal_ended_at_s": 2.0,
+   "tolerance_s": 0.05,
    "rows": [
     {
      "t_s": 1.0,
@@ -69,12 +71,14 @@
    ]
   },
   "track_2s_end_once": {
-   "_info": "2 s track, playlist mode stop; ticks every 0.25 s from the start. passes: 2 for once; loop = started with loops=-1",
+   "_info": "2 s track, playlist mode stop; ticks every 0.25 s from the start (so ended_at_s is on that 0.25 s grid, and ideal_ended_at_s is the end of the last pass). passes: 2 for once; loop = started with loops=-1",
    "deck_at_start": {
     "passes": 2,
     "loop": false
    },
    "ended_at_s": 4.0,
+   "ideal_ended_at_s": 4.0,
+   "tolerance_s": 0.05,
    "rows": [
     {
      "t_s": 1.0,
@@ -133,12 +137,14 @@
    ]
   },
   "track_2s_end_loop": {
-   "_info": "2 s track, playlist mode stop; ticks every 0.25 s from the start. passes: 2 for once; loop = started with loops=-1",
+   "_info": "2 s track, playlist mode stop; ticks every 0.25 s from the start (so ended_at_s is on that 0.25 s grid, and ideal_ended_at_s is the end of the last pass). passes: 2 for once; loop = started with loops=-1",
    "deck_at_start": {
     "passes": 1,
     "loop": true
    },
    "ended_at_s": null,
+   "ideal_ended_at_s": null,
+   "tolerance_s": 0.05,
    "rows": [
     {
      "t_s": 1.0,
@@ -197,12 +203,14 @@
    ]
   },
   "track_2s_end_stop": {
-   "_info": "2 s track, playlist mode stop; ticks every 0.25 s from the start. passes: 2 for once; loop = started with loops=-1",
+   "_info": "2 s track, playlist mode stop; ticks every 0.25 s from the start (so ended_at_s is on that 0.25 s grid, and ideal_ended_at_s is the end of the last pass). passes: 2 for once; loop = started with loops=-1",
    "deck_at_start": {
     "passes": 1,
     "loop": false
    },
    "ended_at_s": 2.0,
+   "ideal_ended_at_s": 2.0,
+   "tolerance_s": 0.05,
    "rows": [
     {
      "t_s": 1.0,
@@ -263,6 +271,8 @@
   "once_switched_off_in_pass_1": {
    "_info": "end action set back to default at 1.0 s: the pass that is running is played out, then it ends",
    "ended_at_s": 2.0,
+   "ideal_ended_at_s": 2.0,
+   "tolerance_s": 0.05,
    "rows": [
     {
      "t_s": 1.0,
@@ -317,6 +327,8 @@
   "loop_switched_off_in_pass_2": {
    "_info": "end action set back to default at 3.0 s (pass 2 running): that pass is played out, then it ends",
    "ended_at_s": 4.0,
+   "ideal_ended_at_s": 4.0,
+   "tolerance_s": 0.05,
    "rows": [
     {
      "t_s": 1.0,

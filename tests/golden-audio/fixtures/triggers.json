@@ -1,7 +1,7 @@
 {
  "spec_version": 1,
  "name": "triggers",
- "about": "Trigger points: when the playlist's voice-overs fire (seconds after the start of the track, fake clock, 50 ms ticks; each fire is a Play on Top with no playlist entry).",
+ "about": "Trigger points: when the playlist's voice-overs fire (seconds after the start of the track, fake clock, 50 ms ticks; each fire is a Play on Top with no playlist entry). `fires` is what the Python player measured (it includes the tick); `ideal_fires` is the time at which the playhead reaches `at` ((at - A) after the start, plus whole passes in a loop); another engine compares its own times with the IDEAL ones within `tolerance_s`.",
  "tolerance": 2e-06,
  "cases": {
   "simple": {
@@ -18,7 +18,14 @@
      "t_s": 10.05,
      "file": "vo.wav"
     }
-   ]
+   ],
+   "ideal_fires": [
+    {
+     "t_s": 10.0,
+     "file": "vo.wav"
+    }
+   ],
+   "tolerance_s": 0.05
   },
   "two_in_order": {
    "_info": "the first voice-over (3 s) is over before the second fires",
@@ -42,7 +49,18 @@
      "t_s": 20.05,
      "file": "vo2.wav"
     }
-   ]
+   ],
+   "ideal_fires": [
+    {
+     "t_s": 5.0,
+     "file": "vo.wav"
+    },
+    {
+     "t_s": 20.0,
+     "file": "vo2.wav"
+    }
+   ],
+   "tolerance_s": 0.05
   },
   "disabled": {
    "_info": "a disabled trigger never fires",
@@ -54,7 +72,9 @@
     }
    ],
    "trim": {},
-   "fires": []
+   "fires": [],
+   "ideal_fires": [],
+   "tolerance_s": 0.05
   },
   "trim_in_after_trigger": {
    "_info": "a trigger before the In point never fires",
@@ -67,7 +87,9 @@
    "trim": {
     "in": 4
    },
-   "fires": []
+   "fires": [],
+   "ideal_fires": [],
+   "tolerance_s": 0.05
   },
   "trim_out_before_trigger": {
    "_info": "a trigger at or after the Out point never fires (track ends at 8 s)",
@@ -80,7 +102,9 @@
    "trim": {
     "out": 8
    },
-   "fires": []
+   "fires": [],
+   "ideal_fires": [],
+   "tolerance_s": 0.05
   },
   "trigger_inside_trim": {
    "_info": "`at` is a position in the FILE: with A = 6 s it fires 4 s after the start",
@@ -98,7 +122,14 @@
      "t_s": 4.05,
      "file": "vo.wav"
     }
-   ]
+   ],
+   "ideal_fires": [
+    {
+     "t_s": 4.0,
+     "file": "vo.wav"
+    }
+   ],
+   "tolerance_s": 0.05
   },
   "seek_over_does_not_fire": {
    "_info": "seeking from 1 s to 20 s jumps over the trigger at 10 s: it never fires (without the seek it would)",
@@ -109,7 +140,9 @@
     }
    ],
    "trim": {},
-   "fires": []
+   "fires": [],
+   "ideal_fires": [],
+   "tolerance_s": 0.05
   },
   "seek_back_rearms": {
    "_info": "fires at 10 s; the voice-over (3 s) is over, seek back to 2 s at 14 s of play: what is ahead is armed again, so it fires again 8 s later (22 s of play). A seek while a voice-over plays on top is ignored (the live deck is the voice-over)",
@@ -129,7 +162,18 @@
      "t_s": 22.05,
      "file": "vo.wav"
     }
-   ]
+   ],
+   "ideal_fires": [
+    {
+     "t_s": 10.0,
+     "file": "vo.wav"
+    },
+    {
+     "t_s": 22.0,
+     "file": "vo.wav"
+    }
+   ],
+   "tolerance_s": 0.05
   },
   "loop_fires_every_pass": {
    "_info": "a looping 6 s window (A=0, B=6) fires in every pass (the 3 s voice-over is over before the next pass)",
@@ -155,7 +199,22 @@
      "t_s": 13.05,
      "file": "vo.wav"
     }
-   ]
+   ],
+   "ideal_fires": [
+    {
+     "t_s": 1.0,
+     "file": "vo.wav"
+    },
+    {
+     "t_s": 7.0,
+     "file": "vo.wav"
+    },
+    {
+     "t_s": 13.0,
+     "file": "vo.wav"
+    }
+   ],
+   "tolerance_s": 0.05
   },
   "once_flag": {
    "_info": "once: first pass only",
@@ -174,7 +233,14 @@
      "t_s": 1.05,
      "file": "vo.wav"
     }
-   ]
+   ],
+   "ideal_fires": [
+    {
+     "t_s": 1.0,
+     "file": "vo.wav"
+    }
+   ],
+   "tolerance_s": 0.05
   },
   "top_already_playing_skips": {
    "_info": "vo2 (8 s) is on top at 3 s, so the second trigger is skipped, not queued",
@@ -194,7 +260,14 @@
      "t_s": 1.05,
      "file": "vo2.wav"
     }
-   ]
+   ],
+   "ideal_fires": [
+    {
+     "t_s": 1.0,
+     "file": "vo2.wav"
+    }
+   ],
+   "tolerance_s": 0.05
   }
  }
 }

@@ -25,6 +25,8 @@ Anything that changes **which samples reach the output, how loud they are, or wh
 | **Resume** | While something plays, `resume.json` records the live track (the background track when a top track is on), its file position and the paused flag, every `resume_save_s`; a stop or finished fade removes it. At start-up the track is started at that position (paused if it was), unless older than `resume_max_age_s`; a resumed start never fades in. | `save_resume`, `try_resume`, `_start_when_ready` (`cpl/legacy.py`) | `resume_flow.json` | `tests/api/test_resume.py`, `tests/engine/test_fade_in.py` |
 | **Volume** | `live_volume` (0-1) multiplies every deck; mute remembers the level before. Seeking keeps volume, fades and pause state. | `set_live_volume`, `seek_live` | (no fixture: the formula is above; tests only) | `tests/api/test_volume_modes.py`, `tests/api/test_transport.py` |
 
+**Clipping is not specified.** The decks are summed by SDL_mixer in int16, which saturates (hard clips) when the sum is over full scale: a crossfade of two loud tracks has no power headroom, and a top track over a background can exceed it too. The fixtures and the spec talk about GAINS (`Deck.vol`, `Deck.duck`, `Deck.gain`), never about the summed signal. A port chooses its own policy (float headroom, a soft clip or a limiter) and need not reproduce the saturation.
+
 Decoding and rendering: the mixer runs at 48 kHz, 16-bit, stereo (`cpl/devices.py`, `allowedchanges=0`); every track is decoded into RAM first and played from there (a mono file is played on both channels, other rates are converted on load). A render of the real mixer output is checked in `tests/api/test_audio_capture.py` and `tests/golden-audio/renders/`.
 
 ## What is NOT audio behaviour
@@ -40,6 +42,24 @@ Not part of the spec, free to differ in another engine (and often should):
 - Preview and Mirror outputs, Solo, Loop A-B in the preview (they never touch the live decks).
 - Persistence formats (`playlists.json`, `state.json`), except the fields named in the table.
 - Timing of the 50 ms tick itself: fixtures are taken at fixed fake-clock times and carry a tolerance.
+
+## Known Python quirks (not contract)
+
+What the Python player does today because of how it is built (SDL_mixer channels, a 50 ms tick, wall-clock time), listed so that nobody mistakes it for the spec. Sources: `docs/AUDIT-audio-engine.md` (sections 2.3, 2.4, 3.3, 4.3, 5) and `docs/known-failures.md` (gap-test observation 3). Where a fixture contains the effect, the fixture carries the IDEAL value next to the measured one (`ideal_fires`, `ideal_ended_at_s`, with `tolerance_s`).
+
+| # | Quirk in the Python player | Why | A port should... |
+|---|---|---|---|
+| 1 | **Seeking inside a looping track turns the loop off for that pass.** `seek_live` replaces the voice with a new cut sound played once (`loop = False`, `passes = 1`); the loop only comes back when the track ends and `auto_advance` restarts it, with a small gap. A "once" track loses its second pass the same way. | the loop lives inside SDL_mixer (`loops=-1`) and cannot be moved | **NOT reproduce.** Keep the loop (or the second pass) running from the new position and wrap at B as before. What IS contract: the target is clamped to `[A, B - 0.3 s]`, and volume, fades and the paused state are kept. |
+| 2 | **Old and new voices overlap on a seek, with no fade.** The new sound is started first, then the old channel is stopped; a click or a brief doubling is possible. The same cut-and-restart is used by resume and device change. | no way to move the play position of a channel | **NOT reproduce.** Reposition sample-accurately, or use a very short (a few ms) crossfade. |
+| 3 | **Solo and Mirror start late.** The monitor worker loads the file itself and is told the position by messages: a new live track appears there 90 ms to about 0.6 s late, the first samples are missing, and its levels follow at 10 Hz (fades and ducking are coarser than on the live output). The live output is intact. | separate process, position messages instead of an audio tap | **NOT reproduce.** Tap the live mix (or the decks) sample-aligned. |
+| 4 | **The end of a pass can leak up to one 50 ms tick after a mode change while looping.** When the end action is switched off during a loop, the deck is removed on the tick after the end of the running pass; the next pass can be heard for up to one tick. | the loop is inside SDL_mixer and the Python tick must stop it | **NOT reproduce.** Stop exactly at the end of the running pass. The contract is "the pass that is running is played out, then the track ends" (`end_actions.json`). |
+| 5 | **Volume is quantised to 128 steps** (SDL_mixer channel volume 0-128) and every fade is applied in 50 ms tick steps (ducking in 10 ms steps), so a slow fade is stepped near the bottom. | integer channel volume, gain set from a Python tick | **NOT reproduce.** Use float gain, ramped per sample or per buffer. The fixtures hold `Deck.vol` (the unquantised value), not the channel volume. |
+| 6 | **Timings include the Python tick** (0-50 ms): end of track, trigger points, the start of an out-fade and the next track after an auto-advance are found by the 50 ms tick, plus the device buffer (about 21 ms) and asyncio jitter. `fpos()` runs a little ahead of what is audible. | polling instead of a sample clock | **NOT reproduce.** Be exact; compare with the ideal times within `tolerance_s` (README of `tests/golden-audio`). |
+| 7 | **Gaps between tracks.** There is no pre-queued next voice: detection delay (0-50 ms) plus start latency. Gapless is not guaranteed. | see 6 | Free to be gapless; a gap is not a requirement. |
+| 8 | **Wall-clock position.** Position and remaining time come from the monotonic clock, not the device clock, so they drift against a USB or Dante clock (tens of ms over 10 minutes); pause and resume ignore the audio still buffered. | position is time since `play()` | **NOT reproduce.** Count frames at the output. |
+| 9 | **Ducking is applied from an asyncio task every 10 ms** (with event-loop jitter) and a background deck's multiplier is only written when it moved by more than 0.0005. | channel volume set from Python | The curve is contract (`duck_loop` in `ducking.json`: 10 ms steps, 20 ms look-ahead, `duck_smooth`); the 0.0005 write threshold and the jitter are not. |
+
+Rule of thumb: what the fixtures call *ideal* and every formula in the table above is contract; a mechanism listed here is not.
 
 ## The rule
 
