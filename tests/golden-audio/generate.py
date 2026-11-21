@@ -219,7 +219,7 @@ async def end_actions():
     lib = {"a.wav": 2}
     stamps = (0.0, 1.0, 1.75, 2.0, 2.25, 3.75, 4.0, 4.25, 6.0, 9.0)
     step_s, run_s = 0.25, 9.0
-    base = {"library_s": dict(lib), "playlist": ["a.wav"], "play_mode": "stop", "tick_step_s": step_s, "rows_at_s": list(stamps)}
+    base = {"library_s": dict(lib), "playlist": ["a.wav"], "play_mode": "stop", "tick_step_s": step_s}
     once_off_s, loop_off_s = 1.0, 3.0
 
     def timeline(r, secs, step=0.25, actions=None):
@@ -249,18 +249,18 @@ async def end_actions():
             rows, ended, _ = timeline(r, run_s)
             ideal_end = {"default": 2.0, "once": 4.0, "loop": None, "stop": 2.0}[end]
             assert (ended is None) == (ideal_end is None) and (ended is None or 0 <= ended - ideal_end <= END_TOL + 1e-6)
-            cases[f"track_2s_end_{end}"] = {"scenario": dict(base, end_action=end, run_s=run_s, steps=["set_end(0, 0, end_action)", "play track 0", f"tick every {step_s} s for {run_s} s"]), "_info": "2 s track, playlist mode stop; ticks every 0.25 s from the start (so ended_at_s is on that 0.25 s grid, and ideal_ended_at_s is the end of the last pass). passes: 2 for once; loop = started with loops=-1", "deck_at_start": first, "ended_at_s": ended, "ideal_ended_at_s": ideal_end, "tolerance_s": END_TOL, "rows": rows}
+            cases[f"track_2s_end_{end}"] = {"scenario": dict(base, end_action=end, run_s=run_s, steps=["set_end(0, 0, end_action)", "play track 0", f"tick every {step_s} s for {run_s} s"]), "rows_at_s": [x["t_s"] for x in rows], "_info": "2 s track, playlist mode stop; ticks every 0.25 s from the start (so ended_at_s is on that 0.25 s grid, and ideal_ended_at_s is the end of the last pass). passes: 2 for once; loop = started with loops=-1", "deck_at_start": first, "ended_at_s": ended, "ideal_ended_at_s": ideal_end, "tolerance_s": END_TOL, "rows": rows}
         r.reset([{"name": "A", "tracks": ["a.wav"], "mode": "stop"}])
         r.P.set_end(0, 0, "once")
         r.P.play(0, 0)
         rows, ended, _ = timeline(r, 6.0, actions={once_off_s: lambda: r.P.set_end(0, 0, "default")})
-        cases["once_switched_off_in_pass_1"] = {"scenario": dict(base, end_action="once", switch_off_to="default", switch_off_at_s=once_off_s, run_s=6.0), "_info": "end action set back to default at 1.0 s: the pass that is running is played out, then it ends", "ended_at_s": ended, "ideal_ended_at_s": 2.0, "tolerance_s": END_TOL, "rows": rows}
+        cases["once_switched_off_in_pass_1"] = {"scenario": dict(base, end_action="once", switch_off_to="default", switch_off_at_s=once_off_s, run_s=6.0), "_info": "end action set back to default at 1.0 s: the pass that is running is played out, then it ends", "ended_at_s": ended, "ideal_ended_at_s": 2.0, "tolerance_s": END_TOL, "rows_at_s": [x["t_s"] for x in rows], "rows": rows}
         assert 0 <= ended - 2.0 <= END_TOL + 1e-6
         r.reset([{"name": "A", "tracks": ["a.wav"], "mode": "stop"}])
         r.P.set_end(0, 0, "loop")
         r.P.play(0, 0)
         rows, ended, _ = timeline(r, 6.0, actions={loop_off_s: lambda: r.P.set_end(0, 0, "default")})
-        cases["loop_switched_off_in_pass_2"] = {"scenario": dict(base, end_action="loop", switch_off_to="default", switch_off_at_s=loop_off_s, run_s=6.0), "_info": "end action set back to default at 3.0 s (pass 2 running): that pass is played out, then it ends", "ended_at_s": ended, "ideal_ended_at_s": 4.0, "tolerance_s": END_TOL, "rows": rows}
+        cases["loop_switched_off_in_pass_2"] = {"scenario": dict(base, end_action="loop", switch_off_to="default", switch_off_at_s=loop_off_s, run_s=6.0), "_info": "end action set back to default at 3.0 s (pass 2 running): that pass is played out, then it ends", "ended_at_s": ended, "ideal_ended_at_s": 4.0, "tolerance_s": END_TOL, "rows_at_s": [x["t_s"] for x in rows], "rows": rows}
         assert 0 <= ended - 4.0 <= END_TOL + 1e-6
         r.reset([{"name": "A", "tracks": ["a.wav"], "mode": "stop"}])
         order = []
@@ -345,7 +345,7 @@ async def play_modes():
         for _ in range(draws_c):
             cur = P.next_in_order(0, cur)[0]
             counts[cur] += 1
-        cases["shuffle_bag"] = {"scenario": dict(base, play_mode="shuffle", start_track=0, draws_for_sequence=draws_a, draws_for_fair_share=draws_c, python_random_seeds=[seed_a, seed_b, seed_c]), "_info": "properties are the contract; the sequence for a fixed Python random seed depends on the Python version and is NOT compared (_info_sequence)",
+        cases["shuffle_bag"] = {"scenario": dict(base, play_mode="shuffle", start_track=0, draws_for_sequence=draws_a, draws_for_fair_share=draws_c, python_random_seeds=[seed_a, seed_b, seed_c], fair_share_range=[60, 140]), "_info": "properties are the contract; the sequence for a fixed Python random seed depends on the Python version and is NOT compared (_info_sequence)",
                                 "never_the_same_track_twice_in_a_row": bool(no_repeat),
                                 "every_draw_is_a_track_of_the_playlist": all(0 <= x < 3 for x in seq),
                                 "first_round_from_track_0_is_a_permutation_of_tracks_1_and_2": sorted(first_round) == [1, 2],
@@ -668,7 +668,7 @@ async def levelmatch():
         rows.append({"track": "a.wav (-14 LUFS), target -23", "deck_gain": r6(d.gain), "deck_gain_db": r6(20 * math.log10(d.gain))})
         L.set_norm(0, "off")
         rows.append({"track": "after switching level match off", "deck_gain": r6(d.gain)})
-        cases["applied_to_deck"] = {"scenario": {"playlist": ["a.wav", "b.wav", "c.wav"], "measured_lufs": lufs, "playing": "a.wav (playlist 0, track 0)",
+        cases["applied_to_deck"] = {"scenario": {"playlist": ["a.wav", "b.wav", "c.wav"], "measured_lufs": lufs, "playing": "a.wav (playlist 0, track 0)", "playing_file": "a.wav",
                                                  "row_inputs": {"a.wav (-14 LUFS), target -23": {"set_norm": {"mode": "lufs", "lufs": deck_target}, "then": "play track 0"}, "after switching level match off": {"set_norm": {"mode": "off"}}}}, "_info": "Deck.gain follows level match immediately (apply_gain_live); the channel volume is vol * gain * duck * duck_in * live_volume", "rows": rows}
     d = doc("levelmatch", "Level match: integrated loudness (LUFS) of synthetic signals and the per-track gain it gives (only ever turns a track down).", cases)
     d["tolerance_lufs"] = 0.01
@@ -714,8 +714,8 @@ async def resume():
         P.stop_all()
         P.save_resume()
         rows.append({"case": "after a deliberate stop", "record": saved()})
-        rec_inputs["after a deliberate stop"] = {"play_track": 0, "at_s": 3.0, "then": "stop_all, save_resume"}
-        rec_inputs["while fading out"] = {"play_track": 0, "at_s": 3.0, "then": "fade_out(1000 ms), save_resume"}
+        rec_inputs["after a deliberate stop"] = {"play_track": 0, "at_s": 3.0, "then": {"action": "stop_all"}, "then_text": "stop_all, save_resume"}
+        rec_inputs["while fading out"] = {"play_track": 0, "at_s": 3.0, "then": {"action": "fade_out", "fade_ms": 1000}, "then_text": "fade_out(1000 ms), save_resume"}
         P.play(0, 0)
         r.at(3.0)
         P.fade_out(1000)

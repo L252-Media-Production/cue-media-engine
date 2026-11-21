@@ -14,18 +14,6 @@
     ],
     "play_mode": "stop",
     "tick_step_s": 0.25,
-    "rows_at_s": [
-     0.0,
-     1.0,
-     1.75,
-     2.0,
-     2.25,
-     3.75,
-     4.0,
-     4.25,
-     6.0,
-     9.0
-    ],
     "end_action": "default",
     "run_s": 9.0,
     "steps": [
@@ -34,6 +22,17 @@
      "tick every 0.25 s for 9.0 s"
     ]
    },
+   "rows_at_s": [
+    1.0,
+    1.75,
+    2.0,
+    2.25,
+    3.75,
+    4.0,
+    4.25,
+    6.0,
+    9.0
+   ],
    "_info": "2 s track, playlist mode stop; ticks every 0.25 s from the start (so ended_at_s is on that 0.25 s grid, and ideal_ended_at_s is the end of the last pass). passes: 2 for once; loop = started with loops=-1",
    "deck_at_start": {
     "passes": 1,
@@ -109,18 +108,6 @@
     ],
     "play_mode": "stop",
     "tick_step_s": 0.25,
-    "rows_at_s": [
-     0.0,
-     1.0,
-     1.75,
-     2.0,
-     2.25,
-     3.75,
-     4.0,
-     4.25,
-     6.0,
-     9.0
-    ],
     "end_action": "once",
     "run_s": 9.0,
     "steps": [
@@ -129,6 +116,17 @@
      "tick every 0.25 s for 9.0 s"
     ]
    },
+   "rows_at_s": [
+    1.0,
+    1.75,
+    2.0,
+    2.25,
+    3.75,
+    4.0,
+    4.25,
+    6.0,
+    9.0
+   ],
    "_info": "2 s track, playlist mode stop; ticks every 0.25 s from the start (so ended_at_s is on that 0.25 s grid, and ideal_ended_at_s is the end of the last pass). passes: 2 for once; loop = started with loops=-1",
    "deck_at_start": {
     "passes": 2,
@@ -204,18 +202,6 @@
     ],
     "play_mode": "stop",
     "tick_step_s": 0.25,
-    "rows_at_s": [
-     0.0,
-     1.0,
-     1.75,
-     2.0,
-     2.25,
-     3.75,
-     4.0,
-     4.25,
-     6.0,
-     9.0
-    ],
     "end_action": "loop",
     "run_s": 9.0,
     "steps": [
@@ -224,6 +210,17 @@
      "tick every 0.25 s for 9.0 s"
     ]
    },
+   "rows_at_s": [
+    1.0,
+    1.75,
+    2.0,
+    2.25,
+    3.75,
+    4.0,
+    4.25,
+    6.0,
+    9.0
+   ],
    "_info": "2 s track, playlist mode stop; ticks every 0.25 s from the start (so ended_at_s is on that 0.25 s grid, and ideal_ended_at_s is the end of the last pass). passes: 2 for once; loop = started with loops=-1",
    "deck_at_start": {
     "passes": 1,
@@ -299,18 +296,6 @@
     ],
     "play_mode": "stop",
     "tick_step_s": 0.25,
-    "rows_at_s": [
-     0.0,
-     1.0,
-     1.75,
-     2.0,
-     2.25,
-     3.75,
-     4.0,
-     4.25,
-     6.0,
-     9.0
-    ],
     "end_action": "stop",
     "run_s": 9.0,
     "steps": [
@@ -319,6 +304,17 @@
      "tick every 0.25 s for 9.0 s"
     ]
    },
+   "rows_at_s": [
+    1.0,
+    1.75,
+    2.0,
+    2.25,
+    3.75,
+    4.0,
+    4.25,
+    6.0,
+    9.0
+   ],
    "_info": "2 s track, playlist mode stop; ticks every 0.25 s from the start (so ended_at_s is on that 0.25 s grid, and ideal_ended_at_s is the end of the last pass). passes: 2 for once; loop = started with loops=-1",
    "deck_at_start": {
     "passes": 1,
@@ -394,18 +390,6 @@
     ],
     "play_mode": "stop",
     "tick_step_s": 0.25,
-    "rows_at_s": [
-     0.0,
-     1.0,
-     1.75,
-     2.0,
-     2.25,
-     3.75,
-     4.0,
-     4.25,
-     6.0,
-     9.0
-    ],
     "end_action": "once",
     "switch_off_to": "default",
     "switch_off_at_s": 1.0,
@@ -415,6 +399,16 @@
    "ended_at_s": 2.0,
    "ideal_ended_at_s": 2.0,
    "tolerance_s": 0.05,
+   "rows_at_s": [
+    1.0,
+    1.75,
+    2.0,
+    2.25,
+    3.75,
+    4.0,
+    4.25,
+    6.0
+   ],
    "rows": [
     {
      "t_s": 1.0,
@@ -476,18 +470,6 @@
     ],
     "play_mode": "stop",
     "tick_step_s": 0.25,
-    "rows_at_s": [
-     0.0,
-     1.0,
-     1.75,
-     2.0,
-     2.25,
-     3.75,
-     4.0,
-     4.25,
-     6.0,
-     9.0
-    ],
     "end_action": "loop",
     "switch_off_to": "default",
     "switch_off_at_s": 3.0,
@@ -497,6 +479,16 @@
    "ended_at_s": 4.0,
    "ideal_ended_at_s": 4.0,
    "tolerance_s": 0.05,
+   "rows_at_s": [
+    1.0,
+    1.75,
+    2.0,
+    2.25,
+    3.75,
+    4.0,
+    4.25,
+    6.0
+   ],
    "rows": [
     {
      "t_s": 1.0,

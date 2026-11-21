@@ -40,12 +40,19 @@
      "after a deliberate stop": {
       "play_track": 0,
       "at_s": 3.0,
-      "then": "stop_all, save_resume"
+      "then": {
+       "action": "stop_all"
+      },
+      "then_text": "stop_all, save_resume"
      },
      "while fading out": {
       "play_track": 0,
       "at_s": 3.0,
-      "then": "fade_out(1000 ms), save_resume"
+      "then": {
+       "action": "fade_out",
+       "fade_ms": 1000
+      },
+      "then_text": "fade_out(1000 ms), save_resume"
      }
     },
     "input": "save_resume(force) after the steps of the row; `record` is resume.json without its wall-clock `saved` stamp"

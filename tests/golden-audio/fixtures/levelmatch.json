@@ -334,6 +334,7 @@
      "c.wav": null
     },
     "playing": "a.wav (playlist 0, track 0)",
+    "playing_file": "a.wav",
     "row_inputs": {
      "a.wav (-14 LUFS), target -23": {
       "set_norm": {

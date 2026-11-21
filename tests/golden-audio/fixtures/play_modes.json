@@ -408,6 +408,10 @@
      20240229,
      7,
      7
+    ],
+    "fair_share_range": [
+     60,
+     140
     ]
    },
    "_info": "properties are the contract; the sequence for a fixed Python random seed depends on the Python version and is NOT compared (_info_sequence)",
