@@ -1,0 +1,192 @@
+{
+ "spec_version": 1,
+ "name": "resume_flow",
+ "about": "Resume: what resume.json records and how a restart carries on (position, paused flag, age limit, no fade-in).",
+ "tolerance": 2e-06,
+ "cases": {
+  "record": {
+   "_info": "save_resume: pt = [playlist, track], id = library file, pos = seconds in the FILE (a paused track keeps its position), paused flag; removed when nothing plays or a fade-out is running",
+   "rows": [
+    {
+     "case": "playing, 12.5 s in",
+     "record": {
+      "pt": [
+       0,
+       1
+      ],
+      "id": "b.wav",
+      "pos": 12.5,
+      "paused": false
+     }
+    },
+    {
+     "case": "paused at 7.25 s",
+     "record": {
+      "pt": [
+       0,
+       1
+      ],
+      "id": "b.wav",
+      "pos": 7.25,
+      "paused": true
+     }
+    },
+    {
+     "case": "after a deliberate stop",
+     "record": null
+    },
+    {
+     "case": "while fading out",
+     "record": null
+    }
+   ]
+  },
+  "try_resume": {
+   "_info": "at start-up. offset = where in the file the sound begins; a resumed start never fades in (start_vol 1, fade_in_ms 0), even when the track has a fade-in at A; an old or unknown record is dropped",
+   "rows": [
+    {
+     "case": "fresh record",
+     "record": {
+      "pt": [
+       0,
+       1
+      ],
+      "id": "b.wav",
+      "pos": 33.5,
+      "paused": false
+     },
+     "age_s": 10,
+     "pending": {
+      "pt": [
+       0,
+       1
+      ],
+      "offset_s": 33.5,
+      "paused": false,
+      "xfade_ms": 0
+     },
+     "started": {
+      "pt": [
+       0,
+       1
+      ],
+      "base_s": 33.5,
+      "paused": false,
+      "start_vol": 1.0,
+      "fade_in_ms": 0
+     },
+     "record_kept": true
+    },
+    {
+     "case": "paused record",
+     "record": {
+      "pt": [
+       0,
+       0
+      ],
+      "id": "a.wav",
+      "pos": 8.25,
+      "paused": true
+     },
+     "age_s": 10,
+     "pending": {
+      "pt": [
+       0,
+       0
+      ],
+      "offset_s": 8.25,
+      "paused": true,
+      "xfade_ms": 0
+     },
+     "started": {
+      "pt": [
+       0,
+       0
+      ],
+      "base_s": 8.25,
+      "paused": true,
+      "start_vol": 1.0,
+      "fade_in_ms": 0
+     },
+     "record_kept": true
+    },
+    {
+     "case": "older than resume_max_age_s",
+     "record": {
+      "pt": [
+       0,
+       0
+      ],
+      "id": "a.wav",
+      "pos": 8.25,
+      "paused": false
+     },
+     "age_s": 4000,
+     "pending": null,
+     "started": null,
+     "record_kept": false
+    },
+    {
+     "case": "playlist edited: the track moved",
+     "record": {
+      "pt": [
+       0,
+       0
+      ],
+      "id": "b.wav",
+      "pos": 5.0,
+      "paused": false
+     },
+     "age_s": 10,
+     "pending": {
+      "pt": [
+       0,
+       1
+      ],
+      "offset_s": 5.0,
+      "paused": false,
+      "xfade_ms": 0
+     },
+     "started": {
+      "pt": [
+       0,
+       1
+      ],
+      "base_s": 5.0,
+      "paused": false,
+      "start_vol": 1.0,
+      "fade_in_ms": 0
+     },
+     "record_kept": true
+    },
+    {
+     "case": "file no longer in any playlist",
+     "record": {
+      "pt": [
+       0,
+       0
+      ],
+      "id": "gone.wav",
+      "pos": 5.0,
+      "paused": false
+     },
+     "age_s": 10,
+     "pending": null,
+     "started": null,
+     "record_kept": false
+    }
+   ]
+  },
+  "resume_inside_a_trim": {
+   "_info": "trim A=2 B=40 with a fade-in; resume at 20 s",
+   "started": {
+    "base_s": 20.0,
+    "lo_s": 2.0,
+    "hi_s": 40.0,
+    "start_vol": 1.0,
+    "fade_in_ms": 0,
+    "fresh": false
+   }
+  }
+ }
+}

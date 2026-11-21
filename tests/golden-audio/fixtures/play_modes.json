@@ -1,0 +1,336 @@
+{
+ "spec_version": 1,
+ "name": "play_modes",
+ "about": "What follows a track that ends, for every play mode and end action; next_in_order; the shuffle bag (properties, plus an informational sequence).",
+ "tolerance": 2e-06,
+ "cases": {
+  "after_a_track_ends": {
+   "_info": "playlist A has 3 tracks, B has 2. 'same' = the same deck is still playing (loop). shuffle: only 'another track of the same playlist' is promised",
+   "rows": [
+    {
+     "mode": "stop",
+     "end_action": "default",
+     "track": 0,
+     "after": "stopped"
+    },
+    {
+     "mode": "stop",
+     "end_action": "default",
+     "track": 2,
+     "after": "stopped"
+    },
+    {
+     "mode": "stop",
+     "end_action": "once",
+     "track": 0,
+     "after": "stopped"
+    },
+    {
+     "mode": "stop",
+     "end_action": "once",
+     "track": 2,
+     "after": "stopped"
+    },
+    {
+     "mode": "stop",
+     "end_action": "loop",
+     "track": 0,
+     "after": "same"
+    },
+    {
+     "mode": "stop",
+     "end_action": "loop",
+     "track": 2,
+     "after": "same"
+    },
+    {
+     "mode": "stop",
+     "end_action": "stop",
+     "track": 0,
+     "after": "stopped"
+    },
+    {
+     "mode": "stop",
+     "end_action": "stop",
+     "track": 2,
+     "after": "stopped"
+    },
+    {
+     "mode": "loop_playlist",
+     "end_action": "default",
+     "track": 0,
+     "after": {
+      "playlist": 0,
+      "track": 1
+     }
+    },
+    {
+     "mode": "loop_playlist",
+     "end_action": "default",
+     "track": 2,
+     "after": {
+      "playlist": 0,
+      "track": 0
+     }
+    },
+    {
+     "mode": "loop_playlist",
+     "end_action": "once",
+     "track": 0,
+     "after": {
+      "playlist": 0,
+      "track": 1
+     }
+    },
+    {
+     "mode": "loop_playlist",
+     "end_action": "once",
+     "track": 2,
+     "after": {
+      "playlist": 0,
+      "track": 0
+     }
+    },
+    {
+     "mode": "loop_playlist",
+     "end_action": "loop",
+     "track": 0,
+     "after": "same"
+    },
+    {
+     "mode": "loop_playlist",
+     "end_action": "loop",
+     "track": 2,
+     "after": "same"
+    },
+    {
+     "mode": "loop_playlist",
+     "end_action": "stop",
+     "track": 0,
+     "after": "stopped"
+    },
+    {
+     "mode": "loop_playlist",
+     "end_action": "stop",
+     "track": 2,
+     "after": "stopped"
+    },
+    {
+     "mode": "next_playlist",
+     "end_action": "default",
+     "track": 0,
+     "after": {
+      "playlist": 0,
+      "track": 1
+     }
+    },
+    {
+     "mode": "next_playlist",
+     "end_action": "default",
+     "track": 2,
+     "after": {
+      "playlist": 1,
+      "track": 0
+     }
+    },
+    {
+     "mode": "next_playlist",
+     "end_action": "once",
+     "track": 0,
+     "after": {
+      "playlist": 0,
+      "track": 1
+     }
+    },
+    {
+     "mode": "next_playlist",
+     "end_action": "once",
+     "track": 2,
+     "after": {
+      "playlist": 1,
+      "track": 0
+     }
+    },
+    {
+     "mode": "next_playlist",
+     "end_action": "loop",
+     "track": 0,
+     "after": "same"
+    },
+    {
+     "mode": "next_playlist",
+     "end_action": "loop",
+     "track": 2,
+     "after": "same"
+    },
+    {
+     "mode": "next_playlist",
+     "end_action": "stop",
+     "track": 0,
+     "after": "stopped"
+    },
+    {
+     "mode": "next_playlist",
+     "end_action": "stop",
+     "track": 2,
+     "after": "stopped"
+    },
+    {
+     "mode": "shuffle",
+     "end_action": "default",
+     "track": 0,
+     "after": {
+      "playlist": 0,
+      "any_other_track_of_the_playlist": true
+     }
+    },
+    {
+     "mode": "shuffle",
+     "end_action": "default",
+     "track": 2,
+     "after": {
+      "playlist": 0,
+      "any_other_track_of_the_playlist": true
+     }
+    },
+    {
+     "mode": "shuffle",
+     "end_action": "once",
+     "track": 0,
+     "after": {
+      "playlist": 0,
+      "any_other_track_of_the_playlist": true
+     }
+    },
+    {
+     "mode": "shuffle",
+     "end_action": "once",
+     "track": 2,
+     "after": {
+      "playlist": 0,
+      "any_other_track_of_the_playlist": true
+     }
+    },
+    {
+     "mode": "shuffle",
+     "end_action": "loop",
+     "track": 0,
+     "after": "same"
+    },
+    {
+     "mode": "shuffle",
+     "end_action": "loop",
+     "track": 2,
+     "after": "same"
+    },
+    {
+     "mode": "shuffle",
+     "end_action": "stop",
+     "track": 0,
+     "after": "stopped"
+    },
+    {
+     "mode": "shuffle",
+     "end_action": "stop",
+     "track": 2,
+     "after": "stopped"
+    }
+   ]
+  },
+  "next_in_order": {
+   "_info": "indices to try, best first, for what follows track t (stop: nothing; loop_playlist: t+1 first then the rest in a ring; a looping track repeats itself)",
+   "rows": [
+    {
+     "mode": "stop",
+     "from_track": [
+      0,
+      1,
+      2
+     ],
+     "next_in_order": [
+      [],
+      [],
+      []
+     ]
+    },
+    {
+     "mode": "loop_playlist",
+     "from_track": [
+      0,
+      1,
+      2
+     ],
+     "next_in_order": [
+      [
+       1,
+       2,
+       0
+      ],
+      [
+       2,
+       0,
+       1
+      ],
+      [
+       0,
+       1,
+       2
+      ]
+     ]
+    },
+    {
+     "mode": "stop, track 1 set to loop",
+     "next_in_order": [
+      [],
+      [
+       1
+      ],
+      []
+     ]
+    }
+   ]
+  },
+  "shuffle_bag": {
+   "_info": "properties are the contract; the sequence for a fixed Python random seed depends on the Python version and is NOT compared (_info_sequence)",
+   "never_the_same_track_twice_in_a_row": true,
+   "every_draw_is_a_track_of_the_playlist": true,
+   "first_round_from_track_0_is_a_permutation_of_tracks_1_and_2": true,
+   "tracks_left_in_the_round_after_one_draw_from_track_0": 1,
+   "changing_the_mode_forgets_the_round": true,
+   "each_track_gets_a_fair_share_of_300_draws_60_to_140": true,
+   "_info_sequence": [
+    2,
+    1,
+    0,
+    2,
+    0,
+    1,
+    2,
+    0,
+    1,
+    2,
+    0,
+    1,
+    0,
+    2,
+    1,
+    0,
+    1,
+    2,
+    1,
+    0,
+    1,
+    2,
+    1,
+    0,
+    2,
+    1,
+    0,
+    2,
+    1,
+    0
+   ],
+   "_info_python": "3.12.14"
+  }
+ }
+}

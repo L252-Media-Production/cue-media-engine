@@ -1,0 +1,485 @@
+{
+ "spec_version": 1,
+ "name": "trim",
+ "about": "Trim windows (A/B), fade-in at A, fade or cut at B: what set_trim stores, what _start sets on the deck, and the gain curve near B.",
+ "tolerance": 2e-06,
+ "cases": {
+  "trim_range_of_stored_data": {
+   "_info": "file is 10 s; trim_range clamps stored values: A at most 0.5 s before the end; a window under 0.5 s falls back to the end of the file",
+   "rows": [
+    {
+     "stored": {
+      "in": 2.0,
+      "out": 2.3
+     },
+     "range_s": [
+      2.0,
+      10.0
+     ]
+    },
+    {
+     "stored": {
+      "in": 12.0
+     },
+     "range_s": [
+      9.5,
+      10.0
+     ]
+    }
+   ]
+  },
+  "windows": {
+   "_info": "file is 10 s. range_s = (A, B) in file seconds; set_trim REFUSES a window shorter than 0.5 s (accepted false, nothing stored); A is held 0.5 s before the end; fade_out_ms = own fade_ms else config trim_fade_ms (1500); the fade-in is applied only while start == 'fade'",
+   "rows": [
+    {
+     "set": {},
+     "accepted": true,
+     "stored": {},
+     "range_s": [
+      0.0,
+      10.0
+     ],
+     "dur_eff_s": 10.0,
+     "fade_out_ms": 1500,
+     "fade_in_ms_eff": 0,
+     "fade_in_applied_ms": 0
+    },
+    {
+     "set": {
+      "in": 2,
+      "out": 8
+     },
+     "accepted": true,
+     "stored": {
+      "in": 2.0,
+      "out": 8.0
+     },
+     "range_s": [
+      2.0,
+      8.0
+     ],
+     "dur_eff_s": 6.0,
+     "fade_out_ms": 1500,
+     "fade_in_ms_eff": 0,
+     "fade_in_applied_ms": 0
+    },
+    {
+     "set": {
+      "in": 9.8
+     },
+     "accepted": true,
+     "stored": {
+      "in": 9.8
+     },
+     "range_s": [
+      9.5,
+      10.0
+     ],
+     "dur_eff_s": 0.5,
+     "fade_out_ms": 1500,
+     "fade_in_ms_eff": 0,
+     "fade_in_applied_ms": 0
+    },
+    {
+     "set": {
+      "in": 2.0,
+      "out": 2.3
+     },
+     "accepted": false,
+     "stored": {},
+     "range_s": [
+      0.0,
+      10.0
+     ],
+     "dur_eff_s": 10.0,
+     "fade_out_ms": 1500,
+     "fade_in_ms_eff": 0,
+     "fade_in_applied_ms": 0
+    },
+    {
+     "set": {
+      "out": 99
+     },
+     "accepted": true,
+     "stored": {},
+     "range_s": [
+      0.0,
+      10.0
+     ],
+     "dur_eff_s": 10.0,
+     "fade_out_ms": 1500,
+     "fade_in_ms_eff": 0,
+     "fade_in_applied_ms": 0
+    },
+    {
+     "set": {
+      "in": 3.456,
+      "out": 7.891
+     },
+     "accepted": true,
+     "stored": {
+      "in": 3.46,
+      "out": 7.89
+     },
+     "range_s": [
+      3.46,
+      7.89
+     ],
+     "dur_eff_s": 4.43,
+     "fade_out_ms": 1500,
+     "fade_in_ms_eff": 0,
+     "fade_in_applied_ms": 0
+    },
+    {
+     "set": {
+      "in": 5,
+      "out": 5.2,
+      "end": "cut"
+     },
+     "accepted": false,
+     "stored": {},
+     "range_s": [
+      0.0,
+      10.0
+     ],
+     "dur_eff_s": 10.0,
+     "fade_out_ms": 1500,
+     "fade_in_ms_eff": 0,
+     "fade_in_applied_ms": 0
+    },
+    {
+     "set": {
+      "out": 6,
+      "fade_ms": 2500
+     },
+     "accepted": true,
+     "stored": {
+      "out": 6.0,
+      "fade_ms": 2500
+     },
+     "range_s": [
+      0.0,
+      6.0
+     ],
+     "dur_eff_s": 6.0,
+     "fade_out_ms": 2500,
+     "fade_in_ms_eff": 0,
+     "fade_in_applied_ms": 0
+    },
+    {
+     "set": {
+      "out": 6,
+      "fade_ms": 50
+     },
+     "accepted": false,
+     "stored": {},
+     "range_s": [
+      0.0,
+      10.0
+     ],
+     "dur_eff_s": 10.0,
+     "fade_out_ms": 1500,
+     "fade_in_ms_eff": 0,
+     "fade_in_applied_ms": 0
+    },
+    {
+     "set": {
+      "out": 6,
+      "fade_ms": 20000
+     },
+     "accepted": false,
+     "stored": {},
+     "range_s": [
+      0.0,
+      10.0
+     ],
+     "dur_eff_s": 10.0,
+     "fade_out_ms": 1500,
+     "fade_in_ms_eff": 0,
+     "fade_in_applied_ms": 0
+    },
+    {
+     "set": {
+      "in": 1,
+      "start": "fade",
+      "fade_in_ms": 800
+     },
+     "accepted": true,
+     "stored": {
+      "in": 1.0,
+      "fade_in_ms": 800,
+      "start": "fade"
+     },
+     "range_s": [
+      1.0,
+      10.0
+     ],
+     "dur_eff_s": 9.0,
+     "fade_out_ms": 1500,
+     "fade_in_ms_eff": 800,
+     "fade_in_applied_ms": 800
+    },
+    {
+     "set": {
+      "start": "fade"
+     },
+     "accepted": true,
+     "stored": {
+      "start": "fade"
+     },
+     "range_s": [
+      0.0,
+      10.0
+     ],
+     "dur_eff_s": 10.0,
+     "fade_out_ms": 1500,
+     "fade_in_ms_eff": 0,
+     "fade_in_applied_ms": 0
+    },
+    {
+     "set": {
+      "fade_in_ms": 900
+     },
+     "accepted": true,
+     "stored": {
+      "fade_in_ms": 900
+     },
+     "range_s": [
+      0.0,
+      10.0
+     ],
+     "dur_eff_s": 10.0,
+     "fade_out_ms": 1500,
+     "fade_in_ms_eff": 900,
+     "fade_in_applied_ms": 0
+    }
+   ]
+  },
+  "deck_start": {
+   "_info": "what _start sets on the Deck. base = where in the file the sound begins, duration = length of one pass of the window",
+   "rows": [
+    {
+     "case": "no trim",
+     "trim": {},
+     "offset": 0.0,
+     "deck": {
+      "base_s": 0.0,
+      "lo_s": 0.0,
+      "hi_s": 10.0,
+      "duration_s": 10.0,
+      "end_fade_ms": 0,
+      "fade_in_ms": 0,
+      "start_vol": 1.0,
+      "fresh": true
+     }
+    },
+    {
+     "case": "A and B, fade at B",
+     "trim": {
+      "in": 2,
+      "out": 8,
+      "end": "fade",
+      "fade_ms": 1000
+     },
+     "offset": 0.0,
+     "deck": {
+      "base_s": 2.0,
+      "lo_s": 2.0,
+      "hi_s": 8.0,
+      "duration_s": 6.0,
+      "end_fade_ms": 1000,
+      "fade_in_ms": 0,
+      "start_vol": 1.0,
+      "fresh": true
+     }
+    },
+    {
+     "case": "A and B, cut at B",
+     "trim": {
+      "in": 2,
+      "out": 8,
+      "end": "cut"
+     },
+     "offset": 0.0,
+     "deck": {
+      "base_s": 2.0,
+      "lo_s": 2.0,
+      "hi_s": 8.0,
+      "duration_s": 6.0,
+      "end_fade_ms": 0,
+      "fade_in_ms": 0,
+      "start_vol": 1.0,
+      "fresh": true
+     }
+    },
+    {
+     "case": "B only, default fade",
+     "trim": {
+      "out": 6
+     },
+     "offset": 0.0,
+     "deck": {
+      "base_s": 0.0,
+      "lo_s": 0.0,
+      "hi_s": 6.0,
+      "duration_s": 6.0,
+      "end_fade_ms": 1500,
+      "fade_in_ms": 0,
+      "start_vol": 1.0,
+      "fresh": true
+     }
+    },
+    {
+     "case": "fade-in 1.5 s at A",
+     "trim": {
+      "in": 1,
+      "out": 9,
+      "start": "fade",
+      "fade_in_ms": 1500
+     },
+     "offset": 0.0,
+     "deck": {
+      "base_s": 1.0,
+      "lo_s": 1.0,
+      "hi_s": 9.0,
+      "duration_s": 8.0,
+      "end_fade_ms": 1500,
+      "fade_in_ms": 1500,
+      "start_vol": 0.0,
+      "fresh": true
+     }
+    },
+    {
+     "case": "fade-in longer than the window",
+     "trim": {
+      "in": 1,
+      "out": 3,
+      "start": "fade",
+      "fade_in_ms": 9000
+     },
+     "offset": 0.0,
+     "deck": {
+      "base_s": 1.0,
+      "lo_s": 1.0,
+      "hi_s": 3.0,
+      "duration_s": 2.0,
+      "end_fade_ms": 1500,
+      "fade_in_ms": 500,
+      "start_vol": 0.0,
+      "fresh": true
+     }
+    },
+    {
+     "case": "resume part-way in (no fade-in)",
+     "trim": {
+      "in": 1,
+      "out": 9,
+      "start": "fade",
+      "fade_in_ms": 1500
+     },
+     "offset": 4.0,
+     "deck": {
+      "base_s": 4.0,
+      "lo_s": 1.0,
+      "hi_s": 9.0,
+      "duration_s": 5.0,
+      "end_fade_ms": 1500,
+      "fade_in_ms": 0,
+      "start_vol": 1.0,
+      "fresh": false
+     }
+    }
+   ]
+  },
+  "fade_out_ahead_of_B": {
+   "_info": "window 0..6 s, fade_ms 2000: the fade (cos) starts when 2 s are left and ends at B; then the track ends by itself",
+   "rows": [
+    {
+     "t_s": 0,
+     "vol": 1.0,
+     "fading": false
+    },
+    {
+     "t_s": 3.5,
+     "vol": 1.0,
+     "fading": false
+    },
+    {
+     "t_s": 3.9375,
+     "vol": 1.0,
+     "fading": false
+    },
+    {
+     "t_s": 4.0,
+     "vol": 1.0,
+     "fading": true
+    },
+    {
+     "t_s": 4.25,
+     "vol": 0.980785,
+     "fading": true
+    },
+    {
+     "t_s": 4.5,
+     "vol": 0.92388,
+     "fading": true
+    },
+    {
+     "t_s": 5.0,
+     "vol": 0.707107,
+     "fading": true
+    },
+    {
+     "t_s": 5.5,
+     "vol": 0.382683,
+     "fading": true
+    },
+    {
+     "t_s": 5.75,
+     "vol": 0.19509,
+     "fading": true
+    },
+    {
+     "t_s": 5.9375,
+     "vol": 0.049068,
+     "fading": true
+    }
+   ],
+   "ended": true,
+   "live_after": true
+  },
+  "fade_in_at_A": {
+   "_info": "fade_in_ms 1500: sin(x*pi/2) up to full level",
+   "rows": [
+    {
+     "x": 0.0,
+     "vol": 0.0
+    },
+    {
+     "x": 0.125,
+     "vol": 0.19509
+    },
+    {
+     "x": 0.25,
+     "vol": 0.382683
+    },
+    {
+     "x": 0.5,
+     "vol": 0.707107
+    },
+    {
+     "x": 0.75,
+     "vol": 0.92388
+    },
+    {
+     "x": 0.875,
+     "vol": 0.980785
+    },
+    {
+     "x": 1.0,
+     "vol": 1.0
+    }
+   ]
+  }
+ }
+}

@@ -1,0 +1,385 @@
+{
+ "spec_version": 1,
+ "name": "end_actions",
+ "about": "Per-track end actions: pass counts, remaining time per pass and the moment the track ends (fake clock, 0.25 s steps).",
+ "tolerance": 2e-06,
+ "cases": {
+  "track_2s_end_default": {
+   "_info": "2 s track, playlist mode stop; ticks every 0.25 s from the start. passes: 2 for once; loop = started with loops=-1",
+   "deck_at_start": {
+    "passes": 1,
+    "loop": false
+   },
+   "ended_at_s": 2.0,
+   "rows": [
+    {
+     "t_s": 1.0,
+     "live": true,
+     "pass_no": 1,
+     "remaining_s": 1.0
+    },
+    {
+     "t_s": 1.75,
+     "live": true,
+     "pass_no": 1,
+     "remaining_s": 0.25
+    },
+    {
+     "t_s": 2.0,
+     "live": false,
+     "pass_no": null,
+     "remaining_s": null
+    },
+    {
+     "t_s": 2.25,
+     "live": false,
+     "pass_no": null,
+     "remaining_s": null
+    },
+    {
+     "t_s": 3.75,
+     "live": false,
+     "pass_no": null,
+     "remaining_s": null
+    },
+    {
+     "t_s": 4.0,
+     "live": false,
+     "pass_no": null,
+     "remaining_s": null
+    },
+    {
+     "t_s": 4.25,
+     "live": false,
+     "pass_no": null,
+     "remaining_s": null
+    },
+    {
+     "t_s": 6.0,
+     "live": false,
+     "pass_no": null,
+     "remaining_s": null
+    },
+    {
+     "t_s": 9.0,
+     "live": false,
+     "pass_no": null,
+     "remaining_s": null
+    }
+   ]
+  },
+  "track_2s_end_once": {
+   "_info": "2 s track, playlist mode stop; ticks every 0.25 s from the start. passes: 2 for once; loop = started with loops=-1",
+   "deck_at_start": {
+    "passes": 2,
+    "loop": false
+   },
+   "ended_at_s": 4.0,
+   "rows": [
+    {
+     "t_s": 1.0,
+     "live": true,
+     "pass_no": 1,
+     "remaining_s": 1.0
+    },
+    {
+     "t_s": 1.75,
+     "live": true,
+     "pass_no": 1,
+     "remaining_s": 0.25
+    },
+    {
+     "t_s": 2.0,
+     "live": true,
+     "pass_no": 2,
+     "remaining_s": 2.0
+    },
+    {
+     "t_s": 2.25,
+     "live": true,
+     "pass_no": 2,
+     "remaining_s": 1.75
+    },
+    {
+     "t_s": 3.75,
+     "live": true,
+     "pass_no": 2,
+     "remaining_s": 0.25
+    },
+    {
+     "t_s": 4.0,
+     "live": false,
+     "pass_no": null,
+     "remaining_s": null
+    },
+    {
+     "t_s": 4.25,
+     "live": false,
+     "pass_no": null,
+     "remaining_s": null
+    },
+    {
+     "t_s": 6.0,
+     "live": false,
+     "pass_no": null,
+     "remaining_s": null
+    },
+    {
+     "t_s": 9.0,
+     "live": false,
+     "pass_no": null,
+     "remaining_s": null
+    }
+   ]
+  },
+  "track_2s_end_loop": {
+   "_info": "2 s track, playlist mode stop; ticks every 0.25 s from the start. passes: 2 for once; loop = started with loops=-1",
+   "deck_at_start": {
+    "passes": 1,
+    "loop": true
+   },
+   "ended_at_s": null,
+   "rows": [
+    {
+     "t_s": 1.0,
+     "live": true,
+     "pass_no": 1,
+     "remaining_s": 1.0
+    },
+    {
+     "t_s": 1.75,
+     "live": true,
+     "pass_no": 1,
+     "remaining_s": 0.25
+    },
+    {
+     "t_s": 2.0,
+     "live": true,
+     "pass_no": 1,
+     "remaining_s": 2.0
+    },
+    {
+     "t_s": 2.25,
+     "live": true,
+     "pass_no": 1,
+     "remaining_s": 1.75
+    },
+    {
+     "t_s": 3.75,
+     "live": true,
+     "pass_no": 1,
+     "remaining_s": 0.25
+    },
+    {
+     "t_s": 4.0,
+     "live": true,
+     "pass_no": 1,
+     "remaining_s": 2.0
+    },
+    {
+     "t_s": 4.25,
+     "live": true,
+     "pass_no": 1,
+     "remaining_s": 1.75
+    },
+    {
+     "t_s": 6.0,
+     "live": true,
+     "pass_no": 1,
+     "remaining_s": 2.0
+    },
+    {
+     "t_s": 9.0,
+     "live": true,
+     "pass_no": 1,
+     "remaining_s": 1.0
+    }
+   ]
+  },
+  "track_2s_end_stop": {
+   "_info": "2 s track, playlist mode stop; ticks every 0.25 s from the start. passes: 2 for once; loop = started with loops=-1",
+   "deck_at_start": {
+    "passes": 1,
+    "loop": false
+   },
+   "ended_at_s": 2.0,
+   "rows": [
+    {
+     "t_s": 1.0,
+     "live": true,
+     "pass_no": 1,
+     "remaining_s": 1.0
+    },
+    {
+     "t_s": 1.75,
+     "live": true,
+     "pass_no": 1,
+     "remaining_s": 0.25
+    },
+    {
+     "t_s": 2.0,
+     "live": false,
+     "pass_no": null,
+     "remaining_s": null
+    },
+    {
+     "t_s": 2.25,
+     "live": false,
+     "pass_no": null,
+     "remaining_s": null
+    },
+    {
+     "t_s": 3.75,
+     "live": false,
+     "pass_no": null,
+     "remaining_s": null
+    },
+    {
+     "t_s": 4.0,
+     "live": false,
+     "pass_no": null,
+     "remaining_s": null
+    },
+    {
+     "t_s": 4.25,
+     "live": false,
+     "pass_no": null,
+     "remaining_s": null
+    },
+    {
+     "t_s": 6.0,
+     "live": false,
+     "pass_no": null,
+     "remaining_s": null
+    },
+    {
+     "t_s": 9.0,
+     "live": false,
+     "pass_no": null,
+     "remaining_s": null
+    }
+   ]
+  },
+  "once_switched_off_in_pass_1": {
+   "_info": "end action set back to default at 1.0 s: the pass that is running is played out, then it ends",
+   "ended_at_s": 2.0,
+   "rows": [
+    {
+     "t_s": 1.0,
+     "live": true,
+     "pass_no": 1,
+     "remaining_s": 1.0
+    },
+    {
+     "t_s": 1.75,
+     "live": true,
+     "pass_no": 1,
+     "remaining_s": 0.25
+    },
+    {
+     "t_s": 2.0,
+     "live": false,
+     "pass_no": null,
+     "remaining_s": null
+    },
+    {
+     "t_s": 2.25,
+     "live": false,
+     "pass_no": null,
+     "remaining_s": null
+    },
+    {
+     "t_s": 3.75,
+     "live": false,
+     "pass_no": null,
+     "remaining_s": null
+    },
+    {
+     "t_s": 4.0,
+     "live": false,
+     "pass_no": null,
+     "remaining_s": null
+    },
+    {
+     "t_s": 4.25,
+     "live": false,
+     "pass_no": null,
+     "remaining_s": null
+    },
+    {
+     "t_s": 6.0,
+     "live": false,
+     "pass_no": null,
+     "remaining_s": null
+    }
+   ]
+  },
+  "loop_switched_off_in_pass_2": {
+   "_info": "end action set back to default at 3.0 s (pass 2 running): that pass is played out, then it ends",
+   "ended_at_s": 4.0,
+   "rows": [
+    {
+     "t_s": 1.0,
+     "live": true,
+     "pass_no": 1,
+     "remaining_s": 1.0
+    },
+    {
+     "t_s": 1.75,
+     "live": true,
+     "pass_no": 1,
+     "remaining_s": 0.25
+    },
+    {
+     "t_s": 2.0,
+     "live": true,
+     "pass_no": 1,
+     "remaining_s": 2.0
+    },
+    {
+     "t_s": 2.25,
+     "live": true,
+     "pass_no": 1,
+     "remaining_s": 1.75
+    },
+    {
+     "t_s": 3.75,
+     "live": true,
+     "pass_no": 1,
+     "remaining_s": 0.25
+    },
+    {
+     "t_s": 4.0,
+     "live": false,
+     "pass_no": null,
+     "remaining_s": null
+    },
+    {
+     "t_s": 4.25,
+     "live": false,
+     "pass_no": null,
+     "remaining_s": null
+    },
+    {
+     "t_s": 6.0,
+     "live": false,
+     "pass_no": null,
+     "remaining_s": null
+    }
+   ]
+  },
+  "end_action_cycle": {
+   "_info": "set_end with no value cycles default > once > loop > stop",
+   "sequence": [
+    "default",
+    "once",
+    "loop",
+    "stop",
+    "default",
+    "once",
+    "loop",
+    "stop"
+   ]
+  }
+ }
+}

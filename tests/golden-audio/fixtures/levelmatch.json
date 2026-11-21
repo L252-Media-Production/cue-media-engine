@@ -1,0 +1,207 @@
+{
+ "spec_version": 1,
+ "name": "levelmatch",
+ "about": "Level match: integrated loudness (LUFS) of synthetic signals and the per-track gain it gives (only ever turns a track down).",
+ "tolerance": 2e-06,
+ "cases": {
+  "lufs_from_pcm": {
+   "_info": "integrated loudness (ITU-R BS.1770 K-weighting, 400 ms blocks, -70 LUFS absolute and -10 LU relative gates) of 48 kHz 16-bit stereo; None = silent or shorter than 0.4 s. Rounded to 3 decimals (compared with a 0.01 LU allowance: _tolerance_lufs)",
+   "rows": [
+    {
+     "signal": "1 kHz sine, -20 dBFS peak, 5 s, stereo",
+     "lufs": -19.993
+    },
+    {
+     "signal": "1 kHz sine, -6 dBFS peak, 5 s",
+     "lufs": -5.993
+    },
+    {
+     "signal": "1 kHz sine, -30 dBFS peak, 5 s",
+     "lufs": -29.994
+    },
+    {
+     "signal": "100 Hz sine, -20 dBFS peak, 5 s",
+     "lufs": -21.825
+    },
+    {
+     "signal": "10 kHz sine, -20 dBFS peak, 5 s",
+     "lufs": -16.649
+    },
+    {
+     "signal": "1 kHz sine, -20 dBFS, left channel only",
+     "lufs": -23.004
+    },
+    {
+     "signal": "silence 5 s",
+     "lufs": null
+    },
+    {
+     "signal": "too short (0.3 s)",
+     "lufs": null
+    },
+    {
+     "signal": "1 kHz sine, -20 dBFS, 12 s",
+     "lufs": -19.993
+    }
+   ]
+  },
+  "norm_gain": {
+   "_info": "gain_db = min(0, target - measured), target = the reference track's LUFS (track mode) or the fixed LUFS (lufs mode, -60..0, 0.1 steps); never boosts; None = not applicable (off, or the track has no measurement); linear = 10^(dB/20), 1.0 when no gain",
+   "rows": [
+    {
+     "setting": "off",
+     "measured_lufs": [
+      -14.0,
+      -23.0,
+      null
+     ],
+     "gain_db": [
+      null,
+      null,
+      null
+     ],
+     "gain_linear": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "stored": {
+      "mode": "off",
+      "ref": null,
+      "lufs": -18.0
+     }
+    },
+    {
+     "setting": "track: reference b (-23)",
+     "measured_lufs": [
+      -14.0,
+      -23.0,
+      null
+     ],
+     "gain_db": [
+      -9.0,
+      0.0,
+      null
+     ],
+     "gain_linear": [
+      0.354813,
+      1.0,
+      1.0
+     ],
+     "stored": {
+      "mode": "track",
+      "ref": "b.wav",
+      "lufs": -18.0
+     }
+    },
+    {
+     "setting": "track: reference a (-14), never boosts",
+     "measured_lufs": [
+      -14.0,
+      -23.0,
+      null
+     ],
+     "gain_db": [
+      0.0,
+      0.0,
+      null
+     ],
+     "gain_linear": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "stored": {
+      "mode": "track",
+      "ref": "a.wav",
+      "lufs": -18.0
+     }
+    },
+    {
+     "setting": "lufs: target -18",
+     "measured_lufs": [
+      -14.0,
+      -23.0,
+      null
+     ],
+     "gain_db": [
+      -4.0,
+      0.0,
+      null
+     ],
+     "gain_linear": [
+      0.630957,
+      1.0,
+      1.0
+     ],
+     "stored": {
+      "mode": "lufs",
+      "ref": null,
+      "lufs": -18.0
+     }
+    },
+    {
+     "setting": "lufs: target -10 (above all: no boost)",
+     "measured_lufs": [
+      -14.0,
+      -23.0,
+      null
+     ],
+     "gain_db": [
+      0.0,
+      0.0,
+      null
+     ],
+     "gain_linear": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "stored": {
+      "mode": "lufs",
+      "ref": null,
+      "lufs": -10.0
+     }
+    },
+    {
+     "setting": "lufs: target -60 (clamped)",
+     "measured_lufs": [
+      -14.0,
+      -23.0,
+      null
+     ],
+     "gain_db": [
+      -46.0,
+      -37.0,
+      null
+     ],
+     "gain_linear": [
+      0.005012,
+      0.014125,
+      1.0
+     ],
+     "stored": {
+      "mode": "lufs",
+      "ref": null,
+      "lufs": -60.0
+     }
+    }
+   ]
+  },
+  "applied_to_deck": {
+   "_info": "Deck.gain follows level match immediately (apply_gain_live); the channel volume is vol * gain * duck * duck_in * live_volume",
+   "rows": [
+    {
+     "track": "a.wav (-14 LUFS), target -23",
+     "deck_gain": 0.354813,
+     "deck_gain_db": -9.0
+    },
+    {
+     "track": "after switching level match off",
+     "deck_gain": 1.0
+    }
+   ]
+  }
+ },
+ "tolerance_lufs": 0.01
+}
