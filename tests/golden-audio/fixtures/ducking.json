@@ -5,6 +5,39 @@
  "tolerance": 2e-06,
  "cases": {
   "duck_key": {
+   "scenario": {
+    "format": "48 kHz, 2 channels, 16-bit little-endian",
+    "window_samples": 480,
+    "window_s": 0.01,
+    "input": "every 10 ms window holds ONE constant sample value per channel",
+    "windows": [
+     {
+      "windows": 5,
+      "left": 0,
+      "right": 0
+     },
+     {
+      "windows": 10,
+      "left": 16384,
+      "right": 8192
+     },
+     {
+      "windows": 5,
+      "left": 3277,
+      "right": 0
+     },
+     {
+      "windows": 5,
+      "left": 0,
+      "right": 0
+     },
+     {
+      "windows": 3,
+      "left": 1000,
+      "right": 16384
+     }
+    ]
+   },
    "_info": "RMS (0..1) of the louder channel per 10 ms window of 48 kHz stereo 16-bit; the input is, per 10 ms: 5 silent, 10 at (16384, 8192), 5 at (3277, 0), 5 silent, 3 at (1000, 16384)",
    "key": [
     0.0,
@@ -38,6 +71,41 @@
    ]
   },
   "duck_curve": {
+   "scenario": {
+    "format": "48 kHz, 2 channels, 16-bit little-endian",
+    "window_samples": 480,
+    "window_s": 0.01,
+    "input": "the key of the duck_key case (same windows) is passed to duck_curve with each row's level, ratio, threshold_db and hold",
+    "windows": [
+     {
+      "windows": 5,
+      "left": 0,
+      "right": 0
+     },
+     {
+      "windows": 10,
+      "left": 16384,
+      "right": 8192
+     },
+     {
+      "windows": 5,
+      "left": 3277,
+      "right": 0
+     },
+     {
+      "windows": 5,
+      "left": 0,
+      "right": 0
+     },
+     {
+      "windows": 3,
+      "left": 1000,
+      "right": 16384
+     }
+    ]
+   },
+   "tolerance": 2e-05,
+   "_info_tolerance": "case-level tolerance (dB), overrides the file's 2e-6: the Python key is float32 and carries about 1e-6 relative noise on the (3277, 0) windows, which moves the reduction by up to about 1.2e-5 dB",
    "_info": "dB of reduction wanted per 10 ms before smoothing: max(0, dB(key*level) - threshold) * (1 - 1/ratio), capped at 60 dB; hold keeps the 75th-percentile depth from the first to the last active window",
    "rows": [
     {
@@ -294,7 +362,143 @@
     }
    ]
   },
+  "duck_curve_hold_percentile": {
+   "scenario": {
+    "input": "duck_curve(key, level, ratio, threshold_db, hold) with the key of this signal",
+    "format": "48 kHz, 2 channels, 16-bit little-endian",
+    "window_samples": 480,
+    "windows": [
+     {
+      "windows": 1,
+      "left": 0,
+      "right": 0
+     },
+     {
+      "windows": 1,
+      "left": 3000,
+      "right": 0
+     },
+     {
+      "windows": 1,
+      "left": 6000,
+      "right": 0
+     },
+     {
+      "windows": 1,
+      "left": 9000,
+      "right": 0
+     },
+     {
+      "windows": 1,
+      "left": 12000,
+      "right": 0
+     },
+     {
+      "windows": 1,
+      "left": 16000,
+      "right": 0
+     },
+     {
+      "windows": 1,
+      "left": 20000,
+      "right": 0
+     },
+     {
+      "windows": 1,
+      "left": 24000,
+      "right": 0
+     },
+     {
+      "windows": 1,
+      "left": 28000,
+      "right": 0
+     },
+     {
+      "windows": 1,
+      "left": 32000,
+      "right": 0
+     },
+     {
+      "windows": 1,
+      "left": 26000,
+      "right": 0
+     },
+     {
+      "windows": 1,
+      "left": 18000,
+      "right": 0
+     },
+     {
+      "windows": 1,
+      "left": 10000,
+      "right": 0
+     },
+     {
+      "windows": 1,
+      "left": 5000,
+      "right": 0
+     },
+     {
+      "windows": 2,
+      "left": 0,
+      "right": 0
+     }
+    ],
+    "level": 1.0,
+    "ratio": 6.0,
+    "threshold_db": -30.0
+   },
+   "tolerance": 2e-05,
+   "_info": "hold = true keeps the 75th-percentile depth (of the windows above 0.05 dB) from the first to the last active window. The ramp has targets from 0 to about 25 dB, so the depth is clearly different for the 60th and the 90th percentile.",
+   "_info_alternatives": {
+    "depth_db_60th": 20.816235,
+    "depth_db_75th": 22.746002,
+    "depth_db_90th": 23.754538
+   },
+   "hold_depth_db": 22.746002,
+   "reduction_db_hold_off": [
+    0.0,
+    7.694502,
+    12.711669,
+    15.646546,
+    17.728836,
+    19.811167,
+    21.426325,
+    22.746002,
+    23.86182,
+    24.828333,
+    23.325405,
+    20.663712,
+    16.409159,
+    11.391993,
+    0.0,
+    0.0
+   ],
+   "reduction_db_hold_on": [
+    0.0,
+    22.746002,
+    22.746002,
+    22.746002,
+    22.746002,
+    22.746002,
+    22.746002,
+    22.746002,
+    23.86182,
+    24.828333,
+    23.325405,
+    22.746002,
+    22.746002,
+    22.746002,
+    0.0,
+    0.0
+   ]
+  },
   "duck_smooth": {
+   "scenario": {
+    "initial_gr_db": 0.0,
+    "dt_s": 0.01,
+    "input": "each row: attack_ms, release_ms and the target series (segments = runs of equal target, `steps` long); dsp.duck_smooth is applied once per 10 ms step"
+   },
    "_info": "one step per 10 ms: gr += (tgt - gr) * (1 - exp(-dt/tau)); tau = attack when tgt > gr else release (min 1 ms); snaps to 0 when tgt == 0 and gr < 0.05",
    "rows": [
     {
@@ -771,6 +975,9 @@
    ]
   },
   "background_gain": {
+   "scenario": {
+    "input": "each row's gr_db"
+   },
    "_info": "the background deck volume is multiplied by 10^(-gr/20) (Deck.duck)",
    "rows": [
     {
@@ -804,6 +1011,9 @@
    ]
   },
   "input_target_db": {
+   "scenario": {
+    "input": "each row: rms (0..1), gain_db, ratio, threshold_db"
+   },
    "_info": "Live input detector: the same gain computation as duck_curve (hold off), with its own threshold",
    "rows": [
     {
@@ -844,9 +1054,56 @@
    ]
   },
   "duck_loop": {
+   "scenario": {
+    "background": {
+     "file": "bg.wav",
+     "length_s": 30,
+     "playlist": 0,
+     "track": 0,
+     "started_by": "play(0, 0)"
+    },
+    "background_alone_s": 0.5,
+    "voice_over": {
+     "file": "voice.wav",
+     "playlist": 1,
+     "track": 0,
+     "started_by": "play_on_top(1, 0) at 0.5 s",
+     "stereo_48k": true,
+     "segments_s_and_sample_value": [
+      [
+       0.3,
+       0
+      ],
+      [
+       0.7,
+       16384
+      ],
+      [
+       0.5,
+       4096
+      ],
+      [
+       0.5,
+       0
+      ]
+     ]
+    },
+    "step_s": 0.01,
+    "tick_every_steps": 5,
+    "max_steps": 620,
+    "settings_per_case": "each entry of `cases` holds its `settings`"
+   },
    "_info": "the REAL _duck_loop and Play on Top under the fake clock: background deck + a 2 s voice-over (0.3 s silence, 0.7 s at 16384, 0.5 s at 4096, 0.5 s silence, stereo 48 kHz), sampled every 10 ms from 0.5 s before the voice-over until after the release. target_db = the duck_curve value the loop reads at top_pos + 20 ms (look-ahead); gr_db = smoothed reduction; bg_multiplier = Deck.duck of the background (applied only when it moved by more than 0.0005, so it can trail 10^(-gr/20) by that). Index 49 is the last background-only sample (t = 0.5 s, voice-over not started), index 50 is the voice-over starting at the same time (top_pos 0); from index 51 every row is 10 ms later, with the reduction computed by the loop at that time.",
    "cases": {
     "production_defaults_hold_on": {
+     "scenario": {
+      "background": {
+       "file": "bg.wav",
+       "length_s": 30
+      },
+      "voice_over_file": "voice.wav",
+      "see": "the `scenario` of the duck_loop case, plus `settings` here"
+     },
      "settings": {
       "duck_threshold_db": -30.0,
       "duck_ratio": 6.0,
@@ -892,6 +1149,14 @@
      "final_multiplier": 1.0
     },
     "slow_attack_hold_off": {
+     "scenario": {
+      "background": {
+       "file": "bg.wav",
+       "length_s": 30
+      },
+      "voice_over_file": "voice.wav",
+      "see": "the `scenario` of the duck_loop case, plus `settings` here"
+     },
      "settings": {
       "duck_threshold_db": -30.0,
       "duck_ratio": 6.0,

@@ -5,6 +5,23 @@
  "tolerance": 2e-06,
  "cases": {
   "trim_range_of_stored_data": {
+   "scenario": {
+    "library_s": {
+     "a.wav": 10,
+     "b.wav": 12
+    },
+    "playlist": [
+     "a.wav",
+     "b.wav"
+    ],
+    "track_under_test": 0,
+    "file_length_s": 10.0,
+    "config": {
+     "trim_fade_ms": 1500,
+     "trim_fadein_ms": 0
+    },
+    "input": "the `stored` trim dict is written straight into playlists[0]['trims'] (an old file), then trim_range is read"
+   },
    "_info": "file is 10 s; trim_range clamps stored values: A at most 0.5 s before the end; a window under 0.5 s falls back to the end of the file",
    "rows": [
     {
@@ -29,6 +46,23 @@
    ]
   },
   "windows": {
+   "scenario": {
+    "library_s": {
+     "a.wav": 10,
+     "b.wav": 12
+    },
+    "playlist": [
+     "a.wav",
+     "b.wav"
+    ],
+    "track_under_test": 0,
+    "file_length_s": 10.0,
+    "config": {
+     "trim_fade_ms": 1500,
+     "trim_fadein_ms": 0
+    },
+    "input": "set_trim(playlist 0, track 0, row.set) from an empty trim for each row"
+   },
    "_info": "file is 10 s. range_s = (A, B) in file seconds; set_trim REFUSES a window shorter than 0.5 s (accepted false, nothing stored); A is held 0.5 s before the end; fade_out_ms = own fade_ms else config trim_fade_ms (1500); the fade-in is applied only while start == 'fade'",
    "rows": [
     {
@@ -256,6 +290,23 @@
    ]
   },
   "deck_start": {
+   "scenario": {
+    "library_s": {
+     "a.wav": 10,
+     "b.wav": 12
+    },
+    "playlist": [
+     "a.wav",
+     "b.wav"
+    ],
+    "track_under_test": 0,
+    "file_length_s": 10.0,
+    "config": {
+     "trim_fade_ms": 1500,
+     "trim_fadein_ms": 0
+    },
+    "input": "set_trim(row.trim), then _start(playlist 0, track 0, offset = row.offset seconds into the file); the deck is read right away"
+   },
    "_info": "what _start sets on the Deck. base = where in the file the sound begins, duration = length of one pass of the window",
    "rows": [
     {
@@ -392,6 +443,44 @@
    ]
   },
   "fade_out_ahead_of_B": {
+   "scenario": {
+    "library_s": {
+     "a.wav": 10,
+     "b.wav": 12
+    },
+    "playlist": [
+     "a.wav",
+     "b.wav"
+    ],
+    "track_under_test": 0,
+    "file_length_s": 10.0,
+    "config": {
+     "trim_fade_ms": 1500,
+     "trim_fadein_ms": 0
+    },
+    "trim": {
+     "out": 6,
+     "end": "fade",
+     "fade_ms": 2000
+    },
+    "steps": [
+     "play track 0 from the start"
+    ],
+    "sampled_at_s": [
+     0,
+     3.5,
+     3.9375,
+     4.0,
+     4.25,
+     4.5,
+     5.0,
+     5.5,
+     5.75,
+     5.9375
+    ],
+    "ended_check_at_s": 6.25
+   },
+   "_info_live_after": "live_after true = nothing is live at ended_check_at_s (6.25 s)",
    "_info": "window 0..6 s, fade_ms 2000: the fade (cos) starts when 2 s are left and ends at B; then the track ends by itself",
    "rows": [
     {
@@ -449,6 +538,39 @@
    "live_after": true
   },
   "fade_in_at_A": {
+   "scenario": {
+    "library_s": {
+     "a.wav": 10,
+     "b.wav": 12
+    },
+    "playlist": [
+     "a.wav",
+     "b.wav"
+    ],
+    "track_under_test": 0,
+    "file_length_s": 10.0,
+    "config": {
+     "trim_fade_ms": 1500,
+     "trim_fadein_ms": 0
+    },
+    "trim": {
+     "in": 2,
+     "start": "fade",
+     "fade_in_ms": 1500
+    },
+    "steps": [
+     "play track 0 from the start"
+    ],
+    "sampled_at_fractions": [
+     0.0,
+     0.125,
+     0.25,
+     0.5,
+     0.75,
+     0.875,
+     1.0
+    ]
+   },
    "_info": "fade_in_ms 1500: sin(x*pi/2) up to full level",
    "rows": [
     {

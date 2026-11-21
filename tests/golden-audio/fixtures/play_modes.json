@@ -5,6 +5,56 @@
  "tolerance": 2e-06,
  "cases": {
   "after_a_track_ends": {
+   "scenario": {
+    "library_s": {
+     "a.wav": 2,
+     "b.wav": 2,
+     "c.wav": 2,
+     "u.wav": 2,
+     "v.wav": 1
+    },
+    "playlists": {
+     "A": [
+      "a.wav",
+      "b.wav",
+      "c.wav"
+     ],
+     "B": [
+      "u.wav",
+      "v.wav"
+     ]
+    },
+    "playlist_under_test": 0,
+    "play_modes": [
+     "stop",
+     "loop_playlist",
+     "next_playlist",
+     "shuffle"
+    ],
+    "end_actions": [
+     "default",
+     "once",
+     "loop",
+     "stop"
+    ],
+    "from_tracks": [
+     0,
+     2
+    ],
+    "mode_set_on_playlists": [
+     0,
+     1
+    ],
+    "tick_step_s": 0.25,
+    "max_ticks": 80,
+    "shuffle_random_seed": 1234,
+    "steps": [
+     "set the play mode on both playlists",
+     "set_end(0, from_track, end_action)",
+     "play(0, from_track)",
+     "tick every tick_step_s until the live deck changes or max_ticks"
+    ]
+   },
    "_info": "playlist A has 3 tracks, B has 2. 'same' = the same deck is still playing (loop). shuffle: only 'another track of the same playlist' is promised",
    "rows": [
     {
@@ -238,6 +288,40 @@
    ]
   },
   "next_in_order": {
+   "scenario": {
+    "library_s": {
+     "a.wav": 2,
+     "b.wav": 2,
+     "c.wav": 2,
+     "u.wav": 2,
+     "v.wav": 1
+    },
+    "playlists": {
+     "A": [
+      "a.wav",
+      "b.wav",
+      "c.wav"
+     ],
+     "B": [
+      "u.wav",
+      "v.wav"
+     ]
+    },
+    "playlist_under_test": 0,
+    "row_inputs": {
+     "stop": {
+      "play_mode": "stop"
+     },
+     "loop_playlist": {
+      "play_mode": "loop_playlist"
+     },
+     "stop, track 1 set to loop": {
+      "play_mode": "stop",
+      "end_action_of_track_1": "loop"
+     }
+    },
+    "input": "next_in_order(0, t) for each t in the row's from_track; the row label names the playlist mode (and any end action) set before"
+   },
    "_info": "indices to try, best first, for what follows track t (stop: nothing; loop_playlist: t+1 first then the rest in a ring; a looping track repeats itself)",
    "rows": [
     {
@@ -280,6 +364,11 @@
     },
     {
      "mode": "stop, track 1 set to loop",
+     "from_track": [
+      0,
+      1,
+      2
+     ],
      "next_in_order": [
       [],
       [
@@ -291,6 +380,36 @@
    ]
   },
   "shuffle_bag": {
+   "scenario": {
+    "library_s": {
+     "a.wav": 2,
+     "b.wav": 2,
+     "c.wav": 2,
+     "u.wav": 2,
+     "v.wav": 1
+    },
+    "playlists": {
+     "A": [
+      "a.wav",
+      "b.wav",
+      "c.wav"
+     ],
+     "B": [
+      "u.wav",
+      "v.wav"
+     ]
+    },
+    "playlist_under_test": 0,
+    "play_mode": "shuffle",
+    "start_track": 0,
+    "draws_for_sequence": 30,
+    "draws_for_fair_share": 300,
+    "python_random_seeds": [
+     20240229,
+     7,
+     7
+    ]
+   },
    "_info": "properties are the contract; the sequence for a fixed Python random seed depends on the Python version and is NOT compared (_info_sequence)",
    "never_the_same_track_twice_in_a_row": true,
    "every_draw_is_a_track_of_the_playlist": true,

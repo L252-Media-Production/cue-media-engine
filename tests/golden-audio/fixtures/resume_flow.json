@@ -5,6 +5,51 @@
  "tolerance": 2e-06,
  "cases": {
   "record": {
+   "scenario": {
+    "library_s": {
+     "a.wav": 60,
+     "b.wav": 60
+    },
+    "playlist": [
+     "a.wav",
+     "b.wav"
+    ],
+    "track_ids": {
+     "0": "a.wav",
+     "1": "b.wav"
+    },
+    "config": {
+     "resume_on_start": true,
+     "resume_max_age_s": 1800,
+     "resume_save_s": 5
+    },
+    "age_limit_s": 1800,
+    "row_inputs": {
+     "playing, 12.5 s in": {
+      "play_track": 1,
+      "at_s": 12.5,
+      "paused": false,
+      "clock_at_save_s": 12.5
+     },
+     "paused at 7.25 s": {
+      "play_track": 1,
+      "at_s": 7.25,
+      "paused": true,
+      "clock_at_save_s": 20.0
+     },
+     "after a deliberate stop": {
+      "play_track": 0,
+      "at_s": 3.0,
+      "then": "stop_all, save_resume"
+     },
+     "while fading out": {
+      "play_track": 0,
+      "at_s": 3.0,
+      "then": "fade_out(1000 ms), save_resume"
+     }
+    },
+    "input": "save_resume(force) after the steps of the row; `record` is resume.json without its wall-clock `saved` stamp"
+   },
    "_info": "save_resume: pt = [playlist, track], id = library file, pos = seconds in the FILE (a paused track keeps its position), paused flag; removed when nothing plays or a fade-out is running",
    "rows": [
     {
@@ -42,6 +87,27 @@
    ]
   },
   "try_resume": {
+   "scenario": {
+    "library_s": {
+     "a.wav": 60,
+     "b.wav": 60
+    },
+    "playlist": [
+     "a.wav",
+     "b.wav"
+    ],
+    "track_ids": {
+     "0": "a.wav",
+     "1": "b.wav"
+    },
+    "config": {
+     "resume_on_start": true,
+     "resume_max_age_s": 1800,
+     "resume_save_s": 5
+    },
+    "age_limit_s": 1800,
+    "input": "resume.json is written with the row's `record` and saved = now - age_s, then try_resume() runs (start-up) and 20 event-loop turns pass; `record` / `age_s` are in the row"
+   },
    "_info": "at start-up. offset = where in the file the sound begins; a resumed start never fades in (start_vol 1, fade_in_ms 0), even when the track has a fade-in at A; an old or unknown record is dropped",
    "rows": [
     {
@@ -178,6 +244,42 @@
    ]
   },
   "resume_inside_a_trim": {
+   "scenario": {
+    "library_s": {
+     "a.wav": 60,
+     "b.wav": 60
+    },
+    "playlist": [
+     "a.wav",
+     "b.wav"
+    ],
+    "track_ids": {
+     "0": "a.wav",
+     "1": "b.wav"
+    },
+    "config": {
+     "resume_on_start": true,
+     "resume_max_age_s": 1800,
+     "resume_save_s": 5
+    },
+    "age_limit_s": 1800,
+    "trim_of_track_0": {
+     "in": 2.0,
+     "out": 40.0,
+     "start": "fade",
+     "fade_in_ms": 1500
+    },
+    "record": {
+     "pt": [
+      0,
+      0
+     ],
+     "id": "a.wav",
+     "pos": 20.0,
+     "paused": false
+    },
+    "age_s": 5
+   },
    "_info": "trim A=2 B=40 with a fade-in; resume at 20 s",
    "started": {
     "base_s": 20.0,

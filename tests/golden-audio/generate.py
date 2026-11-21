@@ -6,7 +6,8 @@
 
 Everything is measured from the real code (a copy of the app imported in-process, fake clock from cpl/clock.py, SDL dummy mixer): nothing here
 changes the player. A fixture file is {"spec_version", "name", "about", "tolerance", "cases": {...}}; numbers are rounded to 6 decimals.
-Keys that start with "_info" are explanatory and never compared.
+Keys that start with "_info" are explanatory and never compared. Every case carries a "scenario" object with the inputs it was built from
+(written from the same variables that run the scenario); a case-level "tolerance" overrides the file-level one.
 """
 import asyncio
 import json
@@ -44,8 +45,12 @@ def doc(name, about, cases, **extra):
 async def fades():
     cases = {}
     cases["equal_power_formula"] = {"_info": "x = elapsed / fade length (0..1). A fade UP goes a + (b - a) * sin(x*pi/2); a fade DOWN goes b + (a - b) * cos(x*pi/2); new^2 + old^2 = 1 in a crossfade.",
+                                    "scenario": {"x_values": [i / 16 for i in range(17)]},
                                     "rows": [{"x": f, "up": r6(math.sin(f * math.pi / 2)), "down": r6(math.cos(f * math.pi / 2))} for f in [i / 16 for i in range(17)]]}
-    async with Rig({"a.wav": 12, "b.wav": 12}, [{"name": "A", "tracks": ["a.wav", "b.wav"]}]) as r:
+    lib = {"a.wav": 12, "b.wav": 12}
+    pls = [{"name": "A", "tracks": ["a.wav", "b.wav"]}]
+    base = {"library_s": dict(lib), "playlist": pls[0]["tracks"], "sampled_at_fractions": FRACS}
+    async with Rig(lib, pls) as r:
         await r.load("a.wav", "b.wav")
         for ms in (1000, 3000):
             r.reset()
@@ -58,27 +63,30 @@ async def fades():
             for f in FRACS:
                 r.at(f * ms / 1000.0)
                 rows.append({"x": f, "t_s": r6(f * ms / 1000.0), "new": r6(new.vol), "old": r6(old.vol), "old_still_playing": old in r.P.decks})
-            cases[f"crossfade_{ms}ms"] = {"fade_ms": ms, "start": {"new": 0.0, "old": 1.0}, "rows": rows}
+            cases[f"crossfade_{ms}ms"] = {"scenario": dict(base, steps=["play track 0 (a.wav)", f"play track 1 (b.wav) with a {ms} ms crossfade at the same instant"], fade_ms=ms), "fade_ms": ms, "start": {"new": 0.0, "old": 1.0}, "rows": rows}
         r.reset()                                           # a zero-length crossfade is a cut
         r.P.play(0, 0)
         old = r.live()
         r.P.play(0, 1, 0)
-        cases["crossfade_0ms_is_a_cut"] = {"new_vol": r6(r.live().vol), "old_removed": old not in r.P.decks, "decks": len(r.P.decks)}
+        cases["crossfade_0ms_is_a_cut"] = {"scenario": dict(base, steps=["play track 0", "play track 1 with a 0 ms crossfade"], fade_ms=0), "new_vol": r6(r.live().vol), "old_removed": old not in r.P.decks, "decks": len(r.P.decks)}
         r.reset()                                           # fade out
         r.P.play(0, 0)
         d = r.live()
         r.rebase()
-        r.P.fade_out(2000)
+        out_ms = 2000
+        r.P.fade_out(out_ms)
         rows = []
         for f in FRACS:
-            r.at(f * 2.0)
+            r.at(f * out_ms / 1000.0)
             rows.append({"x": f, "vol": r6(d.vol), "playing": d in r.P.decks})
-        cases["fade_out_2000ms"] = {"rows": rows, "live_after": r.live() is None}
+        cases["fade_out_2000ms"] = {"scenario": dict(base, steps=["play track 0", "fade_out at the same instant"], fade_ms=out_ms),
+                                    "_info_live_after": "live_after true = nothing is live any more at the end of the fade", "rows": rows, "live_after": r.live() is None}
         r.reset()                                           # pause freezes a fade; the pause time is not counted
         r.P.play(0, 0)
         old = r.live()
         r.rebase()
-        r.P.play(0, 1, 1000)
+        pause_fade_ms = 1000
+        r.P.play(0, 1, pause_fade_ms)
         new = r.live()
         r.at(0.25)
         a = (r6(new.vol), r6(old.vol))
@@ -87,7 +95,8 @@ async def fades():
         b = (r6(new.vol), r6(old.vol))
         r.P.resume_all()
         r.at(5.5)
-        cases["pause_freezes_a_fade"] = {"at_0_25": {"new": a[0], "old": a[1]}, "after_5s_pause": {"new": b[0], "old": b[1]},
+        cases["pause_freezes_a_fade"] = {"scenario": dict(base, steps=["play track 0", "play track 1 with the crossfade", "t = 0.25 s: sample", "pause all", "t = 5.25 s: sample (5 s of pause)", "resume all", "t = 5.5 s: sample (0.25 s after resume)"],
+                                                          fade_ms=pause_fade_ms, sample_1_at_s=0.25, sample_2_at_s=5.25, sample_3_at_s=5.5), "at_0_25": {"new": a[0], "old": a[1]}, "after_5s_pause": {"new": b[0], "old": b[1]},
                                          "0_25s_after_resume": {"new": r6(new.vol), "old": r6(old.vol)}}
     return doc("fades", "Gain of the decks during equal-power fades, read from Deck.vol at fixed fake-clock times (the mixer channel quantises to 128 steps; Deck.vol is the contract).", cases)
 
@@ -95,7 +104,11 @@ async def fades():
 # ------------------------------------------------------------------------------------------------ xfade.json
 async def xfade():
     cases = {}
-    async with Rig({"a.wav": 12, "b.wav": 12}, [{"name": "A", "tracks": ["a.wav", "b.wav"]}], cfg={"crossfade_ms": 3000, "default_transition": "crossfade"}) as r:
+    lib = {"a.wav": 12, "b.wav": 12}
+    pls = [{"name": "A", "tracks": ["a.wav", "b.wav"]}]
+    master_ms = 3000
+    base = {"library_s": dict(lib), "playlist": pls[0]["tracks"], "target_track": 1, "master_crossfade_ms": master_ms}
+    async with Rig(lib, pls, cfg={"crossfade_ms": master_ms, "default_transition": "crossfade"}) as r:
         P = r.P
         await r.load("a.wav", "b.wav")
         rows = []
@@ -112,21 +125,22 @@ async def xfade():
         P.set_xfade(0, 1, None)
         row("cleared: master again")
         row("explicit beats master", 250)
-        cases["precedence"] = {"_info": "result = explicit (?ms=) if given, else the track's own time if set (0 allowed), else the master crossfade_ms", "rows": rows}
+        cases["precedence"] = {"scenario": dict(base, input="each row: the track's own time own_ms (null = not set), explicit_ms (the ?ms= value, null = none) and the master time, all in the row"), "_info": "result = explicit (?ms=) if given, else the track's own time if set (0 allowed), else the master crossfade_ms", "rows": rows}
         rows = []
         for secs in (0, 0.5, 30, 30.0004, 31, -1, "abc"):
             ok = P.set_xfade(0, 1, secs)
             rows.append({"seconds": secs, "accepted": bool(ok), "stored_ms": P.xfade_of(0, 1)})
             P.set_xfade(0, 1, None)
-        cases["own_time_limits"] = {"_info": "accepted 0..30 s, stored in whole ms", "rows": rows}
+        cases["own_time_limits"] = {"scenario": dict(base, input="set_xfade(playlist 0, track 1, seconds) with each row's `seconds`, cleared again after every row"), "_info": "accepted 0..30 s, stored in whole ms", "rows": rows}
         out = []                                            # the length really used by Go / play_default with the crossfade transition
-        for label, own in (("master", None), ("own 1.5 s", 1.5)):
-            r.reset(cfg={"crossfade_ms": 3000})
+        pd_inputs = (("master", None), ("own 1.5 s", 1.5))
+        for label, own in pd_inputs:
+            r.reset(cfg={"crossfade_ms": master_ms})
             P.set_xfade(0, 1, own)
             P.play(0, 0)
             P.play_default(0, 1)
             out.append({"case": label, "fade_len_s": r6(r.live().fade["len"])})
-        cases["play_default_uses_it"] = {"rows": out}
+        cases["play_default_uses_it"] = {"scenario": dict(base, default_transition="crossfade", steps=["play track 0", "play_default(playlist 0, track 1)"], row_inputs={lbl: {"own_time_s": own} for lbl, own in pd_inputs}), "rows": out}
     return doc("xfade", "Crossfade time precedence (explicit ?ms= > per-track > master crossfade_ms) and the fade length that play_default really starts.", cases)
 
 
@@ -134,7 +148,9 @@ async def xfade():
 async def trim():
     cases = {}
     lib = {"a.wav": 10, "b.wav": 12}
-    async with Rig(lib, [{"name": "A", "tracks": ["a.wav", "b.wav"]}], cfg={"trim_fade_ms": 1500, "trim_fadein_ms": 0}) as r:
+    tcfg = {"trim_fade_ms": 1500, "trim_fadein_ms": 0}
+    base = {"library_s": dict(lib), "playlist": ["a.wav", "b.wav"], "track_under_test": 0, "file_length_s": 10.0, "config": tcfg}
+    async with Rig(lib, [{"name": "A", "tracks": ["a.wav", "b.wav"]}], cfg=tcfg) as r:
         P = r.P
         await r.load("a.wav", "b.wav")
         rows = []
@@ -150,8 +166,8 @@ async def trim():
         P.playlists[0]["trims"] = {"a.wav": {"in": 12.0}}
         raw_rows.append({"stored": {"in": 12.0}, "range_s": [r6(x) for x in P.trim_range(0, 0, 10.0)[:2]]})
         P.playlists[0].pop("trims", None)
-        cases["trim_range_of_stored_data"] = {"_info": "file is 10 s; trim_range clamps stored values: A at most 0.5 s before the end; a window under 0.5 s falls back to the end of the file", "rows": raw_rows}
-        cases["windows"] = {"_info": "file is 10 s. range_s = (A, B) in file seconds; set_trim REFUSES a window shorter than 0.5 s (accepted false, nothing stored); A is held 0.5 s before the end; fade_out_ms = own fade_ms else config trim_fade_ms (1500); the fade-in is applied only while start == 'fade'", "rows": rows}
+        cases["trim_range_of_stored_data"] = {"scenario": dict(base, input="the `stored` trim dict is written straight into playlists[0]['trims'] (an old file), then trim_range is read"), "_info": "file is 10 s; trim_range clamps stored values: A at most 0.5 s before the end; a window under 0.5 s falls back to the end of the file", "rows": raw_rows}
+        cases["windows"] = {"scenario": dict(base, input="set_trim(playlist 0, track 0, row.set) from an empty trim for each row"), "_info": "file is 10 s. range_s = (A, B) in file seconds; set_trim REFUSES a window shorter than 0.5 s (accepted false, nothing stored); A is held 0.5 s before the end; fade_out_ms = own fade_ms else config trim_fade_ms (1500); the fade-in is applied only while start == 'fade'", "rows": rows}
         rows = []
         for label, trim_, offset in (("no trim", {}, 0.0), ("A and B, fade at B", {"in": 2, "out": 8, "end": "fade", "fade_ms": 1000}, 0.0), ("A and B, cut at B", {"in": 2, "out": 8, "end": "cut"}, 0.0),
                                      ("B only, default fade", {"out": 6}, 0.0), ("fade-in 1.5 s at A", {"in": 1, "out": 9, "start": "fade", "fade_in_ms": 1500}, 0.0),
@@ -166,30 +182,34 @@ async def trim():
             d = r.live()
             rows.append({"case": label, "trim": trim_, "offset": offset, "deck": {"base_s": r6(d.base), "lo_s": r6(d.lo), "hi_s": r6(d.hi), "duration_s": r6(d.duration), "end_fade_ms": d.end_fade_ms,
                                                                                    "fade_in_ms": d.fade_in_ms, "start_vol": r6(d.vol), "fresh": d.fresh}})
-        cases["deck_start"] = {"_info": "what _start sets on the Deck. base = where in the file the sound begins, duration = length of one pass of the window", "rows": rows}
+        cases["deck_start"] = {"scenario": dict(base, input="set_trim(row.trim), then _start(playlist 0, track 0, offset = row.offset seconds into the file); the deck is read right away"), "_info": "what _start sets on the Deck. base = where in the file the sound begins, duration = length of one pass of the window", "rows": rows}
         r.reset()                                           # the fade-out ahead of B
         P.playlists[0].pop("trims", None)
-        P.set_trim(0, 0, {"out": 6, "end": "fade", "fade_ms": 2000})
+        ob_trim = {"out": 6, "end": "fade", "fade_ms": 2000}
+        P.set_trim(0, 0, ob_trim)
         P.play(0, 0)
         d = r.live()
         r.rebase()
         rows = []
-        for t in (0, 3.5, 3.9375, 4.0, 4.25, 4.5, 5.0, 5.5, 5.75, 5.9375):
+        ob_times, ob_end_check = (0, 3.5, 3.9375, 4.0, 4.25, 4.5, 5.0, 5.5, 5.75, 5.9375), 6.25
+        for t in ob_times:
             r.at(t)
             rows.append({"t_s": t, "vol": r6(d.vol), "fading": d.fade is not None})
-        r.at(6.25)
-        cases["fade_out_ahead_of_B"] = {"_info": "window 0..6 s, fade_ms 2000: the fade (cos) starts when 2 s are left and ends at B; then the track ends by itself", "rows": rows, "ended": d not in P.decks, "live_after": r.live() is None}
+        r.at(ob_end_check)
+        cases["fade_out_ahead_of_B"] = {"scenario": dict(base, trim=ob_trim, steps=["play track 0 from the start"], sampled_at_s=list(ob_times), ended_check_at_s=ob_end_check),
+                                    "_info_live_after": "live_after true = nothing is live at ended_check_at_s (6.25 s)", "_info": "window 0..6 s, fade_ms 2000: the fade (cos) starts when 2 s are left and ends at B; then the track ends by itself", "rows": rows, "ended": d not in P.decks, "live_after": r.live() is None}
         r.reset()                                           # fade-in at A
         P.playlists[0].pop("trims", None)
-        P.set_trim(0, 0, {"in": 2, "start": "fade", "fade_in_ms": 1500})
+        fi_trim = {"in": 2, "start": "fade", "fade_in_ms": 1500}
+        P.set_trim(0, 0, fi_trim)
         P.play(0, 0)
         d = r.live()
         r.rebase()
         rows = []
         for f in FRACS:
-            r.at(f * 1.5)
+            r.at(f * fi_trim["fade_in_ms"] / 1000.0)
             rows.append({"x": f, "vol": r6(d.vol)})
-        cases["fade_in_at_A"] = {"_info": "fade_in_ms 1500: sin(x*pi/2) up to full level", "rows": rows}
+        cases["fade_in_at_A"] = {"scenario": dict(base, trim=fi_trim, steps=["play track 0 from the start"], sampled_at_fractions=FRACS), "_info": "fade_in_ms 1500: sin(x*pi/2) up to full level", "rows": rows}
     return doc("trim", "Trim windows (A/B), fade-in at A, fade or cut at B: what set_trim stores, what _start sets on the deck, and the gain curve near B.", cases)
 
 
@@ -198,6 +218,9 @@ async def end_actions():
     cases = {}
     lib = {"a.wav": 2}
     stamps = (0.0, 1.0, 1.75, 2.0, 2.25, 3.75, 4.0, 4.25, 6.0, 9.0)
+    step_s, run_s = 0.25, 9.0
+    base = {"library_s": dict(lib), "playlist": ["a.wav"], "play_mode": "stop", "tick_step_s": step_s, "rows_at_s": list(stamps)}
+    once_off_s, loop_off_s = 1.0, 3.0
 
     def timeline(r, secs, step=0.25, actions=None):
         d0 = r.live()
@@ -223,28 +246,28 @@ async def end_actions():
             r.P.play(0, 0)
             d = r.live()
             first = {"passes": d.passes, "loop": d.loop}
-            rows, ended, _ = timeline(r, 9.0)
+            rows, ended, _ = timeline(r, run_s)
             ideal_end = {"default": 2.0, "once": 4.0, "loop": None, "stop": 2.0}[end]
             assert (ended is None) == (ideal_end is None) and (ended is None or 0 <= ended - ideal_end <= END_TOL + 1e-6)
-            cases[f"track_2s_end_{end}"] = {"_info": "2 s track, playlist mode stop; ticks every 0.25 s from the start (so ended_at_s is on that 0.25 s grid, and ideal_ended_at_s is the end of the last pass). passes: 2 for once; loop = started with loops=-1", "deck_at_start": first, "ended_at_s": ended, "ideal_ended_at_s": ideal_end, "tolerance_s": END_TOL, "rows": rows}
+            cases[f"track_2s_end_{end}"] = {"scenario": dict(base, end_action=end, run_s=run_s, steps=["set_end(0, 0, end_action)", "play track 0", f"tick every {step_s} s for {run_s} s"]), "_info": "2 s track, playlist mode stop; ticks every 0.25 s from the start (so ended_at_s is on that 0.25 s grid, and ideal_ended_at_s is the end of the last pass). passes: 2 for once; loop = started with loops=-1", "deck_at_start": first, "ended_at_s": ended, "ideal_ended_at_s": ideal_end, "tolerance_s": END_TOL, "rows": rows}
         r.reset([{"name": "A", "tracks": ["a.wav"], "mode": "stop"}])
         r.P.set_end(0, 0, "once")
         r.P.play(0, 0)
-        rows, ended, _ = timeline(r, 6.0, actions={1.0: lambda: r.P.set_end(0, 0, "default")})
-        cases["once_switched_off_in_pass_1"] = {"_info": "end action set back to default at 1.0 s: the pass that is running is played out, then it ends", "ended_at_s": ended, "ideal_ended_at_s": 2.0, "tolerance_s": END_TOL, "rows": rows}
+        rows, ended, _ = timeline(r, 6.0, actions={once_off_s: lambda: r.P.set_end(0, 0, "default")})
+        cases["once_switched_off_in_pass_1"] = {"scenario": dict(base, end_action="once", switch_off_to="default", switch_off_at_s=once_off_s, run_s=6.0), "_info": "end action set back to default at 1.0 s: the pass that is running is played out, then it ends", "ended_at_s": ended, "ideal_ended_at_s": 2.0, "tolerance_s": END_TOL, "rows": rows}
         assert 0 <= ended - 2.0 <= END_TOL + 1e-6
         r.reset([{"name": "A", "tracks": ["a.wav"], "mode": "stop"}])
         r.P.set_end(0, 0, "loop")
         r.P.play(0, 0)
-        rows, ended, _ = timeline(r, 6.0, actions={3.0: lambda: r.P.set_end(0, 0, "default")})
-        cases["loop_switched_off_in_pass_2"] = {"_info": "end action set back to default at 3.0 s (pass 2 running): that pass is played out, then it ends", "ended_at_s": ended, "ideal_ended_at_s": 4.0, "tolerance_s": END_TOL, "rows": rows}
+        rows, ended, _ = timeline(r, 6.0, actions={loop_off_s: lambda: r.P.set_end(0, 0, "default")})
+        cases["loop_switched_off_in_pass_2"] = {"scenario": dict(base, end_action="loop", switch_off_to="default", switch_off_at_s=loop_off_s, run_s=6.0), "_info": "end action set back to default at 3.0 s (pass 2 running): that pass is played out, then it ends", "ended_at_s": ended, "ideal_ended_at_s": 4.0, "tolerance_s": END_TOL, "rows": rows}
         assert 0 <= ended - 4.0 <= END_TOL + 1e-6
         r.reset([{"name": "A", "tracks": ["a.wav"], "mode": "stop"}])
         order = []
         for _ in range(8):
             order.append(r.P.end_of(0, 0))
             r.P.set_end(0, 0)
-        cases["end_action_cycle"] = {"_info": "set_end with no value cycles default > once > loop > stop", "sequence": order}
+        cases["end_action_cycle"] = {"scenario": {"playlist": ["a.wav"], "input": "set_end(0, 0) with no value, 8 times; sequence[0] is the value before the first call"}, "_info": "set_end with no value cycles default > once > loop > stop", "sequence": order}
     return doc("end_actions", "Per-track end actions: pass counts, remaining time per pass and the moment the track ends (fake clock, 0.25 s steps).", cases)
 
 
@@ -253,23 +276,25 @@ async def play_modes():
     cases = {}
     lib = {"a.wav": 2, "b.wav": 2, "c.wav": 2, "u.wav": 2, "v.wav": 1}
     pls = [{"name": "A", "tracks": ["a.wav", "b.wav", "c.wav"]}, {"name": "B", "tracks": ["u.wav", "v.wav"]}]
+    modes, ends, from_tracks, seed, max_ticks, step_s = ("stop", "loop_playlist", "next_playlist", "shuffle"), ("default", "once", "loop", "stop"), (0, 2), 1234, 80, 0.25
+    base = {"library_s": dict(lib), "playlists": {p_["name"]: p_["tracks"] for p_ in pls}, "playlist_under_test": 0}
     async with Rig(lib, pls) as r:
         P = r.P
         await r.load(*lib)
         rows = []
-        for mode in ("stop", "loop_playlist", "next_playlist", "shuffle"):
-            for end in ("default", "once", "loop", "stop"):
-                for t in (0, 2):
+        for mode in modes:
+            for end in ends:
+                for t in from_tracks:
                     r.reset(pls)
-                    random.seed(1234)
+                    random.seed(seed)
                     P.set_play_mode(0, mode)
                     P.set_play_mode(1, mode)
                     P.set_end(0, t, end)
                     P.play(0, t)
                     prev = r.live()
                     after = "same"
-                    for _ in range(80):                         # up to 20 s: long enough for two passes of a 2 s track
-                        r.fake.t += 0.25
+                    for _ in range(max_ticks):                  # up to 20 s: long enough for two passes of a 2 s track
+                        r.fake.t += step_s
                         P.tick()
                         d = r.live()
                         if d is not prev:
@@ -278,7 +303,8 @@ async def play_modes():
                     if mode == "shuffle" and isinstance(after, dict) and end in ("default", "once"):
                         after = {"playlist": after["playlist"], "any_other_track_of_the_playlist": after["track"] != t}   # the choice is random: only the property is the contract
                     rows.append({"mode": mode, "end_action": end, "track": t, "after": after})
-        cases["after_a_track_ends"] = {"_info": "playlist A has 3 tracks, B has 2. 'same' = the same deck is still playing (loop). shuffle: only 'another track of the same playlist' is promised",
+        cases["after_a_track_ends"] = {"scenario": dict(base, play_modes=list(modes), end_actions=list(ends), from_tracks=list(from_tracks), mode_set_on_playlists=[0, 1], tick_step_s=step_s, max_ticks=max_ticks, shuffle_random_seed=seed,
+                                                       steps=["set the play mode on both playlists", "set_end(0, from_track, end_action)", "play(0, from_track)", "tick every tick_step_s until the live deck changes or max_ticks"]), "_info": "playlist A has 3 tracks, B has 2. 'same' = the same deck is still playing (loop). shuffle: only 'another track of the same playlist' is promised",
                                        "rows": rows}
         rows = []                                              # next_in_order, pure
         for mode in ("stop", "loop_playlist"):
@@ -288,19 +314,21 @@ async def play_modes():
         r.reset(pls)
         P.set_play_mode(0, "stop")
         P.set_end(0, 1, "loop")
-        rows.append({"mode": "stop, track 1 set to loop", "next_in_order": [P.next_in_order(0, t) for t in (0, 1, 2)]})
-        cases["next_in_order"] = {"_info": "indices to try, best first, for what follows track t (stop: nothing; loop_playlist: t+1 first then the rest in a ring; a looping track repeats itself)", "rows": rows}
+        rows.append({"mode": "stop, track 1 set to loop", "from_track": [0, 1, 2], "next_in_order": [P.next_in_order(0, t) for t in (0, 1, 2)]})
+        cases["next_in_order"] = {"scenario": dict(base, row_inputs={"stop": {"play_mode": "stop"}, "loop_playlist": {"play_mode": "loop_playlist"}, "stop, track 1 set to loop": {"play_mode": "stop", "end_action_of_track_1": "loop"}},
+                                                  input="next_in_order(0, t) for each t in the row's from_track; the row label names the playlist mode (and any end action) set before"), "_info": "indices to try, best first, for what follows track t (stop: nothing; loop_playlist: t+1 first then the rest in a ring; a looping track repeats itself)", "rows": rows}
         r.reset(pls)                                           # shuffle bag properties
         P.set_play_mode(0, "shuffle")
-        random.seed(20240229)
+        seed_a, draws_a, seed_b, seed_c, draws_c = 20240229, 30, 7, 7, 300
+        random.seed(seed_a)
         cur, seq = 0, []
-        for _ in range(30):
+        for _ in range(draws_a):
             cur = P.next_in_order(0, cur)[0]
             seq.append(cur)
         no_repeat = all(a != b for a, b in zip([0] + seq, seq))
         r.reset(pls)
         P.set_play_mode(0, "shuffle")
-        random.seed(7)
+        random.seed(seed_b)
         first_round = [P.next_in_order(0, 0)[0]]
         first_round.append(P.next_in_order(0, first_round[0])[0])
         left_after_one = None
@@ -312,12 +340,12 @@ async def play_modes():
         forgot = len(P.shuffle_left(0)) == 0
         r.reset(pls)
         P.set_play_mode(0, "shuffle")
-        random.seed(7)
+        random.seed(seed_c)
         counts, cur = {0: 0, 1: 0, 2: 0}, 0
-        for _ in range(300):
+        for _ in range(draws_c):
             cur = P.next_in_order(0, cur)[0]
             counts[cur] += 1
-        cases["shuffle_bag"] = {"_info": "properties are the contract; the sequence for a fixed Python random seed depends on the Python version and is NOT compared (_info_sequence)",
+        cases["shuffle_bag"] = {"scenario": dict(base, play_mode="shuffle", start_track=0, draws_for_sequence=draws_a, draws_for_fair_share=draws_c, python_random_seeds=[seed_a, seed_b, seed_c]), "_info": "properties are the contract; the sequence for a fixed Python random seed depends on the Python version and is NOT compared (_info_sequence)",
                                 "never_the_same_track_twice_in_a_row": bool(no_repeat),
                                 "every_draw_is_a_track_of_the_playlist": all(0 <= x < 3 for x in seq),
                                 "first_round_from_track_0_is_a_permutation_of_tracks_1_and_2": sorted(first_round) == [1, 2],
@@ -380,7 +408,10 @@ async def triggers():
             assert len(ideal) == len(fires), (label, ideal, fires)                 # the generator checks its own claim: measured = ideal + at most one tick
             for m, i in zip(fires, ideal):
                 assert -1e-6 <= m["t_s"] - i["t_s"] <= TRIG_TOL + 1e-6 and m["file"] == i["file"], (label, m, i)
-            cases[label] = {"_info": info, "triggers": triggers_, "trim": trim_ or {}, "fires": list(fires), "ideal_fires": ideal, "tolerance_s": TRIG_TOL}
+            scn = {"library_s": dict(lib), "playlist": pls[0]["tracks"], "main_track": "main.wav", "main_track_length_s": lib["main.wav"], "voice_over_lengths_s": {k: v for k, v in lib.items() if k != "main.wav"},
+                   "end_action": "loop" if loop else "default", "run_s": secs, "trim": trim_ or {}, "seek": None if not seek else {"at_s": seek[0], "to_s": seek[1]}, "triggers": triggers_,
+                   "steps": ["set the end action and the trim", "add the trigger points", "play track 0 and start counting", "tick every 50 ms for run_s (the seek, if any, at seek.at_s of play)"], "tick_s": 0.05}
+            cases[label] = {"scenario": scn, "_info": info, "triggers": triggers_, "trim": trim_ or {}, "fires": list(fires), "ideal_fires": ideal, "tolerance_s": TRIG_TOL}
         await run("simple", [{"at": 10, "file": "vo.wav"}], 14, info="fires once when the playhead reaches `at` (within one 50 ms tick)")
         await run("two_in_order", [{"at": 5, "file": "vo.wav"}, {"at": 20, "file": "vo2.wav"}], 25, info="the first voice-over (3 s) is over before the second fires")
         await run("disabled", [{"at": 5, "file": "vo.wav", "enabled": False}], 8, info="a disabled trigger never fires")
@@ -396,6 +427,17 @@ async def triggers():
 
 
 # ------------------------------------------------------------------------------------------------ ducking.json
+def _runs(windows):
+    """[(l, r), ...] -> [{"windows": n, "left": l, "right": r}, ...]: consecutive equal windows folded."""
+    out = []
+    for w in windows:
+        if out and (out[-1]["left"], out[-1]["right"]) == tuple(w):
+            out[-1]["windows"] += 1
+        else:
+            out.append({"windows": 1, "left": w[0], "right": w[1]})
+    return out
+
+
 def _pcm(windows):
     import numpy as np
     a = np.zeros((len(windows) * 480, 2), dtype="<i2")
@@ -404,12 +446,47 @@ def _pcm(windows):
     return a.tobytes()
 
 
+DUCK_VOICE = [(0.3, 0), (0.7, 16384), (0.5, 4096), (0.5, 0)]           # (seconds, constant sample value in both channels): 2 s, loud then quieter then silent
+DUCK_CURVE_TOL = 2e-5                                                      # dB: the float32 key noise of duck_curve (see its _info_tolerance)
+HOLD_RAMP = [0, 3000, 6000, 9000, 12000, 16000, 20000, 24000, 28000, 32000, 26000, 18000, 10000, 5000, 0, 0]     # left-channel sample value per 10 ms window (right = 0)
+
+
+def _hold_percentile_case(dsp):
+    """The hold depth is the 75th percentile of the active targets. The same curve is worked out here with the 60th and the 90th percentile and the
+    committed values must differ from both (so a change of the percentile cannot pass unnoticed); cpl/ is not touched."""
+    import numpy as np
+    level, ratio, thr = 1.0, 6.0, -30.0
+    key = dsp.duck_key(_pcm([(v, 0) for v in HOLD_RAMP]))
+
+    def alt(pct):                                                          # dsp.duck_curve, line for line, with another percentile
+        db = 20.0 * np.log10(np.maximum(key * max(level, 1e-4), 1e-6))
+        tgt = np.minimum(np.clip(db - thr, 0.0, None) * (1.0 - 1.0 / ratio), 60.0)
+        act = np.nonzero(tgt > 0.05)[0]
+        seg = slice(int(act[0]), int(act[-1]) + 1)
+        depth = float(np.percentile(tgt[seg][tgt[seg] > 0.05], pct))
+        tgt[seg] = np.maximum(tgt[seg], depth)
+        return depth, tgt.astype(np.float32)
+    real = dsp.duck_curve(key, level, ratio, thr, True)
+    nohold = dsp.duck_curve(key, level, ratio, thr, False)
+    d75, c75 = alt(75)
+    assert np.allclose(real, c75, atol=1e-6), "the generator's own 75th-percentile copy does not match dsp.duck_curve"
+    for pct in (60, 90):
+        d, c = alt(pct)
+        assert abs(d - d75) > 0.5 and float(np.max(np.abs(c - real))) > 0.5, f"the hold-percentile case no longer tells {pct} from 75"
+    return {"scenario": {"input": "duck_curve(key, level, ratio, threshold_db, hold) with the key of this signal", "format": "48 kHz, 2 channels, 16-bit little-endian", "window_samples": 480,
+                         "windows": _runs([(v, 0) for v in HOLD_RAMP]), "level": level, "ratio": ratio, "threshold_db": thr},
+            "tolerance": DUCK_CURVE_TOL,
+            "_info": "hold = true keeps the 75th-percentile depth (of the windows above 0.05 dB) from the first to the last active window. The ramp has targets from 0 to about 25 dB, so the depth is clearly different for the 60th and the 90th percentile.",
+            "_info_alternatives": {"depth_db_60th": r6(alt(60)[0]), "depth_db_75th": r6(d75), "depth_db_90th": r6(alt(90)[0])},
+            "hold_depth_db": r6(d75), "reduction_db_hold_off": [r6(x) for x in nohold], "reduction_db_hold_on": [r6(x) for x in real]}
+
+
 async def duck_loop_cases():
     """The real _duck_loop under the fake clock: one loop iteration = one 10 ms step of fake time (asyncio.sleep is replaced for the duration)."""
     import wave
     import numpy as np
     out = {}
-    voice = [(0.3, 0), (0.7, 16384), (0.5, 4096), (0.5, 0)]            # (seconds, constant sample value in both channels): 2 s, loud then quieter then silent
+    voice = DUCK_VOICE
     async with Rig({"bg.wav": 30, "pad.wav": 1}, [{"name": "bg", "tracks": ["bg.wav"]}, {"name": "top", "tracks": ["voice.wav"]}]) as r:
         P = r.P
         y = np.concatenate([np.full(int(48000 * sec), v, dtype="<i2") for sec, v in voice])
@@ -473,7 +550,7 @@ async def duck_loop_cases():
                         break
             finally:
                 asyncio.sleep = real_sleep
-            out[label] = {"settings": settings, "step_s": 0.01, "look_ahead_s": 0.02, "voice_over": {"file": "voice.wav", "starts_at_s": voice_start, "length_s": 2.0, "level_pct": settings["top_track_pct"],
+            out[label] = {"scenario": {"background": {"file": "bg.wav", "length_s": 30}, "voice_over_file": "voice.wav", "see": "the `scenario` of the duck_loop case, plus `settings` here"}, "settings": settings, "step_s": 0.01, "look_ahead_s": 0.02, "voice_over": {"file": "voice.wav", "starts_at_s": voice_start, "length_s": 2.0, "level_pct": settings["top_track_pct"],
                                                                                                     "segments_s_and_sample_value": [[sec, v] for sec, v in voice]},
                           "samples": cols, "peak_reduction_db": r6(max(cols["gr_db"])), "final_multiplier": cols["bg_multiplier"][-1]}
             P.stop_all()
@@ -487,29 +564,38 @@ async def ducking():
         dsp = r.app.mod("dsp")
         win = [(0, 0)] * 5 + [(16384, 8192)] * 10 + [(3277, 0)] * 5 + [(0, 0)] * 5 + [(1000, 16384)] * 3
         key = dsp.duck_key(_pcm(win))
-        cases["duck_key"] = {"_info": "RMS (0..1) of the louder channel per 10 ms window of 48 kHz stereo 16-bit; the input is, per 10 ms: 5 silent, 10 at (16384, 8192), 5 at (3277, 0), 5 silent, 3 at (1000, 16384)",
+        pcm_scn = {"format": "48 kHz, 2 channels, 16-bit little-endian", "window_samples": 480, "window_s": 0.01, "input": "every 10 ms window holds ONE constant sample value per channel", "windows": _runs(win)}
+        cases["duck_key"] = {"scenario": pcm_scn, "_info": "RMS (0..1) of the louder channel per 10 ms window of 48 kHz stereo 16-bit; the input is, per 10 ms: 5 silent, 10 at (16384, 8192), 5 at (3277, 0), 5 silent, 3 at (1000, 16384)",
                              "key": [r6(x) for x in key]}
         rows = []
         for level, ratio, thr, hold in ((1.0, 6.0, -30.0, False), (1.0, 6.0, -30.0, True), (1.0, 2.0, -20.0, False), (0.5, 4.0, -30.0, False), (1.0, 1.0, -30.0, False), (1.0, 100.0, -60.0, False), (2.0, 6.0, -30.0, True)):
             tg = dsp.duck_curve(key, level, ratio, thr, hold)
             rows.append({"level": level, "ratio": ratio, "threshold_db": thr, "hold": hold, "reduction_db": [r6(x) for x in tg]})
-        cases["duck_curve"] = {"_info": "dB of reduction wanted per 10 ms before smoothing: max(0, dB(key*level) - threshold) * (1 - 1/ratio), capped at 60 dB; hold keeps the 75th-percentile depth from the first to the last active window",
+        cases["duck_curve"] = {"scenario": dict(pcm_scn, input="the key of the duck_key case (same windows) is passed to duck_curve with each row's level, ratio, threshold_db and hold"),
+                               "tolerance": DUCK_CURVE_TOL,
+                               "_info_tolerance": "case-level tolerance (dB), overrides the file's 2e-6: the Python key is float32 and carries about 1e-6 relative noise on the (3277, 0) windows, which moves the reduction by up to about 1.2e-5 dB",
+                               "_info": "dB of reduction wanted per 10 ms before smoothing: max(0, dB(key*level) - threshold) * (1 - 1/ratio), capped at 60 dB; hold keeps the 75th-percentile depth from the first to the last active window",
                                "rows": rows}
+        cases["duck_curve_hold_percentile"] = _hold_percentile_case(dsp)
         rows = []
-        for attack, release, tgt_seq in ((10, 500, [12.0] * 30 + [0.0] * 120), (50, 1000, [20.0] * 20 + [6.0] * 40 + [0.0] * 200), (1, 1, [10.0, 0.0, 10.0, 0.0])):
+        smooth_cases = ((10, 500, [12.0] * 30 + [0.0] * 120), (50, 1000, [20.0] * 20 + [6.0] * 40 + [0.0] * 200), (1, 1, [10.0, 0.0, 10.0, 0.0]))
+        for attack, release, tgt_seq in smooth_cases:
             gr, series = 0.0, []
             for tg in tgt_seq:
                 gr = dsp.duck_smooth(gr, tg, 0.01, attack, release)
                 series.append(r6(gr))
             rows.append({"attack_ms": attack, "release_ms": release, "dt_s": 0.01, "target_db": tgt_seq if len(tgt_seq) <= 8 else {"pattern": "constant segments", "segments": _segments(tgt_seq)}, "gr_db": series})
-        cases["duck_smooth"] = {"_info": "one step per 10 ms: gr += (tgt - gr) * (1 - exp(-dt/tau)); tau = attack when tgt > gr else release (min 1 ms); snaps to 0 when tgt == 0 and gr < 0.05",
+        cases["duck_smooth"] = {"scenario": {"initial_gr_db": 0.0, "dt_s": 0.01, "input": "each row: attack_ms, release_ms and the target series (segments = runs of equal target, `steps` long); dsp.duck_smooth is applied once per 10 ms step"}, "_info": "one step per 10 ms: gr += (tgt - gr) * (1 - exp(-dt/tau)); tau = attack when tgt > gr else release (min 1 ms); snaps to 0 when tgt == 0 and gr < 0.05",
                                 "rows": rows}
-        cases["background_gain"] = {"_info": "the background deck volume is multiplied by 10^(-gr/20) (Deck.duck)", "rows": [{"gr_db": g, "multiplier": r6(10 ** (-g / 20.0))} for g in (0, 3, 6, 12, 20, 40, 60)]}
+        cases["background_gain"] = {"scenario": {"input": "each row's gr_db"}, "_info": "the background deck volume is multiplied by 10^(-gr/20) (Deck.duck)", "rows": [{"gr_db": g, "multiplier": r6(10 ** (-g / 20.0))} for g in (0, 3, 6, 12, 20, 40, 60)]}
         rows = []
         for rms, gain, ratio, thr in ((0.5, 0.0, 6.0, -30.0), (0.01, 0.0, 6.0, -30.0), (0.01, 20.0, 6.0, -30.0), (0.1, -10.0, 3.0, -25.0), (0.0, 0.0, 6.0, -30.0)):
             rows.append({"rms": rms, "gain_db": gain, "ratio": ratio, "threshold_db": thr, "reduction_db": r6(dsp.input_target_db(rms, gain, ratio, thr))})
-        cases["input_target_db"] = {"_info": "Live input detector: the same gain computation as duck_curve (hold off), with its own threshold", "rows": rows}
-        cases["duck_loop"] = {"_info": "the REAL _duck_loop and Play on Top under the fake clock: background deck + a 2 s voice-over (0.3 s silence, 0.7 s at 16384, 0.5 s at 4096, 0.5 s silence, stereo 48 kHz), sampled every 10 ms from 0.5 s before the voice-over until after the release. target_db = the duck_curve value the loop reads at top_pos + 20 ms (look-ahead); gr_db = smoothed reduction; bg_multiplier = Deck.duck of the background (applied only when it moved by more than 0.0005, so it can trail 10^(-gr/20) by that). Index 49 is the last background-only sample (t = 0.5 s, voice-over not started), index 50 is the voice-over starting at the same time (top_pos 0); from index 51 every row is 10 ms later, with the reduction computed by the loop at that time.",
+        cases["input_target_db"] = {"scenario": {"input": "each row: rms (0..1), gain_db, ratio, threshold_db"}, "_info": "Live input detector: the same gain computation as duck_curve (hold off), with its own threshold", "rows": rows}
+        loop_scn = {"background": {"file": "bg.wav", "length_s": 30, "playlist": 0, "track": 0, "started_by": "play(0, 0)"}, "background_alone_s": 0.5,
+                    "voice_over": {"file": "voice.wav", "playlist": 1, "track": 0, "started_by": "play_on_top(1, 0) at 0.5 s", "stereo_48k": True, "segments_s_and_sample_value": [[a_, b_] for a_, b_ in DUCK_VOICE]},
+                    "step_s": 0.01, "tick_every_steps": 5, "max_steps": 620, "settings_per_case": "each entry of `cases` holds its `settings`"}
+        cases["duck_loop"] = {"scenario": loop_scn, "_info": "the REAL _duck_loop and Play on Top under the fake clock: background deck + a 2 s voice-over (0.3 s silence, 0.7 s at 16384, 0.5 s at 4096, 0.5 s silence, stereo 48 kHz), sampled every 10 ms from 0.5 s before the voice-over until after the release. target_db = the duck_curve value the loop reads at top_pos + 20 ms (look-ahead); gr_db = smoothed reduction; bg_multiplier = Deck.duck of the background (applied only when it moved by more than 0.0005, so it can trail 10^(-gr/20) by that). Index 49 is the last background-only sample (t = 0.5 s, voice-over not started), index 50 is the voice-over starting at the same time (top_pos 0); from index 51 every row is 10 ms later, with the reduction computed by the loop at that time.",
                               "cases": await duck_loop_cases()}
     return doc("ducking", "Sidechain ducking maths (cpl/dsp.py): level key, reduction curve, attack/release smoothing and the multiplier applied to the background.", cases)
 
@@ -537,38 +623,53 @@ async def levelmatch():
         return a.tobytes()
     async with Rig({"a.wav": 1, "b.wav": 1, "c.wav": 1}, [{"name": "A", "tracks": ["a.wav", "b.wav", "c.wav"]}]) as r:
         dsp, L, P = r.app.mod("dsp"), r.app.mod("loudness"), r.P
-        rows = []
-        for label, raw in (("1 kHz sine, -20 dBFS peak, 5 s, stereo", sine(-20, 5)), ("1 kHz sine, -6 dBFS peak, 5 s", sine(-6, 5)), ("1 kHz sine, -30 dBFS peak, 5 s", sine(-30, 5)),
-                           ("100 Hz sine, -20 dBFS peak, 5 s", sine(-20, 5, 100.0)), ("10 kHz sine, -20 dBFS peak, 5 s", sine(-20, 5, 10000.0)),
-                           ("1 kHz sine, -20 dBFS, left channel only", sine(-20, 5, silent_second_channel=True)), ("silence 5 s", bytes(48000 * 4 * 5)),
-                           ("too short (0.3 s)", sine(-20, 0.3)), ("1 kHz sine, -20 dBFS, 12 s", sine(-20, 12))):
+        rows, signals = [], []
+        for label, spec in (("1 kHz sine, -20 dBFS peak, 5 s, stereo", dict(db_peak=-20, secs=5)), ("1 kHz sine, -6 dBFS peak, 5 s", dict(db_peak=-6, secs=5)), ("1 kHz sine, -30 dBFS peak, 5 s", dict(db_peak=-30, secs=5)),
+                            ("100 Hz sine, -20 dBFS peak, 5 s", dict(db_peak=-20, secs=5, hz=100.0)), ("10 kHz sine, -20 dBFS peak, 5 s", dict(db_peak=-20, secs=5, hz=10000.0)),
+                            ("1 kHz sine, -20 dBFS, left channel only", dict(db_peak=-20, secs=5, silent_second_channel=True)), ("silence 5 s", dict(silence_secs=5)),
+                            ("too short (0.3 s)", dict(db_peak=-20, secs=0.3)), ("1 kHz sine, -20 dBFS, 12 s", dict(db_peak=-20, secs=12))):
+            if "silence_secs" in spec:
+                raw = bytes(48000 * 4 * spec["silence_secs"])
+                signals.append({"signal": label, "kind": "silence", "duration_s": float(spec["silence_secs"]), "channels": 2})
+            else:
+                raw = sine(**spec)
+                signals.append({"signal": label, "kind": "sine", "frequency_hz": spec.get("hz", 1000.0), "peak_dbfs": float(spec["db_peak"]), "amplitude": r6(10 ** (spec["db_peak"] / 20)),
+                                "duration_s": float(spec["secs"]), "channels": 2, "second_channel": "silent" if spec.get("silent_second_channel") else "same as the first"})
             v = dsp.lufs_from_pcm(raw)
             rows.append({"signal": label, "lufs": None if v is None else round(v, 3)})
-        cases["lufs_from_pcm"] = {"_info": "integrated loudness (ITU-R BS.1770 K-weighting, 400 ms blocks, -70 LUFS absolute and -10 LU relative gates) of 48 kHz 16-bit stereo; None = silent or shorter than 0.4 s. Rounded to 3 decimals (compared with a 0.01 LU allowance: _tolerance_lufs)",
+        cases["lufs_from_pcm"] = {"scenario": {"format": "48 kHz, 16-bit little-endian, interleaved stereo", "synthesis": "sample[n] = round(32768 * 10^(peak_dbfs/20) * sin(2*pi*frequency_hz*n/48000)), identical in both channels unless second_channel says silent; silence = all zero",
+                                               "signals": signals}, "_info": "integrated loudness (ITU-R BS.1770 K-weighting, 400 ms blocks, -70 LUFS absolute and -10 LU relative gates) of 48 kHz 16-bit stereo; None = silent or shorter than 0.4 s. Rounded to 3 decimals (compared with a 0.01 LU allowance: _tolerance_lufs)",
                                   "rows": rows}
         rows = []
         lufs = {"a.wav": -14.0, "b.wav": -23.0, "c.wav": None}
         for fid, v in lufs.items():
             L.LOUD[fid] = (0, 0, v)
-        for label, cfg_ in (("off", {"mode": "off"}), ("track: reference b (-23)", {"mode": "track", "ref": 1}), ("track: reference a (-14), never boosts", {"mode": "track", "ref": 0}),
-                            ("lufs: target -18", {"mode": "lufs", "lufs": -18.0}), ("lufs: target -10 (above all: no boost)", {"mode": "lufs", "lufs": -10.0}), ("lufs: target -60 (clamped)", {"mode": "lufs", "lufs": -80.0})):
+        norm_rows = (("off", {"mode": "off"}), ("track: reference b (-23)", {"mode": "track", "ref": 1}), ("track: reference a (-14), never boosts", {"mode": "track", "ref": 0}),
+                     ("lufs: target -18", {"mode": "lufs", "lufs": -18.0}), ("lufs: target -10 (above all: no boost)", {"mode": "lufs", "lufs": -10.0}), ("lufs: target -60 (clamped)", {"mode": "lufs", "lufs": -80.0}))
+        LUFS_MIN, LUFS_MAX = -60.0, 0.0                                       # the limits set_norm clamps to (cpl/loudness.py)
+        for label, cfg_ in norm_rows:
             P.playlists[0].pop("norm", None)
             P.playlists[0]["norm"] = dict(L.NORM_DEFAULT)
             L.set_norm(0, cfg_.get("mode"), cfg_.get("ref"), cfg_.get("lufs"))
             rows.append({"setting": label, "measured_lufs": [lufs[x] for x in ("a.wav", "b.wav", "c.wav")], "gain_db": [None if L.norm_gain_db(0, t) is None else r6(L.norm_gain_db(0, t)) for t in range(3)],
-                         "gain_linear": [r6(L.norm_gain(0, t)) for t in range(3)], "stored": dict(P.playlists[0]["norm"])})
-        cases["norm_gain"] = {"_info": "gain_db = min(0, target - measured), target = the reference track's LUFS (track mode) or the fixed LUFS (lufs mode, -60..0, 0.1 steps); never boosts; None = not applicable (off, or the track has no measurement); linear = 10^(dB/20), 1.0 when no gain", "rows": rows}
+                         "gain_linear": [r6(L.norm_gain(0, t)) for t in range(3)], "typed": dict(cfg_), "stored": dict(P.playlists[0]["norm"])})
+            if cfg_.get("lufs") is not None:
+                assert P.playlists[0]["norm"]["lufs"] == max(LUFS_MIN, min(LUFS_MAX, round(cfg_["lufs"], 1))), "the clamp limits in the generator no longer match set_norm"
+        cases["norm_gain"] = {"scenario": {"playlist": ["a.wav", "b.wav", "c.wav"], "measured_lufs": lufs, "input": "set_norm(playlist 0, mode, ref, lufs) with each row's `typed` values (ref = track index); `stored` is what was kept; norm_gain_db / norm_gain are read for tracks 0..2",
+                                           "lufs_clamp_db": {"min": LUFS_MIN, "max": LUFS_MAX, "step": 0.1}}, "_info": "gain_db = min(0, target - measured), target = the reference track's LUFS (track mode) or the fixed LUFS (lufs mode, -60..0, 0.1 steps); never boosts; None = not applicable (off, or the track has no measurement); linear = 10^(dB/20), 1.0 when no gain", "rows": rows}
         rows = []                                           # applied to a live deck
         r.reset()
         P.playlists[0]["norm"] = dict(L.NORM_DEFAULT)
-        L.set_norm(0, "lufs", None, -23.0)
+        deck_target = -23.0
+        L.set_norm(0, "lufs", None, deck_target)
         await r.load("a.wav")
         P.play(0, 0)
         d = r.live()
         rows.append({"track": "a.wav (-14 LUFS), target -23", "deck_gain": r6(d.gain), "deck_gain_db": r6(20 * math.log10(d.gain))})
         L.set_norm(0, "off")
         rows.append({"track": "after switching level match off", "deck_gain": r6(d.gain)})
-        cases["applied_to_deck"] = {"_info": "Deck.gain follows level match immediately (apply_gain_live); the channel volume is vol * gain * duck * duck_in * live_volume", "rows": rows}
+        cases["applied_to_deck"] = {"scenario": {"playlist": ["a.wav", "b.wav", "c.wav"], "measured_lufs": lufs, "playing": "a.wav (playlist 0, track 0)",
+                                                 "row_inputs": {"a.wav (-14 LUFS), target -23": {"set_norm": {"mode": "lufs", "lufs": deck_target}, "then": "play track 0"}, "after switching level match off": {"set_norm": {"mode": "off"}}}}, "_info": "Deck.gain follows level match immediately (apply_gain_live); the channel volume is vol * gain * duck * duck_in * live_volume", "rows": rows}
     d = doc("levelmatch", "Level match: integrated loudness (LUFS) of synthetic signals and the per-track gain it gives (only ever turns a track down).", cases)
     d["tolerance_lufs"] = 0.01
     return d
@@ -578,7 +679,10 @@ async def levelmatch():
 async def resume():
     cases = {}
     pls = [{"name": "A", "tracks": ["a.wav", "b.wav"]}]
-    async with Rig({"a.wav": 60, "b.wav": 60}, pls, cfg={"resume_on_start": True, "resume_max_age_s": 1800, "resume_save_s": 5}) as r:
+    rlib = {"a.wav": 60, "b.wav": 60}
+    rcfg = {"resume_on_start": True, "resume_max_age_s": 1800, "resume_save_s": 5}
+    base = {"library_s": dict(rlib), "playlist": pls[0]["tracks"], "track_ids": {"0": "a.wav", "1": "b.wav"}, "config": rcfg, "age_limit_s": rcfg["resume_max_age_s"]}
+    async with Rig(rlib, pls, cfg=rcfg) as r:
         P = r.P
         await r.load("a.wav", "b.wav")
 
@@ -590,15 +694,17 @@ async def resume():
             d.pop("saved", None)                                    # wall-clock stamp of the fake clock
             return {k: (r6(v) if isinstance(v, float) else v) for k, v in d.items()}
         rows = []
-        for label, setup in (("playing, 12.5 s in", None), ("paused at 7.25 s", "pause")):
+        rec_inputs, rec_track, pause_wait_s = {}, 1, 20.0
+        for label, setup, at_s in (("playing, 12.5 s in", None, 12.5), ("paused at 7.25 s", "pause", 7.25)):
+            rec_inputs[label] = {"play_track": rec_track, "at_s": at_s, "paused": setup == "pause", "clock_at_save_s": pause_wait_s if setup == "pause" else at_s}
             r.reset(pls)
             P.RESUME.unlink(missing_ok=True)
-            P.play(0, 1)
+            P.play(0, rec_track)
             r.rebase()
-            r.at(12.5 if setup is None else 7.25)
+            r.at(at_s)
             if setup == "pause":
                 P.pause_all()
-                r.at(20.0)                                          # time passes while paused: the position does not
+                r.at(pause_wait_s)                                  # time passes while paused: the position does not
             P.save_resume(force=True)
             rows.append({"case": label, "record": saved()})
         r.reset(pls)                                                # what is NOT recorded
@@ -608,12 +714,14 @@ async def resume():
         P.stop_all()
         P.save_resume()
         rows.append({"case": "after a deliberate stop", "record": saved()})
+        rec_inputs["after a deliberate stop"] = {"play_track": 0, "at_s": 3.0, "then": "stop_all, save_resume"}
+        rec_inputs["while fading out"] = {"play_track": 0, "at_s": 3.0, "then": "fade_out(1000 ms), save_resume"}
         P.play(0, 0)
         r.at(3.0)
         P.fade_out(1000)
         P.save_resume()
         rows.append({"case": "while fading out", "record": saved()})
-        cases["record"] = {"_info": "save_resume: pt = [playlist, track], id = library file, pos = seconds in the FILE (a paused track keeps its position), paused flag; removed when nothing plays or a fade-out is running", "rows": rows}
+        cases["record"] = {"scenario": dict(base, row_inputs=rec_inputs, input="save_resume(force) after the steps of the row; `record` is resume.json without its wall-clock `saved` stamp"), "_info": "save_resume: pt = [playlist, track], id = library file, pos = seconds in the FILE (a paused track keeps its position), paused flag; removed when nothing plays or a fade-out is running", "rows": rows}
         rows = []
         for label, rec, age in (("fresh record", {"pt": [0, 1], "id": "b.wav", "pos": 33.5, "paused": False}, 10), ("paused record", {"pt": [0, 0], "id": "a.wav", "pos": 8.25, "paused": True}, 10),
                                 ("older than resume_max_age_s", {"pt": [0, 0], "id": "a.wav", "pos": 8.25, "paused": False}, 4000),
@@ -629,15 +737,18 @@ async def resume():
             row["started"] = None if d is None else {"pt": d.pt, "base_s": r6(d.base), "paused": d.paused_at is not None, "start_vol": r6(d.vol), "fade_in_ms": d.fade_in_ms}
             row["record_kept"] = P.RESUME.exists()
             rows.append(row)
-        cases["try_resume"] = {"_info": "at start-up. offset = where in the file the sound begins; a resumed start never fades in (start_vol 1, fade_in_ms 0), even when the track has a fade-in at A; an old or unknown record is dropped", "rows": rows}
+        cases["try_resume"] = {"scenario": dict(base, input="resume.json is written with the row's `record` and saved = now - age_s, then try_resume() runs (start-up) and 20 event-loop turns pass; `record` / `age_s` are in the row"), "_info": "at start-up. offset = where in the file the sound begins; a resumed start never fades in (start_vol 1, fade_in_ms 0), even when the track has a fade-in at A; an old or unknown record is dropped", "rows": rows}
         r.reset(pls)
-        P.playlists[0]["trims"] = {"a.wav": {"in": 2.0, "out": 40.0, "start": "fade", "fade_in_ms": 1500}}
-        P.RESUME.write_text(json.dumps({"pt": [0, 0], "id": "a.wav", "pos": 20.0, "paused": False, "saved": r.clock.time() - 5}))
+        rt_trim = {"in": 2.0, "out": 40.0, "start": "fade", "fade_in_ms": 1500}
+        rt_rec = {"pt": [0, 0], "id": "a.wav", "pos": 20.0, "paused": False}
+        rt_age = 5
+        P.playlists[0]["trims"] = {"a.wav": rt_trim}
+        P.RESUME.write_text(json.dumps(dict(rt_rec, saved=r.clock.time() - rt_age)))
         P.try_resume()
         for _ in range(20):
             await asyncio.sleep(0)
         d = r.live()
-        cases["resume_inside_a_trim"] = {"_info": "trim A=2 B=40 with a fade-in; resume at 20 s", "started": None if d is None else {"base_s": r6(d.base), "lo_s": r6(d.lo), "hi_s": r6(d.hi), "start_vol": r6(d.vol), "fade_in_ms": d.fade_in_ms, "fresh": d.fresh}}
+        cases["resume_inside_a_trim"] = {"scenario": dict(base, trim_of_track_0=rt_trim, record=rt_rec, age_s=rt_age), "_info": "trim A=2 B=40 with a fade-in; resume at 20 s", "started": None if d is None else {"base_s": r6(d.base), "lo_s": r6(d.lo), "hi_s": r6(d.hi), "start_vol": r6(d.vol), "fade_in_ms": d.fade_in_ms, "fresh": d.fresh}}
     return doc("resume_flow", "Resume: what resume.json records and how a restart carries on (position, paused flag, age limit, no fade-in).", cases)
 
 
@@ -655,7 +766,13 @@ def build_all():
     saved = dict(os.environ)
     try:
         random.seed(0)
-        return asyncio.run(_all())
+        docs = asyncio.run(_all())
+        for name, d in docs.items():                      # every case describes its own inputs
+            for k, c in d["cases"].items():
+                assert "scenario" in c, f"{name}/{k} has no scenario"
+                for k2, c2 in (c.get("cases") or {}).items():
+                    assert "scenario" in c2, f"{name}/{k}/{k2} has no scenario"
+        return docs
     finally:
         os.environ.clear()
         os.environ.update(saved)
@@ -714,8 +831,17 @@ def compare(new_docs):
             continue
         old = json.loads(f.read_text())
         tol = max(TOL, float(d.get("tolerance_lufs", 0))) if name == "levelmatch" else TOL
-        for line in diff(strip_info(old), strip_info(d), tol, name):
+        so, sn = strip_info(old), strip_info(d)
+        for line in diff({k: v for k, v in so.items() if k != "cases"}, {k: v for k, v in sn.items() if k != "cases"}, tol, name):
             problems.append(line)
+        oc, nc = so.get("cases", {}), sn.get("cases", {})
+        for k in list(oc) + [k for k in nc if k not in oc]:
+            if k not in oc or k not in nc:
+                problems.append(f"{name}/cases/{k}: only in the {'new output' if k not in oc else 'committed fixture'}")
+                continue
+            ctol = nc[k].get("tolerance", tol) if isinstance(nc[k], dict) else tol          # a case-level tolerance overrides the file-level one
+            for line in diff(oc[k], nc[k], float(ctol), f"{name}/cases/{k}"):
+                problems.append(line)
     for f in sorted(FIXTURES.glob("*.json")):
         if f.stem not in new_docs:
             problems.append(f"{f.name}: committed but not generated any more")

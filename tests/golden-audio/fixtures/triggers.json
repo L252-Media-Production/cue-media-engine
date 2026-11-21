@@ -5,6 +5,39 @@
  "tolerance": 2e-06,
  "cases": {
   "simple": {
+   "scenario": {
+    "library_s": {
+     "main.wav": 120,
+     "vo.wav": 3,
+     "vo2.wav": 8
+    },
+    "playlist": [
+     "main.wav"
+    ],
+    "main_track": "main.wav",
+    "main_track_length_s": 120,
+    "voice_over_lengths_s": {
+     "vo.wav": 3,
+     "vo2.wav": 8
+    },
+    "end_action": "default",
+    "run_s": 14,
+    "trim": {},
+    "seek": null,
+    "triggers": [
+     {
+      "at": 10,
+      "file": "vo.wav"
+     }
+    ],
+    "steps": [
+     "set the end action and the trim",
+     "add the trigger points",
+     "play track 0 and start counting",
+     "tick every 50 ms for run_s (the seek, if any, at seek.at_s of play)"
+    ],
+    "tick_s": 0.05
+   },
    "_info": "fires once when the playhead reaches `at` (within one 50 ms tick)",
    "triggers": [
     {
@@ -28,6 +61,43 @@
    "tolerance_s": 0.05
   },
   "two_in_order": {
+   "scenario": {
+    "library_s": {
+     "main.wav": 120,
+     "vo.wav": 3,
+     "vo2.wav": 8
+    },
+    "playlist": [
+     "main.wav"
+    ],
+    "main_track": "main.wav",
+    "main_track_length_s": 120,
+    "voice_over_lengths_s": {
+     "vo.wav": 3,
+     "vo2.wav": 8
+    },
+    "end_action": "default",
+    "run_s": 25,
+    "trim": {},
+    "seek": null,
+    "triggers": [
+     {
+      "at": 5,
+      "file": "vo.wav"
+     },
+     {
+      "at": 20,
+      "file": "vo2.wav"
+     }
+    ],
+    "steps": [
+     "set the end action and the trim",
+     "add the trigger points",
+     "play track 0 and start counting",
+     "tick every 50 ms for run_s (the seek, if any, at seek.at_s of play)"
+    ],
+    "tick_s": 0.05
+   },
    "_info": "the first voice-over (3 s) is over before the second fires",
    "triggers": [
     {
@@ -63,6 +133,40 @@
    "tolerance_s": 0.05
   },
   "disabled": {
+   "scenario": {
+    "library_s": {
+     "main.wav": 120,
+     "vo.wav": 3,
+     "vo2.wav": 8
+    },
+    "playlist": [
+     "main.wav"
+    ],
+    "main_track": "main.wav",
+    "main_track_length_s": 120,
+    "voice_over_lengths_s": {
+     "vo.wav": 3,
+     "vo2.wav": 8
+    },
+    "end_action": "default",
+    "run_s": 8,
+    "trim": {},
+    "seek": null,
+    "triggers": [
+     {
+      "at": 5,
+      "file": "vo.wav",
+      "enabled": false
+     }
+    ],
+    "steps": [
+     "set the end action and the trim",
+     "add the trigger points",
+     "play track 0 and start counting",
+     "tick every 50 ms for run_s (the seek, if any, at seek.at_s of play)"
+    ],
+    "tick_s": 0.05
+   },
    "_info": "a disabled trigger never fires",
    "triggers": [
     {
@@ -77,6 +181,41 @@
    "tolerance_s": 0.05
   },
   "trim_in_after_trigger": {
+   "scenario": {
+    "library_s": {
+     "main.wav": 120,
+     "vo.wav": 3,
+     "vo2.wav": 8
+    },
+    "playlist": [
+     "main.wav"
+    ],
+    "main_track": "main.wav",
+    "main_track_length_s": 120,
+    "voice_over_lengths_s": {
+     "vo.wav": 3,
+     "vo2.wav": 8
+    },
+    "end_action": "default",
+    "run_s": 6,
+    "trim": {
+     "in": 4
+    },
+    "seek": null,
+    "triggers": [
+     {
+      "at": 3,
+      "file": "vo.wav"
+     }
+    ],
+    "steps": [
+     "set the end action and the trim",
+     "add the trigger points",
+     "play track 0 and start counting",
+     "tick every 50 ms for run_s (the seek, if any, at seek.at_s of play)"
+    ],
+    "tick_s": 0.05
+   },
    "_info": "a trigger before the In point never fires",
    "triggers": [
     {
@@ -92,6 +231,41 @@
    "tolerance_s": 0.05
   },
   "trim_out_before_trigger": {
+   "scenario": {
+    "library_s": {
+     "main.wav": 120,
+     "vo.wav": 3,
+     "vo2.wav": 8
+    },
+    "playlist": [
+     "main.wav"
+    ],
+    "main_track": "main.wav",
+    "main_track_length_s": 120,
+    "voice_over_lengths_s": {
+     "vo.wav": 3,
+     "vo2.wav": 8
+    },
+    "end_action": "default",
+    "run_s": 10,
+    "trim": {
+     "out": 8
+    },
+    "seek": null,
+    "triggers": [
+     {
+      "at": 9,
+      "file": "vo.wav"
+     }
+    ],
+    "steps": [
+     "set the end action and the trim",
+     "add the trigger points",
+     "play track 0 and start counting",
+     "tick every 50 ms for run_s (the seek, if any, at seek.at_s of play)"
+    ],
+    "tick_s": 0.05
+   },
    "_info": "a trigger at or after the Out point never fires (track ends at 8 s)",
    "triggers": [
     {
@@ -107,6 +281,41 @@
    "tolerance_s": 0.05
   },
   "trigger_inside_trim": {
+   "scenario": {
+    "library_s": {
+     "main.wav": 120,
+     "vo.wav": 3,
+     "vo2.wav": 8
+    },
+    "playlist": [
+     "main.wav"
+    ],
+    "main_track": "main.wav",
+    "main_track_length_s": 120,
+    "voice_over_lengths_s": {
+     "vo.wav": 3,
+     "vo2.wav": 8
+    },
+    "end_action": "default",
+    "run_s": 10,
+    "trim": {
+     "in": 6
+    },
+    "seek": null,
+    "triggers": [
+     {
+      "at": 10,
+      "file": "vo.wav"
+     }
+    ],
+    "steps": [
+     "set the end action and the trim",
+     "add the trigger points",
+     "play track 0 and start counting",
+     "tick every 50 ms for run_s (the seek, if any, at seek.at_s of play)"
+    ],
+    "tick_s": 0.05
+   },
    "_info": "`at` is a position in the FILE: with A = 6 s it fires 4 s after the start",
    "triggers": [
     {
@@ -132,6 +341,42 @@
    "tolerance_s": 0.05
   },
   "seek_over_does_not_fire": {
+   "scenario": {
+    "library_s": {
+     "main.wav": 120,
+     "vo.wav": 3,
+     "vo2.wav": 8
+    },
+    "playlist": [
+     "main.wav"
+    ],
+    "main_track": "main.wav",
+    "main_track_length_s": 120,
+    "voice_over_lengths_s": {
+     "vo.wav": 3,
+     "vo2.wav": 8
+    },
+    "end_action": "default",
+    "run_s": 14,
+    "trim": {},
+    "seek": {
+     "at_s": 1.0,
+     "to_s": 20.0
+    },
+    "triggers": [
+     {
+      "at": 10,
+      "file": "vo.wav"
+     }
+    ],
+    "steps": [
+     "set the end action and the trim",
+     "add the trigger points",
+     "play track 0 and start counting",
+     "tick every 50 ms for run_s (the seek, if any, at seek.at_s of play)"
+    ],
+    "tick_s": 0.05
+   },
    "_info": "seeking from 1 s to 20 s jumps over the trigger at 10 s: it never fires (without the seek it would)",
    "triggers": [
     {
@@ -145,6 +390,42 @@
    "tolerance_s": 0.05
   },
   "seek_back_rearms": {
+   "scenario": {
+    "library_s": {
+     "main.wav": 120,
+     "vo.wav": 3,
+     "vo2.wav": 8
+    },
+    "playlist": [
+     "main.wav"
+    ],
+    "main_track": "main.wav",
+    "main_track_length_s": 120,
+    "voice_over_lengths_s": {
+     "vo.wav": 3,
+     "vo2.wav": 8
+    },
+    "end_action": "default",
+    "run_s": 26,
+    "trim": {},
+    "seek": {
+     "at_s": 14.0,
+     "to_s": 2.0
+    },
+    "triggers": [
+     {
+      "at": 10,
+      "file": "vo.wav"
+     }
+    ],
+    "steps": [
+     "set the end action and the trim",
+     "add the trigger points",
+     "play track 0 and start counting",
+     "tick every 50 ms for run_s (the seek, if any, at seek.at_s of play)"
+    ],
+    "tick_s": 0.05
+   },
    "_info": "fires at 10 s; the voice-over (3 s) is over, seek back to 2 s at 14 s of play: what is ahead is armed again, so it fires again 8 s later (22 s of play). A seek while a voice-over plays on top is ignored (the live deck is the voice-over)",
    "triggers": [
     {
@@ -176,6 +457,41 @@
    "tolerance_s": 0.05
   },
   "loop_fires_every_pass": {
+   "scenario": {
+    "library_s": {
+     "main.wav": 120,
+     "vo.wav": 3,
+     "vo2.wav": 8
+    },
+    "playlist": [
+     "main.wav"
+    ],
+    "main_track": "main.wav",
+    "main_track_length_s": 120,
+    "voice_over_lengths_s": {
+     "vo.wav": 3,
+     "vo2.wav": 8
+    },
+    "end_action": "loop",
+    "run_s": 14,
+    "trim": {
+     "out": 6
+    },
+    "seek": null,
+    "triggers": [
+     {
+      "at": 1,
+      "file": "vo.wav"
+     }
+    ],
+    "steps": [
+     "set the end action and the trim",
+     "add the trigger points",
+     "play track 0 and start counting",
+     "tick every 50 ms for run_s (the seek, if any, at seek.at_s of play)"
+    ],
+    "tick_s": 0.05
+   },
    "_info": "a looping 6 s window (A=0, B=6) fires in every pass (the 3 s voice-over is over before the next pass)",
    "triggers": [
     {
@@ -217,6 +533,42 @@
    "tolerance_s": 0.05
   },
   "once_flag": {
+   "scenario": {
+    "library_s": {
+     "main.wav": 120,
+     "vo.wav": 3,
+     "vo2.wav": 8
+    },
+    "playlist": [
+     "main.wav"
+    ],
+    "main_track": "main.wav",
+    "main_track_length_s": 120,
+    "voice_over_lengths_s": {
+     "vo.wav": 3,
+     "vo2.wav": 8
+    },
+    "end_action": "loop",
+    "run_s": 14,
+    "trim": {
+     "out": 6
+    },
+    "seek": null,
+    "triggers": [
+     {
+      "at": 1,
+      "file": "vo.wav",
+      "once": true
+     }
+    ],
+    "steps": [
+     "set the end action and the trim",
+     "add the trigger points",
+     "play track 0 and start counting",
+     "tick every 50 ms for run_s (the seek, if any, at seek.at_s of play)"
+    ],
+    "tick_s": 0.05
+   },
    "_info": "once: first pass only",
    "triggers": [
     {
@@ -243,6 +595,43 @@
    "tolerance_s": 0.05
   },
   "top_already_playing_skips": {
+   "scenario": {
+    "library_s": {
+     "main.wav": 120,
+     "vo.wav": 3,
+     "vo2.wav": 8
+    },
+    "playlist": [
+     "main.wav"
+    ],
+    "main_track": "main.wav",
+    "main_track_length_s": 120,
+    "voice_over_lengths_s": {
+     "vo.wav": 3,
+     "vo2.wav": 8
+    },
+    "end_action": "default",
+    "run_s": 14,
+    "trim": {},
+    "seek": null,
+    "triggers": [
+     {
+      "at": 1,
+      "file": "vo2.wav"
+     },
+     {
+      "at": 3,
+      "file": "vo.wav"
+     }
+    ],
+    "steps": [
+     "set the end action and the trim",
+     "add the trigger points",
+     "play track 0 and start counting",
+     "tick every 50 ms for run_s (the seek, if any, at seek.at_s of play)"
+    ],
+    "tick_s": 0.05
+   },
    "_info": "vo2 (8 s) is on top at 3 s, so the second trigger is skipped, not queued",
    "triggers": [
     {

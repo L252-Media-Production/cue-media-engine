@@ -5,6 +5,35 @@
  "tolerance": 2e-06,
  "cases": {
   "track_2s_end_default": {
+   "scenario": {
+    "library_s": {
+     "a.wav": 2
+    },
+    "playlist": [
+     "a.wav"
+    ],
+    "play_mode": "stop",
+    "tick_step_s": 0.25,
+    "rows_at_s": [
+     0.0,
+     1.0,
+     1.75,
+     2.0,
+     2.25,
+     3.75,
+     4.0,
+     4.25,
+     6.0,
+     9.0
+    ],
+    "end_action": "default",
+    "run_s": 9.0,
+    "steps": [
+     "set_end(0, 0, end_action)",
+     "play track 0",
+     "tick every 0.25 s for 9.0 s"
+    ]
+   },
    "_info": "2 s track, playlist mode stop; ticks every 0.25 s from the start (so ended_at_s is on that 0.25 s grid, and ideal_ended_at_s is the end of the last pass). passes: 2 for once; loop = started with loops=-1",
    "deck_at_start": {
     "passes": 1,
@@ -71,6 +100,35 @@
    ]
   },
   "track_2s_end_once": {
+   "scenario": {
+    "library_s": {
+     "a.wav": 2
+    },
+    "playlist": [
+     "a.wav"
+    ],
+    "play_mode": "stop",
+    "tick_step_s": 0.25,
+    "rows_at_s": [
+     0.0,
+     1.0,
+     1.75,
+     2.0,
+     2.25,
+     3.75,
+     4.0,
+     4.25,
+     6.0,
+     9.0
+    ],
+    "end_action": "once",
+    "run_s": 9.0,
+    "steps": [
+     "set_end(0, 0, end_action)",
+     "play track 0",
+     "tick every 0.25 s for 9.0 s"
+    ]
+   },
    "_info": "2 s track, playlist mode stop; ticks every 0.25 s from the start (so ended_at_s is on that 0.25 s grid, and ideal_ended_at_s is the end of the last pass). passes: 2 for once; loop = started with loops=-1",
    "deck_at_start": {
     "passes": 2,
@@ -137,6 +195,35 @@
    ]
   },
   "track_2s_end_loop": {
+   "scenario": {
+    "library_s": {
+     "a.wav": 2
+    },
+    "playlist": [
+     "a.wav"
+    ],
+    "play_mode": "stop",
+    "tick_step_s": 0.25,
+    "rows_at_s": [
+     0.0,
+     1.0,
+     1.75,
+     2.0,
+     2.25,
+     3.75,
+     4.0,
+     4.25,
+     6.0,
+     9.0
+    ],
+    "end_action": "loop",
+    "run_s": 9.0,
+    "steps": [
+     "set_end(0, 0, end_action)",
+     "play track 0",
+     "tick every 0.25 s for 9.0 s"
+    ]
+   },
    "_info": "2 s track, playlist mode stop; ticks every 0.25 s from the start (so ended_at_s is on that 0.25 s grid, and ideal_ended_at_s is the end of the last pass). passes: 2 for once; loop = started with loops=-1",
    "deck_at_start": {
     "passes": 1,
@@ -203,6 +290,35 @@
    ]
   },
   "track_2s_end_stop": {
+   "scenario": {
+    "library_s": {
+     "a.wav": 2
+    },
+    "playlist": [
+     "a.wav"
+    ],
+    "play_mode": "stop",
+    "tick_step_s": 0.25,
+    "rows_at_s": [
+     0.0,
+     1.0,
+     1.75,
+     2.0,
+     2.25,
+     3.75,
+     4.0,
+     4.25,
+     6.0,
+     9.0
+    ],
+    "end_action": "stop",
+    "run_s": 9.0,
+    "steps": [
+     "set_end(0, 0, end_action)",
+     "play track 0",
+     "tick every 0.25 s for 9.0 s"
+    ]
+   },
    "_info": "2 s track, playlist mode stop; ticks every 0.25 s from the start (so ended_at_s is on that 0.25 s grid, and ideal_ended_at_s is the end of the last pass). passes: 2 for once; loop = started with loops=-1",
    "deck_at_start": {
     "passes": 1,
@@ -269,6 +385,32 @@
    ]
   },
   "once_switched_off_in_pass_1": {
+   "scenario": {
+    "library_s": {
+     "a.wav": 2
+    },
+    "playlist": [
+     "a.wav"
+    ],
+    "play_mode": "stop",
+    "tick_step_s": 0.25,
+    "rows_at_s": [
+     0.0,
+     1.0,
+     1.75,
+     2.0,
+     2.25,
+     3.75,
+     4.0,
+     4.25,
+     6.0,
+     9.0
+    ],
+    "end_action": "once",
+    "switch_off_to": "default",
+    "switch_off_at_s": 1.0,
+    "run_s": 6.0
+   },
    "_info": "end action set back to default at 1.0 s: the pass that is running is played out, then it ends",
    "ended_at_s": 2.0,
    "ideal_ended_at_s": 2.0,
@@ -325,6 +467,32 @@
    ]
   },
   "loop_switched_off_in_pass_2": {
+   "scenario": {
+    "library_s": {
+     "a.wav": 2
+    },
+    "playlist": [
+     "a.wav"
+    ],
+    "play_mode": "stop",
+    "tick_step_s": 0.25,
+    "rows_at_s": [
+     0.0,
+     1.0,
+     1.75,
+     2.0,
+     2.25,
+     3.75,
+     4.0,
+     4.25,
+     6.0,
+     9.0
+    ],
+    "end_action": "loop",
+    "switch_off_to": "default",
+    "switch_off_at_s": 3.0,
+    "run_s": 6.0
+   },
    "_info": "end action set back to default at 3.0 s (pass 2 running): that pass is played out, then it ends",
    "ended_at_s": 4.0,
    "ideal_ended_at_s": 4.0,
@@ -381,6 +549,12 @@
    ]
   },
   "end_action_cycle": {
+   "scenario": {
+    "playlist": [
+     "a.wav"
+    ],
+    "input": "set_end(0, 0) with no value, 8 times; sequence[0] is the value before the first call"
+   },
    "_info": "set_end with no value cycles default > once > loop > stop",
    "sequence": [
     "default",

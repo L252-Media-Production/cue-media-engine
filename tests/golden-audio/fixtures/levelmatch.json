@@ -5,6 +5,98 @@
  "tolerance": 2e-06,
  "cases": {
   "lufs_from_pcm": {
+   "scenario": {
+    "format": "48 kHz, 16-bit little-endian, interleaved stereo",
+    "synthesis": "sample[n] = round(32768 * 10^(peak_dbfs/20) * sin(2*pi*frequency_hz*n/48000)), identical in both channels unless second_channel says silent; silence = all zero",
+    "signals": [
+     {
+      "signal": "1 kHz sine, -20 dBFS peak, 5 s, stereo",
+      "kind": "sine",
+      "frequency_hz": 1000.0,
+      "peak_dbfs": -20.0,
+      "amplitude": 0.1,
+      "duration_s": 5.0,
+      "channels": 2,
+      "second_channel": "same as the first"
+     },
+     {
+      "signal": "1 kHz sine, -6 dBFS peak, 5 s",
+      "kind": "sine",
+      "frequency_hz": 1000.0,
+      "peak_dbfs": -6.0,
+      "amplitude": 0.501187,
+      "duration_s": 5.0,
+      "channels": 2,
+      "second_channel": "same as the first"
+     },
+     {
+      "signal": "1 kHz sine, -30 dBFS peak, 5 s",
+      "kind": "sine",
+      "frequency_hz": 1000.0,
+      "peak_dbfs": -30.0,
+      "amplitude": 0.031623,
+      "duration_s": 5.0,
+      "channels": 2,
+      "second_channel": "same as the first"
+     },
+     {
+      "signal": "100 Hz sine, -20 dBFS peak, 5 s",
+      "kind": "sine",
+      "frequency_hz": 100.0,
+      "peak_dbfs": -20.0,
+      "amplitude": 0.1,
+      "duration_s": 5.0,
+      "channels": 2,
+      "second_channel": "same as the first"
+     },
+     {
+      "signal": "10 kHz sine, -20 dBFS peak, 5 s",
+      "kind": "sine",
+      "frequency_hz": 10000.0,
+      "peak_dbfs": -20.0,
+      "amplitude": 0.1,
+      "duration_s": 5.0,
+      "channels": 2,
+      "second_channel": "same as the first"
+     },
+     {
+      "signal": "1 kHz sine, -20 dBFS, left channel only",
+      "kind": "sine",
+      "frequency_hz": 1000.0,
+      "peak_dbfs": -20.0,
+      "amplitude": 0.1,
+      "duration_s": 5.0,
+      "channels": 2,
+      "second_channel": "silent"
+     },
+     {
+      "signal": "silence 5 s",
+      "kind": "silence",
+      "duration_s": 5.0,
+      "channels": 2
+     },
+     {
+      "signal": "too short (0.3 s)",
+      "kind": "sine",
+      "frequency_hz": 1000.0,
+      "peak_dbfs": -20.0,
+      "amplitude": 0.1,
+      "duration_s": 0.3,
+      "channels": 2,
+      "second_channel": "same as the first"
+     },
+     {
+      "signal": "1 kHz sine, -20 dBFS, 12 s",
+      "kind": "sine",
+      "frequency_hz": 1000.0,
+      "peak_dbfs": -20.0,
+      "amplitude": 0.1,
+      "duration_s": 12.0,
+      "channels": 2,
+      "second_channel": "same as the first"
+     }
+    ]
+   },
    "_info": "integrated loudness (ITU-R BS.1770 K-weighting, 400 ms blocks, -70 LUFS absolute and -10 LU relative gates) of 48 kHz 16-bit stereo; None = silent or shorter than 0.4 s. Rounded to 3 decimals (compared with a 0.01 LU allowance: _tolerance_lufs)",
    "rows": [
     {
@@ -46,6 +138,24 @@
    ]
   },
   "norm_gain": {
+   "scenario": {
+    "playlist": [
+     "a.wav",
+     "b.wav",
+     "c.wav"
+    ],
+    "measured_lufs": {
+     "a.wav": -14.0,
+     "b.wav": -23.0,
+     "c.wav": null
+    },
+    "input": "set_norm(playlist 0, mode, ref, lufs) with each row's `typed` values (ref = track index); `stored` is what was kept; norm_gain_db / norm_gain are read for tracks 0..2",
+    "lufs_clamp_db": {
+     "min": -60.0,
+     "max": 0.0,
+     "step": 0.1
+    }
+   },
    "_info": "gain_db = min(0, target - measured), target = the reference track's LUFS (track mode) or the fixed LUFS (lufs mode, -60..0, 0.1 steps); never boosts; None = not applicable (off, or the track has no measurement); linear = 10^(dB/20), 1.0 when no gain",
    "rows": [
     {
@@ -65,6 +175,9 @@
       1.0,
       1.0
      ],
+     "typed": {
+      "mode": "off"
+     },
      "stored": {
       "mode": "off",
       "ref": null,
@@ -88,6 +201,10 @@
       1.0,
       1.0
      ],
+     "typed": {
+      "mode": "track",
+      "ref": 1
+     },
      "stored": {
       "mode": "track",
       "ref": "b.wav",
@@ -111,6 +228,10 @@
       1.0,
       1.0
      ],
+     "typed": {
+      "mode": "track",
+      "ref": 0
+     },
      "stored": {
       "mode": "track",
       "ref": "a.wav",
@@ -134,6 +255,10 @@
       1.0,
       1.0
      ],
+     "typed": {
+      "mode": "lufs",
+      "lufs": -18.0
+     },
      "stored": {
       "mode": "lufs",
       "ref": null,
@@ -157,6 +282,10 @@
       1.0,
       1.0
      ],
+     "typed": {
+      "mode": "lufs",
+      "lufs": -10.0
+     },
      "stored": {
       "mode": "lufs",
       "ref": null,
@@ -180,6 +309,10 @@
       0.014125,
       1.0
      ],
+     "typed": {
+      "mode": "lufs",
+      "lufs": -80.0
+     },
      "stored": {
       "mode": "lufs",
       "ref": null,
@@ -189,6 +322,33 @@
    ]
   },
   "applied_to_deck": {
+   "scenario": {
+    "playlist": [
+     "a.wav",
+     "b.wav",
+     "c.wav"
+    ],
+    "measured_lufs": {
+     "a.wav": -14.0,
+     "b.wav": -23.0,
+     "c.wav": null
+    },
+    "playing": "a.wav (playlist 0, track 0)",
+    "row_inputs": {
+     "a.wav (-14 LUFS), target -23": {
+      "set_norm": {
+       "mode": "lufs",
+       "lufs": -23.0
+      },
+      "then": "play track 0"
+     },
+     "after switching level match off": {
+      "set_norm": {
+       "mode": "off"
+      }
+     }
+    }
+   },
    "_info": "Deck.gain follows level match immediately (apply_gain_live); the channel volume is vol * gain * duck * duck_in * live_volume",
    "rows": [
     {

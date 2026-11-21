@@ -6,6 +6,27 @@
  "cases": {
   "equal_power_formula": {
    "_info": "x = elapsed / fade length (0..1). A fade UP goes a + (b - a) * sin(x*pi/2); a fade DOWN goes b + (a - b) * cos(x*pi/2); new^2 + old^2 = 1 in a crossfade.",
+   "scenario": {
+    "x_values": [
+     0.0,
+     0.0625,
+     0.125,
+     0.1875,
+     0.25,
+     0.3125,
+     0.375,
+     0.4375,
+     0.5,
+     0.5625,
+     0.625,
+     0.6875,
+     0.75,
+     0.8125,
+     0.875,
+     0.9375,
+     1.0
+    ]
+   },
    "rows": [
     {
      "x": 0.0,
@@ -95,6 +116,30 @@
    ]
   },
   "crossfade_1000ms": {
+   "scenario": {
+    "library_s": {
+     "a.wav": 12,
+     "b.wav": 12
+    },
+    "playlist": [
+     "a.wav",
+     "b.wav"
+    ],
+    "sampled_at_fractions": [
+     0.0,
+     0.125,
+     0.25,
+     0.5,
+     0.75,
+     0.875,
+     1.0
+    ],
+    "steps": [
+     "play track 0 (a.wav)",
+     "play track 1 (b.wav) with a 1000 ms crossfade at the same instant"
+    ],
+    "fade_ms": 1000
+   },
    "fade_ms": 1000,
    "start": {
     "new": 0.0,
@@ -153,6 +198,30 @@
    ]
   },
   "crossfade_3000ms": {
+   "scenario": {
+    "library_s": {
+     "a.wav": 12,
+     "b.wav": 12
+    },
+    "playlist": [
+     "a.wav",
+     "b.wav"
+    ],
+    "sampled_at_fractions": [
+     0.0,
+     0.125,
+     0.25,
+     0.5,
+     0.75,
+     0.875,
+     1.0
+    ],
+    "steps": [
+     "play track 0 (a.wav)",
+     "play track 1 (b.wav) with a 3000 ms crossfade at the same instant"
+    ],
+    "fade_ms": 3000
+   },
    "fade_ms": 3000,
    "start": {
     "new": 0.0,
@@ -211,11 +280,60 @@
    ]
   },
   "crossfade_0ms_is_a_cut": {
+   "scenario": {
+    "library_s": {
+     "a.wav": 12,
+     "b.wav": 12
+    },
+    "playlist": [
+     "a.wav",
+     "b.wav"
+    ],
+    "sampled_at_fractions": [
+     0.0,
+     0.125,
+     0.25,
+     0.5,
+     0.75,
+     0.875,
+     1.0
+    ],
+    "steps": [
+     "play track 0",
+     "play track 1 with a 0 ms crossfade"
+    ],
+    "fade_ms": 0
+   },
    "new_vol": 1.0,
    "old_removed": true,
    "decks": 1
   },
   "fade_out_2000ms": {
+   "scenario": {
+    "library_s": {
+     "a.wav": 12,
+     "b.wav": 12
+    },
+    "playlist": [
+     "a.wav",
+     "b.wav"
+    ],
+    "sampled_at_fractions": [
+     0.0,
+     0.125,
+     0.25,
+     0.5,
+     0.75,
+     0.875,
+     1.0
+    ],
+    "steps": [
+     "play track 0",
+     "fade_out at the same instant"
+    ],
+    "fade_ms": 2000
+   },
+   "_info_live_after": "live_after true = nothing is live any more at the end of the fade",
    "rows": [
     {
      "x": 0.0,
@@ -256,6 +374,38 @@
    "live_after": true
   },
   "pause_freezes_a_fade": {
+   "scenario": {
+    "library_s": {
+     "a.wav": 12,
+     "b.wav": 12
+    },
+    "playlist": [
+     "a.wav",
+     "b.wav"
+    ],
+    "sampled_at_fractions": [
+     0.0,
+     0.125,
+     0.25,
+     0.5,
+     0.75,
+     0.875,
+     1.0
+    ],
+    "steps": [
+     "play track 0",
+     "play track 1 with the crossfade",
+     "t = 0.25 s: sample",
+     "pause all",
+     "t = 5.25 s: sample (5 s of pause)",
+     "resume all",
+     "t = 5.5 s: sample (0.25 s after resume)"
+    ],
+    "fade_ms": 1000,
+    "sample_1_at_s": 0.25,
+    "sample_2_at_s": 5.25,
+    "sample_3_at_s": 5.5
+   },
    "at_0_25": {
     "new": 0.382683,
     "old": 0.92388
