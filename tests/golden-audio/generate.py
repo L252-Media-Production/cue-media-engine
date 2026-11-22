@@ -919,6 +919,7 @@ def _pcm(windows):
 
 DUCK_VOICE = [(0.3, 0), (0.7, 16384), (0.5, 4096), (0.5, 0)]           # (seconds, constant sample value in both channels): 2 s, loud then quieter then silent
 DUCK_CURVE_TOL = 2e-5                                                      # dB: the float32 key noise of duck_curve (see its _info_tolerance)
+DUCK_VOICE_2 = [(0.2, 0), (0.5, 8192), (0.3, 0)]                          # a second, shorter voice-over (1 s): silence, then half the level of the first one's loud part, then silence
 HOLD_RAMP = [0, 3000, 6000, 9000, 12000, 16000, 20000, 24000, 28000, 32000, 26000, 18000, 10000, 5000, 0, 0]     # left-channel sample value per 10 ms window (right = 0)
 
 
@@ -952,6 +953,14 @@ def _hold_percentile_case(dsp):
             "hold_depth_db": r6(d75), "reduction_db_hold_off": [r6(x) for x in nohold], "reduction_db_hold_on": [r6(x) for x in real]}
 
 
+def _ideal_mult(cols):
+    """10^(-gr_db/20) from the SAME row's gr_db: what the background multiplier is without Python's write rule (Deck.duck is only rewritten when it moved by more than 0.0005, so the measured column trails this by up to that)."""
+    ideal = [r6(10 ** (-g / 20.0)) for g in cols["gr_db"]]
+    worst = max(abs(a - b) for a, b in zip(cols["bg_multiplier"], ideal))
+    assert worst <= 5e-4 + 2e-6, worst
+    return ideal
+
+
 async def duck_loop_cases():
     """The real _duck_loop under the fake clock: one loop iteration = one 10 ms step of fake time (asyncio.sleep is replaced for the duration)."""
     import wave
@@ -975,9 +984,25 @@ async def duck_loop_cases():
                 break
             await real_sleep(0.05)
         assert str(P.LIB / "voice.wav") in P._key
+        v2 = DUCK_VOICE_2
+        y2 = np.concatenate([np.full(int(48000 * sec), v, dtype="<i2") for sec, v in v2])
+        with wave.open(str(r.dir / "media" / "library" / "voice2.wav"), "wb") as w:
+            w.setnchannels(2)
+            w.setsampwidth(2)
+            w.setframerate(48000)
+            w.writeframes(np.repeat(y2[:, None], 2, axis=1).tobytes())
+        P.scan_library()
+        P.DURS["voice2.wav"] = (0, 0, 1.0)
+        await r.load("voice2.wav")
+        for _ in range(100):
+            if str(P.LIB / "voice2.wav") in P._key:
+                break
+            await real_sleep(0.05)
+        assert str(P.LIB / "voice2.wav") in P._key
         async def fake_sleep(delay, *a, **k):                              # yield first, advance after: when the loop computes, the clock already shows its time, and a sample taken between turns shows the state computed at that time
+            wake = r.fake.t + delay                                        # an absolute timer, like the real one: when the test moves the clock meanwhile (a voice-over starting between two steps) the loop still wakes at its own time
             await real_sleep(0)
-            r.fake.t += delay
+            r.fake.t = max(r.fake.t, wake)
         for label, settings in (("production_defaults_hold_on", {"duck_threshold_db": -30.0, "duck_ratio": 6.0, "duck_attack_ms": 10, "duck_release_ms": 500, "duck_hold": True, "top_track_pct": 100}),
                                 ("slow_attack_hold_off", {"duck_threshold_db": -30.0, "duck_ratio": 6.0, "duck_attack_ms": 40, "duck_release_ms": 200, "duck_hold": False, "top_track_pct": 100})):
             r.reset([{"name": "bg", "tracks": ["bg.wav"]}, {"name": "top", "tracks": ["voice.wav"]}], cfg=settings)
@@ -1021,10 +1046,133 @@ async def duck_loop_cases():
                         break
             finally:
                 asyncio.sleep = real_sleep
+            cols["ideal_bg_multiplier"] = _ideal_mult(cols)
             out[label] = {"scenario": {"background": {"file": "bg.wav", "length_s": 30}, "voice_over_file": "voice.wav", "see": "the `scenario` of the duck_loop case, plus `settings` here"}, "settings": settings, "step_s": 0.01, "look_ahead_s": 0.02, "voice_over": {"file": "voice.wav", "starts_at_s": voice_start, "length_s": 2.0, "level_pct": settings["top_track_pct"],
                                                                                                     "segments_s_and_sample_value": [[sec, v] for sec, v in voice]},
                           "samples": cols, "peak_reduction_db": r6(max(cols["gr_db"])), "final_multiplier": cols["bg_multiplier"][-1]}
             P.stop_all()
+
+        # ---- voice-over off the 10 ms grid, and two voice-overs (the real loop; `run_voices`)
+        pls2 = [{"name": "bg", "tracks": ["bg.wav"]}, {"name": "top", "tracks": ["voice.wav", "voice2.wav"]}]
+        dsp = r.app.mod("dsp")
+        s_off = {"duck_threshold_db": -30.0, "duck_ratio": 6.0, "duck_attack_ms": 10, "duck_release_ms": 500, "duck_hold": False, "top_track_pct": 100}
+
+        async def run_voices(settings, first_track, first_delay_s=0.0, second=None):
+            """Background alone 0.5 s, voice `first_track` on top at 0.5 s; the loop's first turn is `first_delay_s` later; `second` = {track, at_row, advance_s}:
+            before step `at_row` the clock is moved by advance_s and that voice is played on top. One row per loop step (and the first one before any step)."""
+            r.reset(pls2, cfg=settings)
+            P.DUCK["gr"] = 0.0
+            asyncio.sleep = fake_sleep
+            cols = {"t_s": [], "top_n": [], "top_pos_s": [], "look_ahead_index": [], "target_db": [], "gr_db": [], "bg_multiplier": []}
+            caps, tasks = [], set()
+            try:
+                P.play(0, 0)
+                bg = r.live()
+                r.rebase()
+                for _ in range(50):
+                    r.fake.t += 0.01
+                    if round(r.fake.t - r.t0, 3) % 0.05 < 1e-6:
+                        P.tick()
+                voice_start = round(r.fake.t - r.t0, 3)
+                assert P.play_on_top(1, first_track)
+                nth = {id(r.live()): 1}
+                r.fake.t += first_delay_s                                                    # the loop's first turn comes this much after the voice-over started
+                await real_sleep(0)
+
+                def sample():
+                    top = P.DUCK["top"]
+                    present = top is not None and top in P.decks
+                    pos = top.fpos() if present else None
+                    cur = P.DUCK["curve"] if present else None
+                    org = P.DUCK["origin"]
+                    i = int((pos - org) / P.DUCK_STEP) + 2 if present else None
+                    tgt = (float(cur[i]) if cur is not None and 0 <= i < len(cur) else 0.0) if present else 0.0
+                    cols["t_s"].append(r6(r.fake.t - r.t0))
+                    cols["top_n"].append(nth.get(id(top)) if present else None)
+                    cols["top_pos_s"].append(r6(pos))
+                    cols["look_ahead_index"].append(i)
+                    cols["target_db"].append(r6(tgt))
+                    cols["gr_db"].append(r6(P.DUCK["gr"]))
+                    cols["bg_multiplier"].append(r6(bg.duck))
+                    caps.append((r.fake.t, pos, cur, org))
+                    tasks.add(id(P.DUCK["task"]))
+                sample()
+                for k in range(1, 700):
+                    if second and k == second["at_row"]:
+                        r.fake.t += second["advance_s"]
+                        assert P.play_on_top(1, second["track"])
+                        nth[id(r.live())] = 2
+                    await real_sleep(0)
+                    if k % 5 == 0:
+                        P.tick()
+                    sample()
+                    if P.DUCK["task"] is None or P.DUCK["task"].done():
+                        break
+            finally:
+                asyncio.sleep = real_sleep
+            cols["ideal_bg_multiplier"] = _ideal_mult(cols)
+            # which rounding of the look-ahead position reproduces the recorded gr_db? (the loop is replayed from the recorded positions and curves)
+            att, rel = settings["duck_attack_ms"], settings["duck_release_ms"]
+            rules = {"floor": math.floor, "round": lambda x: int(round(x)), "ceil": math.ceil}
+            wrong_rows = {}
+            for name, fn in rules.items():
+                gr, prev, bad = 0.0, None, 0
+                for k, (t, pos, cur, org) in enumerate(caps):
+                    if k:
+                        dt = max(0.001, min(0.2, t - prev))
+                        if pos is None or cur is None:
+                            tg = 0.0
+                        else:
+                            i = fn((pos - org) / P.DUCK_STEP) + 2
+                            tg = float(cur[i]) if 0 <= i < len(cur) else 0.0
+                        gr = dsp.duck_smooth(gr, tg, dt, att, rel)
+                    prev = t
+                    if abs(r6(gr) - cols["gr_db"][k]) > 2e-6:
+                        bad += 1
+                wrong_rows[name] = bad
+            assert wrong_rows["floor"] == 0, wrong_rows
+            P.stop_all()
+            return cols, voice_start, wrong_rows, len(tasks)
+
+        def voices_scn(first, delay, second, extra):
+            scn = {"background": {"file": "bg.wav", "length_s": 30, "playlist": 0, "track": 0, "started_by": "play(0, 0)"}, "background_alone_s": 0.5,
+                   "first_voice_over": {"file": first, "playlist": 1, "started_by": "play_on_top at 0.5 s", "segments_s_and_sample_value": [[a_, b_] for a_, b_ in (DUCK_VOICE if first == "voice.wav" else DUCK_VOICE_2)]},
+                   "loop_first_turn_delay_s": delay, "step_s": 0.01, "tick_every_steps": 5, "settings": "the `settings` of this case"}
+            if second:
+                scn["second_voice_over"] = second
+            scn.update(extra)
+            return scn
+        for label, delay, info in (
+                ("voice_phase_2_5ms", 0.0025, "the voice-over starts 12.5 ms after a 10 ms step of the control grid: phase 2.5 ms. The loop's first turn runs 2.5 ms after the voice-over started, so every step reads the playhead at 10 + 2.5 + 10 k ms. The look-ahead position is floor(playhead / 10 ms) + 2 (see _info_look_ahead_rule): at a phase of 0.25 step floor and round agree and only ceil differs"),
+                ("voice_phase_7ms", 0.007, "phase 7 ms (a start at 17 ms): the playhead is 10 + 7 + 10 k ms at every step; floor takes the window the playhead is in, round and ceil the next one: rows where the curve changes between two windows differ"),
+                ("voice_phase_9_9ms", 0.0099, "phase 9.9 ms (a start at 9.9 ms, just before a step): the playhead is 10 + 9.9 + 10 k ms, almost a whole step past a window; floor still takes the window it is in, round and ceil the next one")):
+            cols, vstart, wrong, ntasks = await run_voices(s_off, 0, first_delay_s=delay)
+            if label != "voice_phase_2_5ms":
+                assert wrong["round"] > 0, (label, wrong)
+            assert wrong["ceil"] > 0, (label, wrong)
+            out[label] = {"scenario": voices_scn("voice.wav", delay, None, {"phase_ms": round(delay * 1000, 1)}), "settings": s_off, "step_s": 0.01, "look_ahead_s": 0.02,
+                          "_info": info,
+                          "_info_look_ahead_rule": "the loop reads `curve[int((playhead - origin) / 0.01) + 2]`, i.e. FLOOR of the playhead in 10 ms windows plus 2. Replaying the recorded playheads and curves through duck_smooth reproduces gr_db for floor and for no other rounding; rows of gr_db that the other roundings would change: " + json.dumps(wrong),
+                          "voice_over": {"file": "voice.wav", "starts_at_s": vstart, "length_s": 2.0, "level_pct": 100, "segments_s_and_sample_value": [[a_, b_] for a_, b_ in DUCK_VOICE]},
+                          "samples": cols, "peak_reduction_db": r6(max(cols["gr_db"])), "final_multiplier": cols["bg_multiplier"][-1]}
+        # two voice-overs
+        sec_a = {"file": "voice.wav", "playlist": 1, "track": 0, "started_by": "play_on_top while the first is ducking", "starts_at_loop_step": 61, "clock_moved_before_it_s": 0.0025}
+        cols, vstart, wrong, ntasks = await run_voices(s_off, 0, second={"track": 0, "at_row": 61, "advance_s": 0.0025})
+        out["second_voice_starts_off_grid_while_ducking"] = {
+            "scenario": voices_scn("voice.wav", 0.0, sec_a, {}), "settings": s_off, "step_s": 0.01, "look_ahead_s": 0.02,
+            "_info": "a second voice-over (the same 2 s file) is played on top 2.5 ms after step 60, while the first is ducking (0.6 s into it, loud part). The FIRST voice-over is superseded: it fades out over top_fade_ms (1.5 s, not shown) and stops driving the ducking. The loop is NOT restarted (one loop task for the whole run: `ducking_loop_tasks`), its 10 ms timer goes on, so the second voice-over's playhead at its first step is 7.5 ms (off the voice's own grid) and then 17.5, 27.5 ... ms. gr_db is NOT reset: the smoothing carries on from the depth the first voice-over had reached (19.98 dB) towards the new voice-over's curve, read from ITS playhead (origin 0). The new voice-over starts with 0.3 s of silence, so the depth relaxes at the release rate for those 0.3 s and then follows the new voice-over: no jump up or down at the replacement. `top_n` says which voice-over drives the ducking. Contract: the continuity of gr_db and the curve of the new voice-over; not contract: the 7.5 ms phase of its steps (quirk 16)",
+            "_info_look_ahead_rule": "floor, as in voice_phase_*: rows the other roundings would change: " + json.dumps(wrong),
+            "ducking_loop_tasks": ntasks, "voice_over": {"file": "voice.wav", "starts_at_s": vstart, "length_s": 2.0},
+            "samples": cols, "peak_reduction_db": r6(max(cols["gr_db"])), "final_multiplier": cols["bg_multiplier"][-1]}
+        sec_b = {"file": "voice2.wav", "playlist": 1, "track": 1, "started_by": "play_on_top while the first is ducking", "starts_at_loop_step": 56, "clock_moved_before_it_s": 0.0,
+                 "segments_s_and_sample_value": [[a_, b_] for a_, b_ in DUCK_VOICE_2]}
+        cols, vstart, wrong, ntasks = await run_voices(s_off, 0, second={"track": 1, "at_row": 56, "advance_s": 0.0})
+        out["second_voice_ends_first"] = {
+            "scenario": voices_scn("voice.wav", 0.0, sec_b, {}), "settings": s_off, "step_s": 0.01, "look_ahead_s": 0.02,
+            "_info": "a shorter second voice-over (1 s) starts on the grid 0.55 s into the first and is over (1.55 s into the first) before the first would have ended (2.0 s). The first is superseded at once, so when the SECOND ends the ducking releases (500 ms) although the first is still fading out for another half second: the first no longer counts. One loop task throughout (the end of the second voice-over is found by the 50 ms tick, quirk 6: row 160). Contract: the release starts when the SECOND ends (the first, superseded, no longer drives the ducking: `superseded` decks are skipped when a top voice-over ends); not contract: the phase of the steps (quirk 16)",
+            "_info_look_ahead_rule": "floor: rows the other roundings would change: " + json.dumps(wrong),
+            "ducking_loop_tasks": ntasks, "voice_over": {"file": "voice.wav", "starts_at_s": vstart, "length_s": 2.0},
+            "samples": cols, "peak_reduction_db": r6(max(cols["gr_db"])), "final_multiplier": cols["bg_multiplier"][-1]}
     return out
 
 
@@ -1066,7 +1214,9 @@ async def ducking():
         loop_scn = {"background": {"file": "bg.wav", "length_s": 30, "playlist": 0, "track": 0, "started_by": "play(0, 0)"}, "background_alone_s": 0.5,
                     "voice_over": {"file": "voice.wav", "playlist": 1, "track": 0, "started_by": "play_on_top(1, 0) at 0.5 s", "stereo_48k": True, "segments_s_and_sample_value": [[a_, b_] for a_, b_ in DUCK_VOICE]},
                     "step_s": 0.01, "tick_every_steps": 5, "max_steps": 620, "settings_per_case": "each entry of `cases` holds its `settings`"}
-        cases["duck_loop"] = {"scenario": loop_scn, "_info": "the REAL _duck_loop and Play on Top under the fake clock: background deck + a 2 s voice-over (0.3 s silence, 0.7 s at 16384, 0.5 s at 4096, 0.5 s silence, stereo 48 kHz), sampled every 10 ms from 0.5 s before the voice-over until after the release. target_db = the duck_curve value the loop reads at top_pos + 20 ms (look-ahead); gr_db = smoothed reduction; bg_multiplier = Deck.duck of the background (applied only when it moved by more than 0.0005, so it can trail 10^(-gr/20) by that). Index 49 is the last background-only sample (t = 0.5 s, voice-over not started), index 50 is the voice-over starting at the same time (top_pos 0); from index 51 every row is 10 ms later, with the reduction computed by the loop at that time.",
+        cases["duck_loop"] = {"scenario": loop_scn, "tolerance_by_key": {"bg_multiplier": 6e-4},
+                              "_info_tolerance_by_key": "bg_multiplier (measured) is compared at 6e-4: Python only rewrites Deck.duck when it moved by more than 0.0005 (quirk 9), so it trails ideal_bg_multiplier = 10^(-gr_db/20) of the same row by up to 5e-4. The CONTRACT is ideal_bg_multiplier (file tolerance 2e-6)",
+                              "_info": "the REAL _duck_loop and Play on Top under the fake clock: background deck + a 2 s voice-over (0.3 s silence, 0.7 s at 16384, 0.5 s at 4096, 0.5 s silence, stereo 48 kHz), sampled every 10 ms from 0.5 s before the voice-over until after the release. target_db = the duck_curve value the loop reads at top_pos + 20 ms (look-ahead); gr_db = smoothed reduction; bg_multiplier = Deck.duck of the background (applied only when it moved by more than 0.0005, so it can trail 10^(-gr/20) by that). Index 49 is the last background-only sample (t = 0.5 s, voice-over not started), index 50 is the voice-over starting at the same time (top_pos 0); from index 51 every row is 10 ms later, with the reduction computed by the loop at that time.",
                               "cases": await duck_loop_cases()}
     return doc("ducking", "Sidechain ducking maths (cpl/dsp.py): level key, reduction curve, attack/release smoothing and the multiplier applied to the background.", cases)
 
