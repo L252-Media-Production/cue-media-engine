@@ -624,7 +624,7 @@ async def triggers():
         r.patch(P, "_play_on_top", spy)
         await r.load(*lib)
 
-        async def run(label, triggers_, secs, trim_=None, seek=None, loop=False, info="", ideal=None):
+        async def run(label, triggers_, secs, trim_=None, seek=None, loop=False, info="", ideal=None, seeks=None):
             r.reset(pls)
             fires.clear()
             P.playlists[0].pop("trims", None)
@@ -638,7 +638,13 @@ async def triggers():
             P.play(0, 0)
             r.rebase()
             fires.clear()
-            r.run_for(secs, each=(lambda e: P.seek_live(seek[1]) if seek and abs(e - seek[0]) < 1e-9 else None))
+            def each(e):
+                if seek and abs(e - seek[0]) < 1e-9:
+                    P.seek_live(seek[1])
+                for sa, st_ in (seeks or []):
+                    if abs(e - sa) < 1e-9:
+                        P.seek_live(st_)
+            r.run_for(secs, each=each)
             if ideal is None:                                  # the playhead reaches `at` after (at - A) seconds, and again every pass of a loop (once: the first pass only)
                 lo = float((trim_ or {}).get("in", 0.0))
                 hi = float((trim_ or {}).get("out", lib["main.wav"]))
@@ -660,7 +666,7 @@ async def triggers():
             for m, i in zip(fires, ideal):
                 assert -1e-6 <= m["t_s"] - i["t_s"] <= TRIG_TOL + 1e-6 and m["file"] == i["file"], (label, m, i)
             scn = {"library_s": dict(lib), "playlist": pls[0]["tracks"], "main_track": "main.wav", "main_track_length_s": lib["main.wav"], "voice_over_lengths_s": {k: v for k, v in lib.items() if k != "main.wav"},
-                   "end_action": "loop" if loop else "default", "run_s": secs, "trim": trim_ or {}, "seek": None if not seek else {"at_s": seek[0], "to_s": seek[1]}, "triggers": triggers_,
+                   "end_action": "loop" if loop else "default", "run_s": secs, "trim": trim_ or {}, "seek": None if not seek else {"at_s": seek[0], "to_s": seek[1]}, **({"seeks": [{"at_s": a, "to_s": b} for a, b in seeks]} if seeks else {}), "triggers": triggers_,
                    "steps": ["set the end action and the trim", "add the trigger points", "play track 0 and start counting", "tick every 50 ms for run_s (the seek, if any, at seek.at_s of play)"], "tick_s": 0.05}
             cases[label] = {"scenario": scn, "_info": info, "triggers": triggers_, "trim": trim_ or {}, "fires": list(fires), "ideal_fires": ideal, "tolerance_s": TRIG_TOL}
         await run("simple", [{"at": 10, "file": "vo.wav"}], 14, info="fires once when the playhead reaches `at` (within one 50 ms tick)")
@@ -674,6 +680,192 @@ async def triggers():
         await run("loop_fires_every_pass", [{"at": 1, "file": "vo.wav"}], 14, trim_={"out": 6}, loop=True, info="a looping 6 s window (A=0, B=6) fires in every pass (the 3 s voice-over is over before the next pass)")
         await run("once_flag", [{"at": 1, "file": "vo.wav", "once": True}], 14, trim_={"out": 6}, loop=True, info="once: first pass only")
         await run("top_already_playing_skips", [{"at": 1, "file": "vo2.wav"}, {"at": 3, "file": "vo.wav"}], 14, ideal=[{"t_s": 1.0, "file": "vo2.wav"}], info="vo2 (8 s) is on top at 3 s, so the second trigger is skipped, not queued")
+        # ---- once points and seeks (item 1)
+        await run("once_seek_back_in_pass_1", [{"at": 10, "file": "vo.wav", "once": True}], 26, seeks=[(14.0, 2.0)], ideal=[{"t_s": 10.0, "file": "vo.wav"}, {"t_s": 22.0, "file": "vo.wav"}],
+                  info="a once point that has fired in pass 1 (10 s), then a seek back to 2 s at 14 s of play (the voice-over is over): still pass 1, so it is armed again and fires again 8 s later. A once point is 'first pass only', not 'first time only'")
+        await run("once_skipped_by_seek_forward_then_back", [{"at": 10, "file": "vo.wav", "once": True}], 14, seeks=[(2.0, 20.0), (4.0, 5.0)], ideal=[{"t_s": 9.0, "file": "vo.wav"}],
+                  info="seek over the once point (2 s -> 20 s: skipped), then back to 5 s at 4 s of play: it is ahead again and fires when the playhead reaches 10 s (9 s of play). A skipped once point is still unspent")
+        await run("once_loop_seek_back_in_lap_1", [{"at": 1, "file": "vo.wav", "once": True}], 8, trim_={"out": 6}, loop=True, seeks=[(4.5, 0.0)],
+                  ideal=[{"t_s": 1.0, "file": "vo.wav"}, {"t_s": 5.5, "file": "vo.wav"}],
+                  info="looping 6 s window, once point at 1 s: fires in lap 1; seek back to 0 s at 4.5 s of play (still lap 1; the seek also ends the loop, quirk 1) and it fires again at 5.5 s")
+        await run("once_loop_seek_back_in_lap_2", [{"at": 1, "file": "vo.wav", "once": True}], 12, trim_={"out": 6}, loop=True, seeks=[(7.5, 0.0)], ideal=[{"t_s": 1.0, "file": "vo.wav"}],
+                  info="looping 6 s window, once point at 1 s: fires in lap 1 (1 s), not in lap 2 (7 s); seek back to 0 s at 7.5 s of play (lap 2 running): the point stays spent, it never fires again. Once the first pass is over the once point is dead for good, a seek does not re-arm it")
+        # ---- trigger points at or near A (item 2)
+        def one_point(at, trim_, offset=None, secs=0.4):
+            r.reset(pls)
+            P.playlists[0].pop("trims", None)
+            P.playlists[0].pop("triggers", None)
+            if trim_:
+                P.set_trim(0, 0, trim_)
+            _, err = P.set_triggers(0, 0, "add", {"at": at, "file": "vo.wav"})
+            assert err is None, err
+            if offset is None:
+                P.play(0, 0)
+            else:
+                assert P._start(0, 0, P.track(0, 0), P.cached(str(P.LIB / "main.wav")), 0, offset)
+            r.rebase()
+            fires.clear()
+            r.run_for(secs)
+            return fires[0]["t_s"] if fires else None
+        rows = []
+        for a_, trim_ in ((2.0, {"in": 2.0}), (0.0, None)):
+            for dt_ in (-0.001, 0.0, 0.001, 0.005, 0.049, 0.051):
+                at = round(a_ + dt_, 3)
+                if at < 0:
+                    continue
+                t_ = one_point(at, trim_)
+                ideal_f = dt_ >= 0
+                assert (t_ is not None) == ideal_f and (t_ is None or -1e-6 <= t_ - max(0.0, dt_) <= TRIG_TOL + 1e-6), (at, t_)
+                rows.append({"A_s": a_, "at": at, "at_minus_A_ms": round(dt_ * 1000), "fired": t_ is not None, "first_fire_t_s": t_, "ideal_fired": ideal_f, "ideal_t_s": round(max(0.0, dt_), 3) if ideal_f else None})
+        cases["point_at_or_near_A_start_at_A"] = {"scenario": {"library_s": dict(lib), "playlist": pls[0]["tracks"], "main_track": "main.wav", "main_track_length_s": lib["main.wav"], "voice_over": "vo.wav", "end_action": "default", "tick_s": 0.05, "run_s": 0.4,
+                                                                  "input": "per row: trim {in: A} (none for A = 0), ONE trigger point at `at` (set_triggers rounds `at` to 1 ms), play track 0 from the start, tick every 50 ms for 0.4 s; `first_fire_t_s` = seconds after the start of play, null = never fired"},
+                                                  "_info": "a start at A (offset 0): a point at A or up to 50 ms later fires on the first tick (it is already reached when the first tick looks), a point 1 ms BEFORE A never fires (Before A: `at >= A - 1e-6` is required), a point later than the first tick fires when the playhead reaches it. Margin: the point must be at >= A (to the microsecond); there is no tolerance on the A - 1 ms side",
+                                                  "tolerance_s": TRIG_TOL, "rows": rows}
+        rows = []
+        for off in (0.0, 2.0, 2.05, 2.059, 2.061, 2.2):
+            for at in (2.0, 2.02, 2.055, 2.1, 2.3):
+                t_ = one_point(at, {"in": 2.0}, offset=off)
+                start = max(2.0, off) if off > 0.05 else 2.0
+                if start == 2.0:
+                    ideal_f = at >= start                                  # a start at A: every point from A on
+                elif at < start:
+                    ideal_f = False                                        # the playhead began past it
+                elif at >= start + TRIG_TOL:
+                    ideal_f = True
+                else:
+                    ideal_f = None                                         # inside the first tick after the start: not defined
+                rows.append({"offset_s": off, "start_s": start, "at": at, "fired": t_ is not None, "first_fire_t_s": t_, "ideal_fired": ideal_f, "ideal_t_s": round(max(0.0, at - start), 3) if ideal_f else None,
+                             "python_differs": ideal_f is not None and (t_ is not None) != ideal_f})
+        cases["point_near_A_start_with_offset"] = {"scenario": {"library_s": dict(lib), "playlist": pls[0]["tracks"], "main_track": "main.wav", "main_track_length_s": lib["main.wav"], "voice_over": "vo.wav", "trim": {"in": 2.0}, "end_action": "default", "tick_s": 0.05, "run_s": 0.4,
+                                                                  "input": "per row: trim {in: 2.0}, ONE trigger point at `at`, _start(playlist 0, track 0, offset = offset_s) (a resume / seek-style start: offset in FILE seconds; start_s = where the sound begins), tick every 50 ms for 0.4 s"},
+                                                    "tolerance_by_key": SAMPLE_TOL_KEYS(["start_s", "offset_s", "at"]),
+                                                    "_info_tolerance_by_key": "start_s is the exact float seconds max(A, offset) where the sound begins (not a frame count), offset_s and at are the inputs: positions in file seconds, compared within one sample; the times of the first fire use tolerance_s (one tick)",
+                                                    "_info": "`ideal_fired` is the contract: start_s == A: every point at >= A fires; otherwise a point behind the start (at < start_s) never fires, a point at least one tick (0.05 s) ahead fires when the playhead reaches it (`ideal_t_s` = at - start_s, within tolerance_s), and a point inside the first tick after the start is undefined (null, not compared). `fired` / `first_fire_t_s` are what Python did. Where `python_differs` is true Python deviates from the contract (quirk 13: part-way starts within 0.06 s of A are 'fresh' and fire the points between A and the start, although the playhead is already past them)", "tolerance_s": TRIG_TOL, "rows": rows}
+        # ---- a target that is not decoded yet (item 4)
+        vo_path = str(P.LIB / "vo.wav")
+        real_cached, real_trig_load = P.cached, P._trig_load
+        ready_at = [None]                                      # fake seconds (after the start of play) at which vo.wav counts as decoded; None = never
+
+        def hide_cached(path):
+            if path == vo_path and (ready_at[0] is None or r.fake.t - r.t0 < ready_at[0]):
+                return None
+            return real_cached(path)
+        r.patch(P, "cached", hide_cached)
+        r.patch(P, "_trig_load", lambda path: None)             # the real loader needs the event loop to turn; readiness is simulated by hide_cached
+        for label, rdy, run_s, ideal_f, info in (
+                ("target_ready_after_1s", 6.0, 12, [{"t_s": 6.0, "file": "vo.wav"}], "the point is at 5 s but vo.wav is decoded only at 6 s of play: the point is kept waiting (it is 'due') and fires on the first tick after the target is ready, 1 s late. The wait is not a fixed delay: the voice-over starts as soon as it can"),
+                ("target_never_ready", None, 40, [], "vo.wav is never decoded: the point waits and is then given up on (a notice 'could not be loaded'): nothing fires and the track is not disturbed. How long it waits (30 s in Python, TRIG_WAIT_S) is an implementation limit, not contract: a port may wait less or more, but must give up at some point and must not fire a voice-over that is minutes late")):
+            ready_at[0] = rdy
+            r.reset(pls)
+            fires.clear()
+            P.playlists[0].pop("trims", None)
+            P.playlists[0].pop("triggers", None)
+            P.set_end(0, 0, "default")
+            P.set_triggers(0, 0, "add", {"at": 5, "file": "vo.wav"})
+            P.play(0, 0)
+            r.rebase()
+            fires.clear()
+            r.run_for(run_s)
+            assert [x["t_s"] for x in fires] == [] if not ideal_f else (len(fires) == 1 and 0 <= fires[0]["t_s"] - ideal_f[0]["t_s"] <= TRIG_TOL + 1e-6), (label, fires)
+            cases[label] = {"scenario": {"library_s": dict(lib), "playlist": pls[0]["tracks"], "main_track": "main.wav", "main_track_length_s": lib["main.wav"], "voice_over_lengths_s": {"vo.wav": 3},
+                                         "end_action": "default", "run_s": run_s, "triggers": [{"at": 5, "file": "vo.wav"}], "tick_s": 0.05, "target_decoded_at_s": rdy,
+                                         "steps": ["add the trigger point", "play track 0 and start counting", "the target file counts as not decoded until `target_decoded_at_s` of play (null = never)", "tick every 50 ms for run_s"]},
+                            "_info": info, "triggers": [{"at": 5, "file": "vo.wav"}], "trim": {}, "fires": list(fires), "ideal_fires": ideal_f, "tolerance_s": TRIG_TOL}
+        P.cached, P._trig_load = real_cached, real_trig_load
+        # ---- the level of a trigger voice, and a second point while one plays (item 5)
+        rows = []
+        saved_pct = P.CFG["top_track_pct"]
+        for pct in (100, 60, 25, 0):
+            P.CFG["top_track_pct"] = pct
+            r.reset(pls)
+            fires.clear()
+            P.playlists[0].pop("trims", None)
+            P.playlists[0].pop("triggers", None)
+            P.set_end(0, 0, "default")
+            P.set_triggers(0, 0, "add", {"at": 10, "file": "vo2.wav"})
+            P.set_triggers(0, 0, "add", {"at": 12, "file": "vo.wav"})
+            P.play(0, 0)
+            r.rebase()
+            fires.clear()
+            r.run_for(10.2)
+            tops = [d for d in P.decks if d.top]
+            assert len(tops) == 1
+            vo_ = tops[0]
+            row = {"top_track_pct": pct, "at_s": 10.2, "voice": vo_.name, "voice_is_live": r.live() is vo_, "voice_vol": r6(vo_.vol), "voice_gain": r6(vo_.gain), "voice_fading": vo_.fade is not None, "background_decks": len([d for d in P.decks if not d.top])}
+            r.run_for(2.5)                                                  # the second point (12 s) comes while vo2 (8 s, until 18 s) is still playing
+            row.update({"at_12_5_s": {"tops": len([d for d in P.decks if d.top]), "voice": r.live().name, "trigger_fires_so_far": len(fires)}})
+            rows.append(row)
+        P.CFG["top_track_pct"] = saved_pct
+        cases["voice_level_and_second_point"] = {"scenario": {"library_s": dict(lib), "playlist": pls[0]["tracks"], "main_track": "main.wav", "main_track_length_s": lib["main.wav"], "voice_over_lengths_s": {"vo.wav": 3, "vo2.wav": 8},
+                                                              "end_action": "default", "triggers": [{"at": 10, "file": "vo2.wav"}, {"at": 12, "file": "vo.wav"}], "tick_s": 0.05, "config": "top_track_pct per row (the other Play on Top / ducking settings are the defaults)",
+                                                              "steps": ["set top_track_pct", "two trigger points: vo2 (8 s) at 10 s, vo (3 s) at 12 s", "play track 0", "tick every 50 ms to 10.2 s and read the decks", "tick on to 12.7 s and read them again"]},
+                                                 "_info": "the voice-over plays at top_track_pct / 100 (a plain volume, no fade-in; gain 1.0: level match never applies to a trigger voice-over); it becomes the live deck. The second point (12 s), reached while vo2 is still on top, is SKIPPED: nothing is queued, nothing overlaps (still exactly one top deck, vo2, nothing fires). The same rule as a Play on Top by hand: a second Play on Top REPLACES the first, but a trigger point never does",
+                                                 "rows": rows}
+    # ---- a new track started while a trigger voice-over is on top (item 3): the real duck loop under the fake clock
+    lib3 = {"main.wav": 60, "other.wav": (30, 4000), "vo.wav": (8, 16384)}
+    pls3 = [{"name": "A", "tracks": ["main.wav", "other.wav"]}]
+    duck_cfg = {"duck_threshold_db": -30.0, "duck_ratio": 6.0, "duck_attack_ms": 10, "duck_release_ms": 500, "duck_hold": True, "top_track_pct": 100, "triggers_armed": True}
+    async with Rig(lib3, pls3, cfg=duck_cfg) as r:
+        P = r.P
+        await r.load(*lib3)
+        real_sleep = asyncio.sleep
+        for _ in range(100):                                                   # the level key of a loaded track is worked out in the background
+            if str(P.LIB / "vo.wav") in P._key:
+                break
+            await real_sleep(0.05)
+        assert str(P.LIB / "vo.wav") in P._key
+
+        async def fake_sleep(delay, *a, **k):
+            await real_sleep(0)
+            r.fake.t += delay
+
+        def snap():
+            return {"t_s": round(r.fake.t - r.t0, 2), "live": r.live().name if r.live() else None,
+                    "decks": [{"name": d.name, "top": bool(d.top), "vol": r6(d.vol), "ducked": d.duck < 0.99, "_info_python_duck": r6(d.duck), "ending": bool(d.kill_on_fade_end)} for d in P.decks],
+                    "_info_python_gr_db": r6(P.DUCK["gr"]), "_info_python_duck_armed": P.DUCK["top"] is not None}
+        for label, xf, info in (
+                ("new_track_cut_while_voice_on_top", 0, "the voice-over fires at 2 s and ducks the background; at 4 s a new track is started with a CUT (Go with the Cut setting, /take, /cut, next, play: all `play(p, t)`). stop_all(): the voice-over, the background and the ducking state are all gone at once (gr 0, nothing armed) and the new track plays at full level, alone. No release ramp"),
+                ("new_track_crossfade_while_voice_on_top", 1000, "same, but the new track is started with a 1000 ms CROSSFADE: EVERY running deck, the voice-over included, fades out (and is removed when its fade is done) while the new track fades in. The new track is not part of the ducked background: it comes in at its own level (duck 1.0) and is never ducked; the ducking loop keeps the dip on the old background until the voice-over is gone, then releases (500 ms) and ends")):
+            r.reset(pls3, cfg=duck_cfg)
+            P.playlists[0].pop("trims", None)
+            P.playlists[0].pop("triggers", None)
+            P.set_end(0, 0, "default")
+            P.set_triggers(0, 0, "add", {"at": 2, "file": "vo.wav"})
+            P.DUCK["gr"] = 0.0
+            asyncio.sleep = fake_sleep
+            rows = []
+            try:
+                P.play(0, 0)
+                r.rebase()
+                nxt = [0.05]
+                async def step_to(target):
+                    while r.fake.t - r.t0 < target - 1e-9:
+                        task = P.DUCK["task"]
+                        running = task is not None and not task.done()
+                        await real_sleep(0)
+                        if not running:
+                            r.fake.t += 0.01
+                        if r.fake.t - r.t0 >= nxt[0] - 1e-9:
+                            P.tick()
+                            nxt[0] += 0.05
+                await step_to(3.95)
+                rows.append(dict(snap(), event="before"))
+                await step_to(4.0)
+                assert P.play(0, 1, xf)
+                rows.append(dict(snap(), event="new track started"))
+                for tt in (4.05, 4.25, 4.5, 5.5, 7.0):
+                    await step_to(tt)
+                    rows.append(snap())
+                await step_to(12.5)
+                tail = snap()
+            finally:
+                asyncio.sleep = real_sleep
+                P.stop_all()
+            cases[label] = {"scenario": {"library_s": {"main.wav": 60, "other.wav": 30, "vo.wav": 8}, "playlist": pls3[0]["tracks"], "voice_over": "vo.wav (8 s, constant 16384 = -6 dBFS RMS)", "config": duck_cfg, "end_action": "default",
+                                         "triggers": [{"at": 2, "file": "vo.wav"}], "new_track": {"track": 1, "at_s": 4.0, "crossfade_ms": xf}, "tick_s": 0.05,
+                                         "steps": ["trigger point at 2 s on track 0", "play track 0 (the real _duck_loop runs under the fake clock, 10 ms per step)", "tick every 50 ms; at 4.0 s start track 1 with play(0, 1, crossfade_ms)", "read the decks and the ducking state at the listed times"]},
+                            "_info": info + ". `vol` is the deck volume at the tick (fade curves as in fades.json); `ducked` = the background multiplier is below 0.99; gr_db and duck_armed are Python's internal ducking state (_info_python_*, not compared). A deck that has just finished its fade is still listed at that tick and removed on the next one (not compared: no row at 5.0 s)", "rows": rows, "at_12_5_s": tail}
+    # (the Rig above is closed here: the other trigger cases ran in the first one)
     return doc("triggers", "Trigger points: when the playlist's voice-overs fire (seconds after the start of the track, fake clock, 50 ms ticks; each fire is a Play on Top with no playlist entry). `fires` is what the Python player measured (it includes the tick); `ideal_fires` is the time at which the playhead reaches `at` ((at - A) after the start, plus whole passes in a loop); another engine compares its own times with the IDEAL ones within `tolerance_s`.", cases)
 
 
