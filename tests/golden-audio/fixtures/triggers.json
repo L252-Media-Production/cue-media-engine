@@ -1494,6 +1494,71 @@
    "ideal_fires": [],
    "tolerance_s": 0.05
   },
+  "target_never_ready_does_not_block_next_point": {
+   "scenario": {
+    "library_s": {
+     "main.wav": 120,
+     "vo.wav": 3,
+     "vo2.wav": 8
+    },
+    "playlist": [
+     "main.wav"
+    ],
+    "main_track": "main.wav",
+    "main_track_length_s": 120,
+    "voice_over_lengths_s": {
+     "vo.wav": 3,
+     "vo2.wav": 8
+    },
+    "end_action": "default",
+    "run_s": 14,
+    "triggers": [
+     {
+      "at": 5,
+      "file": "vo.wav"
+     },
+     {
+      "at": 10,
+      "file": "vo2.wav"
+     }
+    ],
+    "tick_s": 0.05,
+    "target_decoded_at_s": {
+     "vo.wav": null,
+     "vo2.wav": 0.0
+    },
+    "steps": [
+     "two trigger points: vo.wav at 5 s (never decoded), vo2.wav at 10 s (decoded)",
+     "play track 0 and start counting",
+     "tick every 50 ms for run_s"
+    ]
+   },
+   "_info": "the first point is still waiting for its target when the second one is reached: a point that waits does not hold up the points after it. The second fires at 10 s as if the first did not exist (and the first never fires)",
+   "triggers": [
+    {
+     "at": 5,
+     "file": "vo.wav"
+    },
+    {
+     "at": 10,
+     "file": "vo2.wav"
+    }
+   ],
+   "trim": {},
+   "fires": [
+    {
+     "t_s": 10.05,
+     "file": "vo2.wav"
+    }
+   ],
+   "ideal_fires": [
+    {
+     "t_s": 10.0,
+     "file": "vo2.wav"
+    }
+   ],
+   "tolerance_s": 0.05
+  },
   "voice_level_and_second_point": {
    "scenario": {
     "library_s": {
@@ -1528,10 +1593,11 @@
      "two trigger points: vo2 (8 s) at 10 s, vo (3 s) at 12 s",
      "play track 0",
      "tick every 50 ms to 10.2 s and read the decks",
-     "tick on to 12.7 s and read them again"
+     "tick on to 12.7 s and read them again",
+     "tick on to 20.2 s (vo2 ended at 18 s) and read them a third time"
     ]
    },
-   "_info": "the voice-over plays at top_track_pct / 100 (a plain volume, no fade-in; gain 1.0: level match never applies to a trigger voice-over); it becomes the live deck. The second point (12 s), reached while vo2 is still on top, is SKIPPED: nothing is queued, nothing overlaps (still exactly one top deck, vo2, nothing fires). The same rule as a Play on Top by hand: a second Play on Top REPLACES the first, but a trigger point never does",
+   "_info": "the voice-over plays at top_track_pct / 100 (a plain volume, no fade-in; gain 1.0: level match never applies to a trigger voice-over); it becomes the live deck. The second point (12 s), reached while vo2 is still on top, is SKIPPED: nothing is queued, nothing overlaps (still exactly one top deck, vo2, nothing fires). At 20 s the voice-over is over, the live deck is the main track again and still nothing has fired a second time (a queued point would have started at 18 s). The same rule as a Play on Top by hand: a second Play on Top REPLACES the first, but a trigger point never does",
    "rows": [
     {
      "top_track_pct": 100,
@@ -1545,6 +1611,11 @@
      "at_12_5_s": {
       "tops": 1,
       "voice": "vo2",
+      "trigger_fires_so_far": 1
+     },
+     "at_20_s": {
+      "tops": 0,
+      "live": "main",
       "trigger_fires_so_far": 1
      }
     },
@@ -1561,6 +1632,11 @@
       "tops": 1,
       "voice": "vo2",
       "trigger_fires_so_far": 1
+     },
+     "at_20_s": {
+      "tops": 0,
+      "live": "main",
+      "trigger_fires_so_far": 1
      }
     },
     {
@@ -1576,6 +1652,11 @@
       "tops": 1,
       "voice": "vo2",
       "trigger_fires_so_far": 1
+     },
+     "at_20_s": {
+      "tops": 0,
+      "live": "main",
+      "trigger_fires_so_far": 1
      }
     },
     {
@@ -1590,6 +1671,11 @@
      "at_12_5_s": {
       "tops": 1,
       "voice": "vo2",
+      "trigger_fires_so_far": 1
+     },
+     "at_20_s": {
+      "tops": 0,
+      "live": "main",
       "trigger_fires_so_far": 1
      }
     }
@@ -1661,6 +1747,24 @@
      ],
      "_info_python_gr_db": 19.979986,
      "_info_python_duck_armed": true,
+     "voice": {
+      "present": true,
+      "vol": 1.0,
+      "ducked": false,
+      "fading_out": false
+     },
+     "old_background": {
+      "present": true,
+      "vol": 1.0,
+      "ducked": true,
+      "fading_out": false
+     },
+     "new_track": {
+      "present": false,
+      "vol": null,
+      "ducked": null,
+      "fading_out": null
+     },
      "event": "before"
     },
     {
@@ -1678,6 +1782,24 @@
      ],
      "_info_python_gr_db": 0.0,
      "_info_python_duck_armed": false,
+     "voice": {
+      "present": false,
+      "vol": null,
+      "ducked": null,
+      "fading_out": null
+     },
+     "old_background": {
+      "present": false,
+      "vol": null,
+      "ducked": null,
+      "fading_out": null
+     },
+     "new_track": {
+      "present": true,
+      "vol": 1.0,
+      "ducked": false,
+      "fading_out": false
+     },
      "event": "new track started"
     },
     {
@@ -1694,7 +1816,25 @@
       }
      ],
      "_info_python_gr_db": 0.0,
-     "_info_python_duck_armed": false
+     "_info_python_duck_armed": false,
+     "voice": {
+      "present": false,
+      "vol": null,
+      "ducked": null,
+      "fading_out": null
+     },
+     "old_background": {
+      "present": false,
+      "vol": null,
+      "ducked": null,
+      "fading_out": null
+     },
+     "new_track": {
+      "present": true,
+      "vol": 1.0,
+      "ducked": false,
+      "fading_out": false
+     }
     },
     {
      "t_s": 4.25,
@@ -1710,7 +1850,25 @@
       }
      ],
      "_info_python_gr_db": 0.0,
-     "_info_python_duck_armed": false
+     "_info_python_duck_armed": false,
+     "voice": {
+      "present": false,
+      "vol": null,
+      "ducked": null,
+      "fading_out": null
+     },
+     "old_background": {
+      "present": false,
+      "vol": null,
+      "ducked": null,
+      "fading_out": null
+     },
+     "new_track": {
+      "present": true,
+      "vol": 1.0,
+      "ducked": false,
+      "fading_out": false
+     }
     },
     {
      "t_s": 4.5,
@@ -1726,7 +1884,127 @@
       }
      ],
      "_info_python_gr_db": 0.0,
-     "_info_python_duck_armed": false
+     "_info_python_duck_armed": false,
+     "voice": {
+      "present": false,
+      "vol": null,
+      "ducked": null,
+      "fading_out": null
+     },
+     "old_background": {
+      "present": false,
+      "vol": null,
+      "ducked": null,
+      "fading_out": null
+     },
+     "new_track": {
+      "present": true,
+      "vol": 1.0,
+      "ducked": false,
+      "fading_out": false
+     }
+    },
+    {
+     "t_s": 4.75,
+     "live": "other",
+     "decks": [
+      {
+       "name": "other",
+       "top": false,
+       "vol": 1.0,
+       "ducked": false,
+       "_info_python_duck": 1.0,
+       "ending": false
+      }
+     ],
+     "_info_python_gr_db": 0.0,
+     "_info_python_duck_armed": false,
+     "voice": {
+      "present": false,
+      "vol": null,
+      "ducked": null,
+      "fading_out": null
+     },
+     "old_background": {
+      "present": false,
+      "vol": null,
+      "ducked": null,
+      "fading_out": null
+     },
+     "new_track": {
+      "present": true,
+      "vol": 1.0,
+      "ducked": false,
+      "fading_out": false
+     }
+    },
+    {
+     "t_s": 4.95,
+     "live": "other",
+     "decks": [
+      {
+       "name": "other",
+       "top": false,
+       "vol": 1.0,
+       "ducked": false,
+       "_info_python_duck": 1.0,
+       "ending": false
+      }
+     ],
+     "_info_python_gr_db": 0.0,
+     "_info_python_duck_armed": false,
+     "voice": {
+      "present": false,
+      "vol": null,
+      "ducked": null,
+      "fading_out": null
+     },
+     "old_background": {
+      "present": false,
+      "vol": null,
+      "ducked": null,
+      "fading_out": null
+     },
+     "new_track": {
+      "present": true,
+      "vol": 1.0,
+      "ducked": false,
+      "fading_out": false
+     }
+    },
+    {
+     "t_s": 5.1,
+     "live": "other",
+     "decks": [
+      {
+       "name": "other",
+       "top": false,
+       "vol": 1.0,
+       "ducked": false,
+       "_info_python_duck": 1.0,
+       "ending": false
+      }
+     ],
+     "_info_python_gr_db": 0.0,
+     "_info_python_duck_armed": false,
+     "voice": {
+      "present": false,
+      "vol": null,
+      "ducked": null,
+      "fading_out": null
+     },
+     "old_background": {
+      "present": false,
+      "vol": null,
+      "ducked": null,
+      "fading_out": null
+     },
+     "new_track": {
+      "present": true,
+      "vol": 1.0,
+      "ducked": false,
+      "fading_out": false
+     }
     },
     {
      "t_s": 5.5,
@@ -1742,7 +2020,25 @@
       }
      ],
      "_info_python_gr_db": 0.0,
-     "_info_python_duck_armed": false
+     "_info_python_duck_armed": false,
+     "voice": {
+      "present": false,
+      "vol": null,
+      "ducked": null,
+      "fading_out": null
+     },
+     "old_background": {
+      "present": false,
+      "vol": null,
+      "ducked": null,
+      "fading_out": null
+     },
+     "new_track": {
+      "present": true,
+      "vol": 1.0,
+      "ducked": false,
+      "fading_out": false
+     }
     },
     {
      "t_s": 7.0,
@@ -1758,7 +2054,25 @@
       }
      ],
      "_info_python_gr_db": 0.0,
-     "_info_python_duck_armed": false
+     "_info_python_duck_armed": false,
+     "voice": {
+      "present": false,
+      "vol": null,
+      "ducked": null,
+      "fading_out": null
+     },
+     "old_background": {
+      "present": false,
+      "vol": null,
+      "ducked": null,
+      "fading_out": null
+     },
+     "new_track": {
+      "present": true,
+      "vol": 1.0,
+      "ducked": false,
+      "fading_out": false
+     }
     }
    ],
    "at_12_5_s": {
@@ -1775,7 +2089,25 @@
      }
     ],
     "_info_python_gr_db": 0.0,
-    "_info_python_duck_armed": false
+    "_info_python_duck_armed": false,
+    "voice": {
+     "present": false,
+     "vol": null,
+     "ducked": null,
+     "fading_out": null
+    },
+    "old_background": {
+     "present": false,
+     "vol": null,
+     "ducked": null,
+     "fading_out": null
+    },
+    "new_track": {
+     "present": true,
+     "vol": 1.0,
+     "ducked": false,
+     "fading_out": false
+    }
    }
   },
   "new_track_crossfade_while_voice_on_top": {
@@ -1844,6 +2176,24 @@
      ],
      "_info_python_gr_db": 19.979986,
      "_info_python_duck_armed": true,
+     "voice": {
+      "present": true,
+      "vol": 1.0,
+      "ducked": false,
+      "fading_out": false
+     },
+     "old_background": {
+      "present": true,
+      "vol": 1.0,
+      "ducked": true,
+      "fading_out": false
+     },
+     "new_track": {
+      "present": false,
+      "vol": null,
+      "ducked": null,
+      "fading_out": null
+     },
      "event": "before"
     },
     {
@@ -1877,6 +2227,24 @@
      ],
      "_info_python_gr_db": 19.979986,
      "_info_python_duck_armed": true,
+     "voice": {
+      "present": true,
+      "vol": 1.0,
+      "ducked": false,
+      "fading_out": true
+     },
+     "old_background": {
+      "present": true,
+      "vol": 1.0,
+      "ducked": true,
+      "fading_out": true
+     },
+     "new_track": {
+      "present": true,
+      "vol": 0.0,
+      "ducked": false,
+      "fading_out": false
+     },
      "event": "new track started"
     },
     {
@@ -1909,7 +2277,25 @@
       }
      ],
      "_info_python_gr_db": 19.979986,
-     "_info_python_duck_armed": true
+     "_info_python_duck_armed": true,
+     "voice": {
+      "present": true,
+      "vol": 0.996917,
+      "ducked": false,
+      "fading_out": true
+     },
+     "old_background": {
+      "present": true,
+      "vol": 0.996917,
+      "ducked": true,
+      "fading_out": true
+     },
+     "new_track": {
+      "present": true,
+      "vol": 0.078459,
+      "ducked": false,
+      "fading_out": false
+     }
     },
     {
      "t_s": 4.25,
@@ -1941,7 +2327,25 @@
       }
      ],
      "_info_python_gr_db": 19.979986,
-     "_info_python_duck_armed": true
+     "_info_python_duck_armed": true,
+     "voice": {
+      "present": true,
+      "vol": 0.92388,
+      "ducked": false,
+      "fading_out": true
+     },
+     "old_background": {
+      "present": true,
+      "vol": 0.92388,
+      "ducked": true,
+      "fading_out": true
+     },
+     "new_track": {
+      "present": true,
+      "vol": 0.382683,
+      "ducked": false,
+      "fading_out": false
+     }
     },
     {
      "t_s": 4.5,
@@ -1973,7 +2377,159 @@
       }
      ],
      "_info_python_gr_db": 19.979986,
-     "_info_python_duck_armed": true
+     "_info_python_duck_armed": true,
+     "voice": {
+      "present": true,
+      "vol": 0.707107,
+      "ducked": false,
+      "fading_out": true
+     },
+     "old_background": {
+      "present": true,
+      "vol": 0.707107,
+      "ducked": true,
+      "fading_out": true
+     },
+     "new_track": {
+      "present": true,
+      "vol": 0.707107,
+      "ducked": false,
+      "fading_out": false
+     }
+    },
+    {
+     "t_s": 4.75,
+     "live": "other",
+     "decks": [
+      {
+       "name": "main",
+       "top": false,
+       "vol": 0.382683,
+       "ducked": true,
+       "_info_python_duck": 0.100259,
+       "ending": true
+      },
+      {
+       "name": "vo",
+       "top": true,
+       "vol": 0.382683,
+       "ducked": false,
+       "_info_python_duck": 1.0,
+       "ending": true
+      },
+      {
+       "name": "other",
+       "top": false,
+       "vol": 0.92388,
+       "ducked": false,
+       "_info_python_duck": 1.0,
+       "ending": false
+      }
+     ],
+     "_info_python_gr_db": 19.979986,
+     "_info_python_duck_armed": true,
+     "voice": {
+      "present": true,
+      "vol": 0.382683,
+      "ducked": false,
+      "fading_out": true
+     },
+     "old_background": {
+      "present": true,
+      "vol": 0.382683,
+      "ducked": true,
+      "fading_out": true
+     },
+     "new_track": {
+      "present": true,
+      "vol": 0.92388,
+      "ducked": false,
+      "fading_out": false
+     }
+    },
+    {
+     "t_s": 4.95,
+     "live": "other",
+     "decks": [
+      {
+       "name": "main",
+       "top": false,
+       "vol": 0.078459,
+       "ducked": true,
+       "_info_python_duck": 0.100259,
+       "ending": true
+      },
+      {
+       "name": "vo",
+       "top": true,
+       "vol": 0.078459,
+       "ducked": false,
+       "_info_python_duck": 1.0,
+       "ending": true
+      },
+      {
+       "name": "other",
+       "top": false,
+       "vol": 0.996917,
+       "ducked": false,
+       "_info_python_duck": 1.0,
+       "ending": false
+      }
+     ],
+     "_info_python_gr_db": 19.979986,
+     "_info_python_duck_armed": true,
+     "voice": {
+      "present": true,
+      "vol": 0.078459,
+      "ducked": false,
+      "fading_out": true
+     },
+     "old_background": {
+      "present": true,
+      "vol": 0.078459,
+      "ducked": true,
+      "fading_out": true
+     },
+     "new_track": {
+      "present": true,
+      "vol": 0.996917,
+      "ducked": false,
+      "fading_out": false
+     }
+    },
+    {
+     "t_s": 5.1,
+     "live": "other",
+     "decks": [
+      {
+       "name": "other",
+       "top": false,
+       "vol": 1.0,
+       "ducked": false,
+       "_info_python_duck": 1.0,
+       "ending": false
+      }
+     ],
+     "_info_python_gr_db": 18.078639,
+     "_info_python_duck_armed": true,
+     "voice": {
+      "present": false,
+      "vol": null,
+      "ducked": null,
+      "fading_out": null
+     },
+     "old_background": {
+      "present": false,
+      "vol": null,
+      "ducked": null,
+      "fading_out": null
+     },
+     "new_track": {
+      "present": true,
+      "vol": 1.0,
+      "ducked": false,
+      "fading_out": false
+     }
     },
     {
      "t_s": 5.5,
@@ -1989,7 +2545,25 @@
       }
      ],
      "_info_python_gr_db": 8.123256,
-     "_info_python_duck_armed": true
+     "_info_python_duck_armed": true,
+     "voice": {
+      "present": false,
+      "vol": null,
+      "ducked": null,
+      "fading_out": null
+     },
+     "old_background": {
+      "present": false,
+      "vol": null,
+      "ducked": null,
+      "fading_out": null
+     },
+     "new_track": {
+      "present": true,
+      "vol": 1.0,
+      "ducked": false,
+      "fading_out": false
+     }
     },
     {
      "t_s": 7.0,
@@ -2005,7 +2579,25 @@
       }
      ],
      "_info_python_gr_db": 0.404433,
-     "_info_python_duck_armed": true
+     "_info_python_duck_armed": true,
+     "voice": {
+      "present": false,
+      "vol": null,
+      "ducked": null,
+      "fading_out": null
+     },
+     "old_background": {
+      "present": false,
+      "vol": null,
+      "ducked": null,
+      "fading_out": null
+     },
+     "new_track": {
+      "present": true,
+      "vol": 1.0,
+      "ducked": false,
+      "fading_out": false
+     }
     }
    ],
    "at_12_5_s": {
@@ -2022,7 +2614,25 @@
      }
     ],
     "_info_python_gr_db": 0.0,
-    "_info_python_duck_armed": false
+    "_info_python_duck_armed": false,
+    "voice": {
+     "present": false,
+     "vol": null,
+     "ducked": null,
+     "fading_out": null
+    },
+    "old_background": {
+     "present": false,
+     "vol": null,
+     "ducked": null,
+     "fading_out": null
+    },
+    "new_track": {
+     "present": true,
+     "vol": 1.0,
+     "ducked": false,
+     "fading_out": false
+    }
    }
   }
  }

@@ -61,6 +61,44 @@ Only regenerate when you MEANT to change audio behaviour. Then bump `SPEC_VERSIO
   - `resume_flow.json`: `library_s`, `playlist`, `track_ids` (track number -> file id), `config` (`resume_on_start`, `resume_max_age_s` 1800, `resume_save_s`), `age_limit_s`; `record`: `row_inputs`, `input`; `try_resume`: `input`; `resume_inside_a_trim`: `trim_of_track_0`, `record`, `age_s`.
 - **`live_after`.** In `fades.json` (`fade_out_2000ms`) and `trim.json` (`fade_out_ahead_of_B`) `live_after: true` means that NOTHING is live any more (the key name is kept for compatibility; each case says so in an `_info_live_after`).
 
+## What the boundary cases are meant to catch
+
+A case only pins a rule if a plausible WRONG implementation records different values. For every case added in `316febc` (trim, end actions) and `1241963` (trigger points) the table names the wrong behaviour and the key that shows it. Each wrong behaviour was built as a throwaway variant of the real code (a text edit of the generator's private copy of the app, not committed) and the committed fixtures were compared with what it recorded: "caught" = the recorded values differ (or the generator's own check against the ideal values in the fixture fails); two entries are marked as reasoned or not caught. Keys are in the rows of the case unless noted.
+
+| Case | Wrong behaviour it catches | Key that shows it |
+|---|---|---|
+| `short_window_stored` | a too-short window falls back to the whole file (A dropped); exactly 0.5 s counted as too short | `range_s`, `dur_eff_s`, `deck.lo_s`, `deck.duration_s` |
+| `set_trim_rounding_a_b` | A and B rounded to 1 ms instead of 10 ms; an A of 0.01 s stored | `stored`, `range_s` |
+| `set_trim_minimum_window` | the 0.5 s minimum window not enforced, or enforced with `<=` | `accepted`, `stored` |
+| `set_trim_out_vs_file_length` | a B within 10 ms of the end stored; the check made against a rounded file length (10.004 s counted as 10.0) | `accepted`, `stored.out` |
+| `fade_length_limits` | smallest fade 50 ms instead of 100; values under 100 ms accepted or not rounded to whole ms | `accepted`, `stored.fade_ms` |
+| `fade_length_held_to_window` | the stored fade or fade-in left longer than the window B - A | `stored.fade_ms`, `stored.fade_in_ms` |
+| `fade_length_follows_window_changes` | a fade that was held to a small window is not clamped any more (caught by removing the clamp); a fade that "remembers" the longer request and grows back when the window grows (reasoned: the stored 3000 stays 3000 after `out` 20) | `stored.fade_ms` in rows 2 to 6 |
+| `default_fade_longer_than_window` | a default fade longer than the window is dropped, or keeps its full length instead of being held to the window | `rows[].vol` (a 1.5 s curve gives 0.991 at 0.125 s, the right one 0.981) |
+| `fade_in_cap` | the fade-in ignores the out-fade when it is capped; the 100 ms floor missing | `deck.fade_in_ms`, `deck.fade_in_ramp_s` |
+| `fade_in_out_fade_overlap_901`, `_1000` | the out-fade shortened to make room for the fade-in (both lengths must stay) | `deck.end_fade_ms`, `deck.fade_in_ms` |
+| `fade_in_start_threshold` | the fade-in limit exclusive (< 0.05 s) or 0.06 s; the "fresh" limit inclusive or 0.05 s | `deck.fade_in_ms`, `deck.start_vol`, `deck.fresh` per offset |
+| `loop_switched_off_in_pass_1_end` | a loop switched off in pass 1 ends at once instead of at the end of the pass | `ended_at_s` (checked against `ideal_ended_at_s`) |
+| `out_fade_once_switched_off_in_pass_1` | a `once` switched off in pass 1 does not make pass 1 the last one (no out-fade at the end of pass 1, or a second pass) | `rows[].vol`, `ended_at_s` |
+| `out_fade_placement_default`, `_stop` | no out-fade at B for `default` / `stop` | `rows[].vol` at 3.25 to 3.75 s, `ended_at_s` |
+| `out_fade_placement_loop` | an out-fade while looping | `rows[].vol` at 3.25 to 4.25 s |
+| `out_fade_placement_once` | the out-fade in pass 1 instead of pass 2 | `rows[].vol` at 2.75 to 4.25 s and at 6.75 to 8.25 s, `ended_at_s` |
+| `end_action_switched_mid_play` (end_actions.json) | the new action ignored; a switched-off loop or once ending at once instead of after the running pass | `ended_at_s`, `live_at_that_tick` |
+| `once_seek_back_in_pass_1` | a `once` point spent for good after it fired | second entry of `fires` (22 s) |
+| `once_skipped_by_seek_forward_then_back` | a seek over a `once` point spends it | `fires` (9 s) |
+| `once_loop_seek_back_in_lap_1` | no re-arming after a seek in lap 1 | second entry of `fires` (5.5 s) |
+| `once_loop_seek_back_in_lap_2` | a seek makes the pass count start again (re-armed after pass 2); `once` firing in every pass (also caught by `once_flag`) | `fires` has no entry after 1 s |
+| `point_at_or_near_A_start_at_A` | the margin off by one tick (A missed, A - 1 ms fired, a point 51 ms after A on the first tick) | `rows[].fired`, `first_fire_t_s`, `ideal_fired` |
+| `point_near_A_start_with_offset` | the "fresh" window 0.05 s instead of 0.06 s | `rows[].fired` for offsets 2.05 / 2.059 |
+| `target_ready_after_1s` | a point dropped when its target is not decoded at its time | `fires` (6 s) |
+| `target_never_ready` | a voice-over fired anyway or the track disturbed. NOT caught: waiting forever instead of giving up (nothing fires either way; the 30 s is an implementation limit, quirk 15) | `fires` |
+| `target_never_ready_does_not_block_next_point` | a point that waits holds up the points behind it | `fires` (vo2 at 10 s) |
+| `voice_level_and_second_point` | the voice-over ignoring `top_track_pct`; a second point replacing the voice-over, overlapping it or queued behind it | `voice_vol`; `at_12_5_s.voice` and `.tops`; `at_20_s.live`, `.tops` |
+| `new_track_cut_while_voice_on_top` | the voice-over (or the old background) surviving a cut; the new track starting ducked | `voice.present`, `old_background.present`, `new_track.ducked` |
+| `new_track_crossfade_while_voice_on_top` | the voice-over removed at once; left playing with the other decks fading; fading for another time (`top_fade_ms`) or with a linear curve; the new track ducked | `voice.present` and `voice.vol` at 4.05 to 4.95 s, `voice.present` false at 5.1 s, `old_background.*`, `new_track.vol`, `new_track.ducked` |
+
+`new_track_*_while_voice_on_top` rows have three summary objects next to `decks`: `voice`, `old_background` and `new_track`, each `{present, vol, ducked, fading_out}` (`vol` = the deck's fade gain at that tick, compared like the other fades; the values are null while the deck is absent). Sampled at 3.95 s (before), 4.0 s (the start) and then 4.05, 4.25, 4.5, 4.75, 4.95 (during the 1 s crossfade), 5.1, 5.5 and 7.0 s (after it).
+
 ## Render references
 
 Short WAV renders of real mixes: see `renders/` and its README (separate command, not part of the default run).

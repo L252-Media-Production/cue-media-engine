@@ -771,6 +771,26 @@ async def triggers():
                                          "end_action": "default", "run_s": run_s, "triggers": [{"at": 5, "file": "vo.wav"}], "tick_s": 0.05, "target_decoded_at_s": rdy,
                                          "steps": ["add the trigger point", "play track 0 and start counting", "the target file counts as not decoded until `target_decoded_at_s` of play (null = never)", "tick every 50 ms for run_s"]},
                             "_info": info, "triggers": [{"at": 5, "file": "vo.wav"}], "trim": {}, "fires": list(fires), "ideal_fires": ideal_f, "tolerance_s": TRIG_TOL}
+        ready_at[0] = None                                     # vo.wav is never decoded; vo2.wav is (always)
+        r.reset(pls)
+        fires.clear()
+        P.playlists[0].pop("trims", None)
+        P.playlists[0].pop("triggers", None)
+        P.set_end(0, 0, "default")
+        two = [{"at": 5, "file": "vo.wav"}, {"at": 10, "file": "vo2.wav"}]
+        for tg in two:
+            P.set_triggers(0, 0, "add", dict(tg))
+        P.play(0, 0)
+        r.rebase()
+        fires.clear()
+        r.run_for(14)
+        assert len(fires) == 1 and fires[0]["file"] == "vo2.wav" and 0 <= fires[0]["t_s"] - 10.0 <= TRIG_TOL + 1e-6, fires
+        cases["target_never_ready_does_not_block_next_point"] = {
+            "scenario": {"library_s": dict(lib), "playlist": pls[0]["tracks"], "main_track": "main.wav", "main_track_length_s": lib["main.wav"], "voice_over_lengths_s": {"vo.wav": 3, "vo2.wav": 8},
+                         "end_action": "default", "run_s": 14, "triggers": two, "tick_s": 0.05, "target_decoded_at_s": {"vo.wav": None, "vo2.wav": 0.0},
+                         "steps": ["two trigger points: vo.wav at 5 s (never decoded), vo2.wav at 10 s (decoded)", "play track 0 and start counting", "tick every 50 ms for run_s"]},
+            "_info": "the first point is still waiting for its target when the second one is reached: a point that waits does not hold up the points after it. The second fires at 10 s as if the first did not exist (and the first never fires)",
+            "triggers": two, "trim": {}, "fires": list(fires), "ideal_fires": [{"t_s": 10.0, "file": "vo2.wav"}], "tolerance_s": TRIG_TOL}
         P.cached, P._trig_load = real_cached, real_trig_load
         # ---- the level of a trigger voice, and a second point while one plays (item 5)
         rows = []
@@ -794,12 +814,14 @@ async def triggers():
             row = {"top_track_pct": pct, "at_s": 10.2, "voice": vo_.name, "voice_is_live": r.live() is vo_, "voice_vol": r6(vo_.vol), "voice_gain": r6(vo_.gain), "voice_fading": vo_.fade is not None, "background_decks": len([d for d in P.decks if not d.top])}
             r.run_for(2.5)                                                  # the second point (12 s) comes while vo2 (8 s, until 18 s) is still playing
             row.update({"at_12_5_s": {"tops": len([d for d in P.decks if d.top]), "voice": r.live().name, "trigger_fires_so_far": len(fires)}})
+            r.run_for(7.5)                                                  # vo2 is over at 18 s: nothing was queued behind it
+            row.update({"at_20_s": {"tops": len([d for d in P.decks if d.top]), "live": r.live().name, "trigger_fires_so_far": len(fires)}})
             rows.append(row)
         P.CFG["top_track_pct"] = saved_pct
         cases["voice_level_and_second_point"] = {"scenario": {"library_s": dict(lib), "playlist": pls[0]["tracks"], "main_track": "main.wav", "main_track_length_s": lib["main.wav"], "voice_over_lengths_s": {"vo.wav": 3, "vo2.wav": 8},
                                                               "end_action": "default", "triggers": [{"at": 10, "file": "vo2.wav"}, {"at": 12, "file": "vo.wav"}], "tick_s": 0.05, "config": "top_track_pct per row (the other Play on Top / ducking settings are the defaults)",
-                                                              "steps": ["set top_track_pct", "two trigger points: vo2 (8 s) at 10 s, vo (3 s) at 12 s", "play track 0", "tick every 50 ms to 10.2 s and read the decks", "tick on to 12.7 s and read them again"]},
-                                                 "_info": "the voice-over plays at top_track_pct / 100 (a plain volume, no fade-in; gain 1.0: level match never applies to a trigger voice-over); it becomes the live deck. The second point (12 s), reached while vo2 is still on top, is SKIPPED: nothing is queued, nothing overlaps (still exactly one top deck, vo2, nothing fires). The same rule as a Play on Top by hand: a second Play on Top REPLACES the first, but a trigger point never does",
+                                                              "steps": ["set top_track_pct", "two trigger points: vo2 (8 s) at 10 s, vo (3 s) at 12 s", "play track 0", "tick every 50 ms to 10.2 s and read the decks", "tick on to 12.7 s and read them again", "tick on to 20.2 s (vo2 ended at 18 s) and read them a third time"]},
+                                                 "_info": "the voice-over plays at top_track_pct / 100 (a plain volume, no fade-in; gain 1.0: level match never applies to a trigger voice-over); it becomes the live deck. The second point (12 s), reached while vo2 is still on top, is SKIPPED: nothing is queued, nothing overlaps (still exactly one top deck, vo2, nothing fires). At 20 s the voice-over is over, the live deck is the main track again and still nothing has fired a second time (a queued point would have started at 18 s). The same rule as a Play on Top by hand: a second Play on Top REPLACES the first, but a trigger point never does",
                                                  "rows": rows}
     # ---- a new track started while a trigger voice-over is on top (item 3): the real duck loop under the fake clock
     lib3 = {"main.wav": 60, "other.wav": (30, 4000), "vo.wav": (8, 16384)}
@@ -819,10 +841,16 @@ async def triggers():
             await real_sleep(0)
             r.fake.t += delay
 
+        def part(name):
+            """one deck by name: present, its fade gain (the deck volume), ducked (background multiplier below 0.99), still fading out towards removal"""
+            d = next((x for x in P.decks if x.name == name), None)
+            return {"present": d is not None, "vol": r6(d.vol) if d else None, "ducked": (d.duck < 0.99) if d else None, "fading_out": bool(d.kill_on_fade_end) if d else None}
+
         def snap():
             return {"t_s": round(r.fake.t - r.t0, 2), "live": r.live().name if r.live() else None,
                     "decks": [{"name": d.name, "top": bool(d.top), "vol": r6(d.vol), "ducked": d.duck < 0.99, "_info_python_duck": r6(d.duck), "ending": bool(d.kill_on_fade_end)} for d in P.decks],
-                    "_info_python_gr_db": r6(P.DUCK["gr"]), "_info_python_duck_armed": P.DUCK["top"] is not None}
+                    "_info_python_gr_db": r6(P.DUCK["gr"]), "_info_python_duck_armed": P.DUCK["top"] is not None,
+                    "voice": part("vo"), "old_background": part("main"), "new_track": part("other")}
         for label, xf, info in (
                 ("new_track_cut_while_voice_on_top", 0, "the voice-over fires at 2 s and ducks the background; at 4 s a new track is started with a CUT (Go with the Cut setting, /take, /cut, next, play: all `play(p, t)`). stop_all(): the voice-over, the background and the ducking state are all gone at once (gr 0, nothing armed) and the new track plays at full level, alone. No release ramp"),
                 ("new_track_crossfade_while_voice_on_top", 1000, "same, but the new track is started with a 1000 ms CROSSFADE: EVERY running deck, the voice-over included, fades out (and is removed when its fade is done) while the new track fades in. The new track is not part of the ducked background: it comes in at its own level (duck 1.0) and is never ducked; the ducking loop keeps the dip on the old background until the voice-over is gone, then releases (500 ms) and ends")):
@@ -853,7 +881,7 @@ async def triggers():
                 await step_to(4.0)
                 assert P.play(0, 1, xf)
                 rows.append(dict(snap(), event="new track started"))
-                for tt in (4.05, 4.25, 4.5, 5.5, 7.0):
+                for tt in (4.05, 4.25, 4.5, 4.75, 4.95, 5.1, 5.5, 7.0):
                     await step_to(tt)
                     rows.append(snap())
                 await step_to(12.5)
