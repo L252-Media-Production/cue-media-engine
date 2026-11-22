@@ -1,0 +1,165 @@
+{
+ "spec_version": 1,
+ "name": "xfade",
+ "about": "Crossfade time precedence (explicit ?ms= > per-track > master crossfade_ms) and the fade length that play_default really starts.",
+ "tolerance": 2e-06,
+ "cases": {
+  "precedence": {
+   "scenario": {
+    "library_s": {
+     "a.wav": 12,
+     "b.wav": 12
+    },
+    "playlist": [
+     "a.wav",
+     "b.wav"
+    ],
+    "target_track": 1,
+    "master_crossfade_ms": 3000,
+    "input": "each row: the track's own time own_ms (null = not set), explicit_ms (the ?ms= value, null = none) and the master time, all in the row"
+   },
+   "_info": "result = explicit (?ms=) if given, else the track's own time if set (0 allowed), else the master crossfade_ms",
+   "rows": [
+    {
+     "case": "master only",
+     "explicit_ms": null,
+     "own_ms": null,
+     "master_ms": 3000,
+     "result_ms": 3000
+    },
+    {
+     "case": "own time beats master",
+     "explicit_ms": null,
+     "own_ms": 1500,
+     "master_ms": 3000,
+     "result_ms": 1500
+    },
+    {
+     "case": "explicit beats own",
+     "explicit_ms": 500,
+     "own_ms": 1500,
+     "master_ms": 3000,
+     "result_ms": 500
+    },
+    {
+     "case": "explicit 0 beats own",
+     "explicit_ms": 0,
+     "own_ms": 1500,
+     "master_ms": 3000,
+     "result_ms": 0
+    },
+    {
+     "case": "own 0 is a cut, beats master",
+     "explicit_ms": null,
+     "own_ms": 0,
+     "master_ms": 3000,
+     "result_ms": 0
+    },
+    {
+     "case": "cleared: master again",
+     "explicit_ms": null,
+     "own_ms": null,
+     "master_ms": 3000,
+     "result_ms": 3000
+    },
+    {
+     "case": "explicit beats master",
+     "explicit_ms": 250,
+     "own_ms": null,
+     "master_ms": 3000,
+     "result_ms": 250
+    }
+   ]
+  },
+  "own_time_limits": {
+   "scenario": {
+    "library_s": {
+     "a.wav": 12,
+     "b.wav": 12
+    },
+    "playlist": [
+     "a.wav",
+     "b.wav"
+    ],
+    "target_track": 1,
+    "master_crossfade_ms": 3000,
+    "input": "set_xfade(playlist 0, track 1, seconds) with each row's `seconds`, cleared again after every row"
+   },
+   "_info": "accepted 0..30 s, stored in whole ms",
+   "rows": [
+    {
+     "seconds": 0,
+     "accepted": true,
+     "stored_ms": 0
+    },
+    {
+     "seconds": 0.5,
+     "accepted": true,
+     "stored_ms": 500
+    },
+    {
+     "seconds": 30,
+     "accepted": true,
+     "stored_ms": 30000
+    },
+    {
+     "seconds": 30.0004,
+     "accepted": true,
+     "stored_ms": 30000
+    },
+    {
+     "seconds": 31,
+     "accepted": false,
+     "stored_ms": null
+    },
+    {
+     "seconds": -1,
+     "accepted": false,
+     "stored_ms": null
+    },
+    {
+     "seconds": "abc",
+     "accepted": false,
+     "stored_ms": null
+    }
+   ]
+  },
+  "play_default_uses_it": {
+   "scenario": {
+    "library_s": {
+     "a.wav": 12,
+     "b.wav": 12
+    },
+    "playlist": [
+     "a.wav",
+     "b.wav"
+    ],
+    "target_track": 1,
+    "master_crossfade_ms": 3000,
+    "default_transition": "crossfade",
+    "steps": [
+     "play track 0",
+     "play_default(playlist 0, track 1)"
+    ],
+    "row_inputs": {
+     "master": {
+      "own_time_s": null
+     },
+     "own 1.5 s": {
+      "own_time_s": 1.5
+     }
+    }
+   },
+   "rows": [
+    {
+     "case": "master",
+     "fade_len_s": 3.0
+    },
+    {
+     "case": "own 1.5 s",
+     "fade_len_s": 1.5
+    }
+   ]
+  }
+ }
+}
