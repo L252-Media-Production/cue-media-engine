@@ -624,6 +624,15 @@
     "input": "each `stored` trim dict is written straight into playlists[0]['trims'] (old data; set_trim would refuse some of them), then trim_range, dur_eff and _start (from the start) are read"
    },
    "_info": "file is 10 s. trim_range: A is first held to at most file - 0.5 s; then, when B < A + 0.5 (B missing counts as the end), B BECOMES THE END OF THE FILE and A is KEPT (so [2.0, 10.0], not the whole file). Exactly 0.5 s is long enough. A fallen-back window has no out-fade (hi = end of file)",
+   "tolerance_by_key": {
+    "base_s": 2.5e-05,
+    "lo_s": 2.5e-05,
+    "hi_s": 2.5e-05,
+    "duration_s": 2.5e-05,
+    "dur_eff_s": 2.5e-05,
+    "range_s": 2.5e-05
+   },
+   "_info_tolerance_by_key": "positions and durations in file seconds are compared within one sample (2.5e-5 s): Deck.duration is sound.get_length() of the cut Sound, whose frame range is [int(lo * 48000), int(hi * 48000)), so In 2.0 / Out 2.51 gives 24479 samples = 0.509979 s (int(2.51 * 48000) = 120479 in floating point), while hi_s, range_s and dur_eff_s are the exact float seconds (2.51, 0.51); a whole-frame engine gets 0.51 for the duration",
    "rows": [
     {
      "stored": {
@@ -2678,6 +2687,11 @@
     "input": "set_trim(row.trim), set_end(0, 0, 'loop'), then _start(playlist 0, track 0, offset = row.offset_s [, paused / crossfade_ms]); the deck is read right away"
    },
    "_info": "TWO thresholds, both on `offset` = the position handed to _start, in FILE seconds (not relative to A). (1) fade-in: applied only when offset <= 0.05 s (0.05 yes, 0.0501 no), not paused and not under a crossfade; a start at offset = A itself (2.0 here) is a part-way start and does NOT fade in. (2) deck.fresh (the loop / once / trigger gate, 'at the In point'): |start - A| < 0.06 s where start = A for offset <= 0.05 else max(A, offset); 2.05 is fresh, 2.06 is not (0.0599 / 0.06 with A = 0). base_s = where the sound begins: offsets below A start at A",
+   "tolerance_by_key": {
+    "base_s": 2.5e-05,
+    "offset_s": 2.5e-05
+   },
+   "_info_tolerance_by_key": "base_s is the exact float offset handed to _start (max(A, offset): 0.0501, 0.0599 with A = 0), not a frame count; 0.0501 s is 2404.8 samples, so a whole-frame engine differs by up to 4.2e-6 s. offset_s is the input itself (same value)",
    "rows": [
     {
      "case": "A = 2 s, B = 8 s",

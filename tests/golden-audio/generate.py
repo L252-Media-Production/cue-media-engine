@@ -7,7 +7,7 @@
 Everything is measured from the real code (a copy of the app imported in-process, fake clock from cpl/clock.py, SDL dummy mixer): nothing here
 changes the player. A fixture file is {"spec_version", "name", "about", "tolerance", "cases": {...}}; numbers are rounded to 6 decimals.
 Keys that start with "_info" are explanatory and never compared. Every case carries a "scenario" object with the inputs it was built from
-(written from the same variables that run the scenario); a case-level "tolerance" overrides the file-level one.
+(written from the same variables that run the scenario); a case-level "tolerance" overrides the file-level one, and a case-level "tolerance_by_key" {key: tol} overrides both for the numbers under that key only.
 """
 import asyncio
 import json
@@ -26,6 +26,13 @@ SPEC_VERSION = 1                                      # docs/AUDIO-SPEC.md: bump
 FIXTURES = HERE / "fixtures"
 END_TOL = 0.05                                        # one tick (the measured end is also on the 0.25 s sampling grid, which these ideal values sit on)
 TRIG_TOL = 0.05                                       # one tick of the Python player: measured times are ideal + 0 .. 1 tick
+SAMPLE_TOL = 2.5e-5                                   # s: just over one sample at 48 kHz (1/48000 = 2.083e-5), see tolerance_by_key
+
+
+def SAMPLE_TOL_KEYS(keys):
+    return {k: SAMPLE_TOL for k in keys}
+
+
 TOL = 2e-6                                            # what the comparison allows (the files hold 6 decimals)
 FRACS = [0.0, 0.125, 0.25, 0.5, 0.75, 0.875, 1.0]
 
@@ -266,7 +273,9 @@ async def trim_boundaries():
             lo, hi, _ = P.trim_range(0, 0, 10.0)
             rows.append({"stored": fields, "range_s": [r6(lo), r6(hi)], "dur_eff_s": r6(P.dur_eff(0, 0)), "deck": {k: v for k, v in _deck_row(d).items() if k in ("base_s", "lo_s", "hi_s", "duration_s", "end_fade_ms")}})
         cases["short_window_stored"] = {"scenario": dict(base, track_under_test=0, file_length_s=10.0, input="each `stored` trim dict is written straight into playlists[0]['trims'] (old data; set_trim would refuse some of them), then trim_range, dur_eff and _start (from the start) are read"),
-                                        "_info": "file is 10 s. trim_range: A is first held to at most file - 0.5 s; then, when B < A + 0.5 (B missing counts as the end), B BECOMES THE END OF THE FILE and A is KEPT (so [2.0, 10.0], not the whole file). Exactly 0.5 s is long enough. A fallen-back window has no out-fade (hi = end of file)", "rows": rows}
+                                        "_info": "file is 10 s. trim_range: A is first held to at most file - 0.5 s; then, when B < A + 0.5 (B missing counts as the end), B BECOMES THE END OF THE FILE and A is KEPT (so [2.0, 10.0], not the whole file). Exactly 0.5 s is long enough. A fallen-back window has no out-fade (hi = end of file)",
+                                        "tolerance_by_key": SAMPLE_TOL_KEYS(["base_s", "lo_s", "hi_s", "duration_s", "dur_eff_s", "range_s"]),
+                                        "_info_tolerance_by_key": "positions and durations in file seconds are compared within one sample (2.5e-5 s): Deck.duration is sound.get_length() of the cut Sound, whose frame range is [int(lo * 48000), int(hi * 48000)), so In 2.0 / Out 2.51 gives 24479 samples = 0.509979 s (int(2.51 * 48000) = 120479 in floating point), while hi_s, range_s and dur_eff_s are the exact float seconds (2.51, 0.51); a whole-frame engine gets 0.51 for the duration", "rows": rows}
 
         # ---- 2. rounding, what is not stored, the 0.5 s rule of set_trim
         rows = []
@@ -383,7 +392,9 @@ async def trim_boundaries():
             row = _deck_row(d)
             rows.append({"case": label, "trim": {"in": 2, "out": 8, "start": "fade", "fade_in_ms": 1000}, "offset_s": 0.0, "deck": {k: row[k] for k in ("base_s", "fade_in_ms", "start_vol", "fresh", "loop")}, "crossfade_ms": kw.get("xfade_ms", 0), "paused": bool(kw.get("paused"))})
         cases["fade_in_start_threshold"] = {"scenario": dict(base, track_under_test=0, file_length_s=10.0, end_action="loop", input="set_trim(row.trim), set_end(0, 0, 'loop'), then _start(playlist 0, track 0, offset = row.offset_s [, paused / crossfade_ms]); the deck is read right away"),
-                                            "_info": "TWO thresholds, both on `offset` = the position handed to _start, in FILE seconds (not relative to A). (1) fade-in: applied only when offset <= 0.05 s (0.05 yes, 0.0501 no), not paused and not under a crossfade; a start at offset = A itself (2.0 here) is a part-way start and does NOT fade in. (2) deck.fresh (the loop / once / trigger gate, 'at the In point'): |start - A| < 0.06 s where start = A for offset <= 0.05 else max(A, offset); 2.05 is fresh, 2.06 is not (0.0599 / 0.06 with A = 0). base_s = where the sound begins: offsets below A start at A", "rows": rows}
+                                            "_info": "TWO thresholds, both on `offset` = the position handed to _start, in FILE seconds (not relative to A). (1) fade-in: applied only when offset <= 0.05 s (0.05 yes, 0.0501 no), not paused and not under a crossfade; a start at offset = A itself (2.0 here) is a part-way start and does NOT fade in. (2) deck.fresh (the loop / once / trigger gate, 'at the In point'): |start - A| < 0.06 s where start = A for offset <= 0.05 else max(A, offset); 2.05 is fresh, 2.06 is not (0.0599 / 0.06 with A = 0). base_s = where the sound begins: offsets below A start at A",
+            "tolerance_by_key": SAMPLE_TOL_KEYS(["base_s", "offset_s"]),
+            "_info_tolerance_by_key": "base_s is the exact float offset handed to _start (max(A, offset): 0.0501, 0.0599 with A = 0), not a frame count; 0.0501 s is 2404.8 samples, so a whole-frame engine differs by up to 4.2e-6 s. offset_s is the input itself (same value)", "rows": rows}
 
         # ---- 6. the fade-in is capped to the window minus the out-fade
         rows = []
@@ -1035,7 +1046,7 @@ def strip_info(x):
     return x
 
 
-def diff(a, b, tol, path="", out=None, limit=40):
+def diff(a, b, tol, path="", out=None, limit=40, tbk=None, key=None):
     """Readable list of differences between two JSON values; numbers may differ by `tol`."""
     out = [] if out is None else out
     if len(out) >= limit:
@@ -1047,14 +1058,14 @@ def diff(a, b, tol, path="", out=None, limit=40):
             elif k not in b:
                 out.append(f"{path}/{k}: only in the committed fixture = {json.dumps(a[k])[:80]}")
             else:
-                diff(a[k], b[k], tol, f"{path}/{k}", out, limit)
+                diff(a[k], b[k], tol, f"{path}/{k}", out, limit, tbk, k)
     elif isinstance(a, list) and isinstance(b, list):
         if len(a) != len(b):
             out.append(f"{path}: length {len(a)} (committed) vs {len(b)} (new)")
         for i, (x, y) in enumerate(zip(a, b)):
-            diff(x, y, tol, f"{path}[{i}]", out, limit)
+            diff(x, y, tol, f"{path}[{i}]", out, limit, tbk, key)
     elif isinstance(a, (int, float)) and isinstance(b, (int, float)) and not isinstance(a, bool) and not isinstance(b, bool):
-        if abs(a - b) > tol:
+        if abs(a - b) > (tbk or {}).get(key, tol):                       # tolerance_by_key: the nearest dict key above the number
             out.append(f"{path}: committed {a} vs new {b}")
     elif a != b:
         out.append(f"{path}: committed {json.dumps(a)[:80]} vs new {json.dumps(b)[:80]}")
@@ -1080,7 +1091,8 @@ def compare(new_docs):
                 problems.append(f"{name}/cases/{k}: only in the {'new output' if k not in oc else 'committed fixture'}")
                 continue
             ctol = nc[k].get("tolerance", tol) if isinstance(nc[k], dict) else tol          # a case-level tolerance overrides the file-level one
-            for line in diff(oc[k], nc[k], float(ctol), f"{name}/cases/{k}"):
+            tbk = {str(a): float(b) for a, b in nc[k].get("tolerance_by_key", {}).items()} if isinstance(nc[k], dict) else {}
+            for line in diff(oc[k], nc[k], float(ctol), f"{name}/cases/{k}", tbk=tbk):
                 problems.append(line)
     for f in sorted(FIXTURES.glob("*.json")):
         if f.stem not in new_docs:

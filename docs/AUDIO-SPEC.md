@@ -27,6 +27,8 @@ Anything that changes **which samples reach the output, how loud they are, or wh
 
 **Clipping is not specified.** The decks are summed by SDL_mixer in int16, which saturates (hard clips) when the sum is over full scale: a crossfade of two loud tracks has no power headroom, and a top track over a background can exceed it too. The fixtures and the spec talk about GAINS (`Deck.vol`, `Deck.duck`, `Deck.gain`), never about the summed signal. A port chooses its own policy (float headroom, a soft clip or a limiter) and need not reproduce the saturation.
 
+**Positions and durations in file seconds** (trim windows, `base`, `lo`, `hi`, deck durations, pass lengths, resume offsets) are contract to within one sample (1/48000 s). Python's values carry up to a sample or two of truncation (a window length is the length of a Sound cut at `int()`-truncated frames, other positions are the exact float seconds), so a consumer working in whole frames must compare within one sample; the fixtures say so with `tolerance_by_key` (2.5e-5 s).
+
 Decoding and rendering: the mixer runs at 48 kHz, 16-bit, stereo (`cpl/devices.py`, `allowedchanges=0`); every track is decoded into RAM first and played from there (a mono file is played on both channels, other rates are converted on load). A render of the real mixer output is checked in `tests/api/test_audio_capture.py` and `tests/golden-audio/renders/`.
 
 ## What is NOT audio behaviour
