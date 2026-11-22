@@ -602,6 +602,2866 @@
      "vol": 1.0
     }
    ]
+  },
+  "short_window_stored": {
+   "scenario": {
+    "library_s": {
+     "a.wav": 10,
+     "c.wav": 30,
+     "e.wav": 10.004
+    },
+    "playlist": [
+     "a.wav",
+     "c.wav",
+     "e.wav"
+    ],
+    "config": {
+     "trim_fade_ms": 1500,
+     "trim_fadein_ms": 0
+    },
+    "track_under_test": 0,
+    "file_length_s": 10.0,
+    "input": "each `stored` trim dict is written straight into playlists[0]['trims'] (old data; set_trim would refuse some of them), then trim_range, dur_eff and _start (from the start) are read"
+   },
+   "_info": "file is 10 s. trim_range: A is first held to at most file - 0.5 s; then, when B < A + 0.5 (B missing counts as the end), B BECOMES THE END OF THE FILE and A is KEPT (so [2.0, 10.0], not the whole file). Exactly 0.5 s is long enough. A fallen-back window has no out-fade (hi = end of file)",
+   "rows": [
+    {
+     "stored": {
+      "in": 2.0,
+      "out": 2.49
+     },
+     "range_s": [
+      2.0,
+      10.0
+     ],
+     "dur_eff_s": 8.0,
+     "deck": {
+      "base_s": 2.0,
+      "lo_s": 2.0,
+      "hi_s": 10.0,
+      "duration_s": 8.0,
+      "end_fade_ms": 0
+     }
+    },
+    {
+     "stored": {
+      "in": 2.0,
+      "out": 2.5
+     },
+     "range_s": [
+      2.0,
+      2.5
+     ],
+     "dur_eff_s": 0.5,
+     "deck": {
+      "base_s": 2.0,
+      "lo_s": 2.0,
+      "hi_s": 2.5,
+      "duration_s": 0.5,
+      "end_fade_ms": 1500
+     }
+    },
+    {
+     "stored": {
+      "in": 2.0,
+      "out": 2.51
+     },
+     "range_s": [
+      2.0,
+      2.51
+     ],
+     "dur_eff_s": 0.51,
+     "deck": {
+      "base_s": 2.0,
+      "lo_s": 2.0,
+      "hi_s": 2.51,
+      "duration_s": 0.509979,
+      "end_fade_ms": 1500
+     }
+    },
+    {
+     "stored": {
+      "in": 5.0,
+      "out": 5.49
+     },
+     "range_s": [
+      5.0,
+      10.0
+     ],
+     "dur_eff_s": 5.0,
+     "deck": {
+      "base_s": 5.0,
+      "lo_s": 5.0,
+      "hi_s": 10.0,
+      "duration_s": 5.0,
+      "end_fade_ms": 0
+     }
+    },
+    {
+     "stored": {
+      "in": 5.0,
+      "out": 5.5
+     },
+     "range_s": [
+      5.0,
+      5.5
+     ],
+     "dur_eff_s": 0.5,
+     "deck": {
+      "base_s": 5.0,
+      "lo_s": 5.0,
+      "hi_s": 5.5,
+      "duration_s": 0.5,
+      "end_fade_ms": 1500
+     }
+    },
+    {
+     "stored": {
+      "in": 5.0,
+      "out": 3.0
+     },
+     "range_s": [
+      5.0,
+      10.0
+     ],
+     "dur_eff_s": 5.0,
+     "deck": {
+      "base_s": 5.0,
+      "lo_s": 5.0,
+      "hi_s": 10.0,
+      "duration_s": 5.0,
+      "end_fade_ms": 0
+     }
+    },
+    {
+     "stored": {
+      "in": 9.4,
+      "out": 9.8
+     },
+     "range_s": [
+      9.4,
+      10.0
+     ],
+     "dur_eff_s": 0.6,
+     "deck": {
+      "base_s": 9.4,
+      "lo_s": 9.4,
+      "hi_s": 10.0,
+      "duration_s": 0.6,
+      "end_fade_ms": 0
+     }
+    },
+    {
+     "stored": {
+      "in": 9.5,
+      "out": 9.9
+     },
+     "range_s": [
+      9.5,
+      10.0
+     ],
+     "dur_eff_s": 0.5,
+     "deck": {
+      "base_s": 9.5,
+      "lo_s": 9.5,
+      "hi_s": 10.0,
+      "duration_s": 0.5,
+      "end_fade_ms": 0
+     }
+    },
+    {
+     "stored": {
+      "in": 9.49
+     },
+     "range_s": [
+      9.49,
+      10.0
+     ],
+     "dur_eff_s": 0.51,
+     "deck": {
+      "base_s": 9.49,
+      "lo_s": 9.49,
+      "hi_s": 10.0,
+      "duration_s": 0.51,
+      "end_fade_ms": 0
+     }
+    },
+    {
+     "stored": {
+      "in": 9.5
+     },
+     "range_s": [
+      9.5,
+      10.0
+     ],
+     "dur_eff_s": 0.5,
+     "deck": {
+      "base_s": 9.5,
+      "lo_s": 9.5,
+      "hi_s": 10.0,
+      "duration_s": 0.5,
+      "end_fade_ms": 0
+     }
+    },
+    {
+     "stored": {
+      "in": 9.51
+     },
+     "range_s": [
+      9.5,
+      10.0
+     ],
+     "dur_eff_s": 0.5,
+     "deck": {
+      "base_s": 9.5,
+      "lo_s": 9.5,
+      "hi_s": 10.0,
+      "duration_s": 0.5,
+      "end_fade_ms": 0
+     }
+    },
+    {
+     "stored": {
+      "in": 9.8,
+      "out": 9.95
+     },
+     "range_s": [
+      9.5,
+      10.0
+     ],
+     "dur_eff_s": 0.5,
+     "deck": {
+      "base_s": 9.5,
+      "lo_s": 9.5,
+      "hi_s": 10.0,
+      "duration_s": 0.5,
+      "end_fade_ms": 0
+     }
+    },
+    {
+     "stored": {
+      "out": 0.49
+     },
+     "range_s": [
+      0.0,
+      10.0
+     ],
+     "dur_eff_s": 10.0,
+     "deck": {
+      "base_s": 0.0,
+      "lo_s": 0.0,
+      "hi_s": 10.0,
+      "duration_s": 10.0,
+      "end_fade_ms": 0
+     }
+    },
+    {
+     "stored": {
+      "out": 0.5
+     },
+     "range_s": [
+      0.0,
+      0.5
+     ],
+     "dur_eff_s": 0.5,
+     "deck": {
+      "base_s": 0.0,
+      "lo_s": 0.0,
+      "hi_s": 0.5,
+      "duration_s": 0.5,
+      "end_fade_ms": 1500
+     }
+    },
+    {
+     "stored": {
+      "out": 0.0
+     },
+     "range_s": [
+      0.0,
+      10.0
+     ],
+     "dur_eff_s": 10.0,
+     "deck": {
+      "base_s": 0.0,
+      "lo_s": 0.0,
+      "hi_s": 10.0,
+      "duration_s": 10.0,
+      "end_fade_ms": 0
+     }
+    }
+   ]
+  },
+  "set_trim_rounding_a_b": {
+   "scenario": {
+    "library_s": {
+     "a.wav": 10,
+     "c.wav": 30,
+     "e.wav": 10.004
+    },
+    "playlist": [
+     "a.wav",
+     "c.wav",
+     "e.wav"
+    ],
+    "config": {
+     "trim_fade_ms": 1500,
+     "trim_fadein_ms": 0
+    },
+    "track_under_test": 0,
+    "file_length_s": 10.0,
+    "input": "set_trim(playlist 0, track 0, row.set) from an empty trim for each row"
+   },
+   "_info": "values are rounded to 0.01 s (round(v, 2)). An In that is <= 0.01 s after rounding is not stored (so 0.01 is dropped and 0.02 is the smallest stored In); an Out that is >= file length - 0.01 s after rounding is not stored; an Out past the end is first clipped to the file length (and then dropped)",
+   "rows": [
+    {
+     "set": {
+      "in": 0.0
+     },
+     "accepted": true,
+     "stored": {},
+     "range_s": [
+      0.0,
+      10.0
+     ]
+    },
+    {
+     "set": {
+      "in": 0.004
+     },
+     "accepted": true,
+     "stored": {},
+     "range_s": [
+      0.0,
+      10.0
+     ]
+    },
+    {
+     "set": {
+      "in": 0.01
+     },
+     "accepted": true,
+     "stored": {},
+     "range_s": [
+      0.0,
+      10.0
+     ]
+    },
+    {
+     "set": {
+      "in": 0.014
+     },
+     "accepted": true,
+     "stored": {},
+     "range_s": [
+      0.0,
+      10.0
+     ]
+    },
+    {
+     "set": {
+      "in": 0.016
+     },
+     "accepted": true,
+     "stored": {
+      "in": 0.02
+     },
+     "range_s": [
+      0.02,
+      10.0
+     ]
+    },
+    {
+     "set": {
+      "in": 0.02
+     },
+     "accepted": true,
+     "stored": {
+      "in": 0.02
+     },
+     "range_s": [
+      0.02,
+      10.0
+     ]
+    },
+    {
+     "set": {
+      "in": 3.454
+     },
+     "accepted": true,
+     "stored": {
+      "in": 3.45
+     },
+     "range_s": [
+      3.45,
+      10.0
+     ]
+    },
+    {
+     "set": {
+      "in": 3.456
+     },
+     "accepted": true,
+     "stored": {
+      "in": 3.46
+     },
+     "range_s": [
+      3.46,
+      10.0
+     ]
+    },
+    {
+     "set": {
+      "out": 9.98
+     },
+     "accepted": true,
+     "stored": {
+      "out": 9.98
+     },
+     "range_s": [
+      0.0,
+      9.98
+     ]
+    },
+    {
+     "set": {
+      "out": 9.99
+     },
+     "accepted": true,
+     "stored": {},
+     "range_s": [
+      0.0,
+      10.0
+     ]
+    },
+    {
+     "set": {
+      "out": 10.0
+     },
+     "accepted": true,
+     "stored": {},
+     "range_s": [
+      0.0,
+      10.0
+     ]
+    },
+    {
+     "set": {
+      "out": 10.5
+     },
+     "accepted": true,
+     "stored": {},
+     "range_s": [
+      0.0,
+      10.0
+     ]
+    }
+   ]
+  },
+  "set_trim_minimum_window": {
+   "scenario": {
+    "library_s": {
+     "a.wav": 10,
+     "c.wav": 30,
+     "e.wav": 10.004
+    },
+    "playlist": [
+     "a.wav",
+     "c.wav",
+     "e.wav"
+    ],
+    "config": {
+     "trim_fade_ms": 1500,
+     "trim_fadein_ms": 0
+    },
+    "track_under_test": 0,
+    "file_length_s": 10.0,
+    "input": "set_trim(row.set) from an empty trim (the row with `previous` starts from {in 1.0, out 5.0})"
+   },
+   "_info": "the window is checked AFTER rounding and only when both A and B are stored: B < A + 0.5 is refused (accepted false, nothing changes), exactly 0.5 s is accepted. B alone (no A) is accepted whatever it is, but a stored B under 0.5 s then falls back to the end of the file when played (see short_window_stored); range_s shows that",
+   "rows": [
+    {
+     "set": {
+      "in": 2.0,
+      "out": 2.49
+     },
+     "accepted": false,
+     "stored": {},
+     "range_s": [
+      0.0,
+      10.0
+     ]
+    },
+    {
+     "set": {
+      "in": 2.0,
+      "out": 2.5
+     },
+     "accepted": true,
+     "stored": {
+      "in": 2.0,
+      "out": 2.5
+     },
+     "range_s": [
+      2.0,
+      2.5
+     ]
+    },
+    {
+     "set": {
+      "in": 2.0,
+      "out": 2.51
+     },
+     "accepted": true,
+     "stored": {
+      "in": 2.0,
+      "out": 2.51
+     },
+     "range_s": [
+      2.0,
+      2.51
+     ]
+    },
+    {
+     "set": {
+      "in": 2.0,
+      "out": 2.3
+     },
+     "accepted": false,
+     "stored": {},
+     "range_s": [
+      0.0,
+      10.0
+     ]
+    },
+    {
+     "set": {
+      "in": 4.0,
+      "out": 4.5
+     },
+     "accepted": true,
+     "stored": {
+      "in": 4.0,
+      "out": 4.5
+     },
+     "range_s": [
+      4.0,
+      4.5
+     ]
+    },
+    {
+     "set": {
+      "in": 2.004,
+      "out": 2.496
+     },
+     "accepted": true,
+     "stored": {
+      "in": 2.0,
+      "out": 2.5
+     },
+     "range_s": [
+      2.0,
+      2.5
+     ]
+    },
+    {
+     "set": {
+      "in": 2.004,
+      "out": 2.494
+     },
+     "accepted": false,
+     "stored": {},
+     "range_s": [
+      0.0,
+      10.0
+     ]
+    },
+    {
+     "set": {
+      "out": 1.2
+     },
+     "accepted": false,
+     "stored": {
+      "in": 1.0,
+      "out": 5.0
+     },
+     "range_s": [
+      1.0,
+      5.0
+     ],
+     "previous": {
+      "in": 1.0,
+      "out": 5.0
+     }
+    },
+    {
+     "set": {
+      "out": 0.3
+     },
+     "accepted": true,
+     "stored": {
+      "out": 0.3
+     },
+     "range_s": [
+      0.0,
+      10.0
+     ]
+    },
+    {
+     "set": {
+      "out": 0.5
+     },
+     "accepted": true,
+     "stored": {
+      "out": 0.5
+     },
+     "range_s": [
+      0.0,
+      0.5
+     ]
+    }
+   ]
+  },
+  "set_trim_out_vs_file_length": {
+   "scenario": {
+    "library_s": {
+     "a.wav": 10,
+     "c.wav": 30,
+     "e.wav": 10.004
+    },
+    "playlist": [
+     "a.wav",
+     "c.wav",
+     "e.wav"
+    ],
+    "config": {
+     "trim_fade_ms": 1500,
+     "trim_fadein_ms": 0
+    },
+    "track_under_test": 2,
+    "file_length_s": 10.004,
+    "input": "set_trim(playlist 0, track 2, row.set) from an empty trim; the file is 10.004 s"
+   },
+   "_info": "the Out is compared with the file length itself, not with a rounded length: Out >= 10.004 - 0.01 (= 9.994) is dropped, so 9.99 is stored here but was dropped for a file of exactly 10 s; an Out past the end is clipped to the length rounded to 0.01 s (10.0)",
+   "rows": [
+    {
+     "set": {
+      "out": 9.98
+     },
+     "accepted": true,
+     "stored": {
+      "out": 9.98
+     },
+     "range_s": [
+      0.0,
+      9.98
+     ]
+    },
+    {
+     "set": {
+      "out": 9.99
+     },
+     "accepted": true,
+     "stored": {
+      "out": 9.99
+     },
+     "range_s": [
+      0.0,
+      9.99
+     ]
+    },
+    {
+     "set": {
+      "out": 9.995
+     },
+     "accepted": true,
+     "stored": {
+      "out": 9.99
+     },
+     "range_s": [
+      0.0,
+      9.99
+     ]
+    },
+    {
+     "set": {
+      "out": 10.0
+     },
+     "accepted": true,
+     "stored": {},
+     "range_s": [
+      0.0,
+      10.004
+     ]
+    },
+    {
+     "set": {
+      "out": 10.004
+     },
+     "accepted": true,
+     "stored": {},
+     "range_s": [
+      0.0,
+      10.004
+     ]
+    },
+    {
+     "set": {
+      "out": 10.5
+     },
+     "accepted": true,
+     "stored": {},
+     "range_s": [
+      0.0,
+      10.004
+     ]
+    }
+   ]
+  },
+  "fade_length_limits": {
+   "scenario": {
+    "library_s": {
+     "a.wav": 10,
+     "c.wav": 30,
+     "e.wav": 10.004
+    },
+    "playlist": [
+     "a.wav",
+     "c.wav",
+     "e.wav"
+    ],
+    "config": {
+     "trim_fade_ms": 1500,
+     "trim_fadein_ms": 0
+    },
+    "track_under_test": 1,
+    "file_length_s": 30.0,
+    "input": "set_trim(playlist 0, track 1, {out 20, fade_ms or fade_in_ms = value}) from an empty trim; the window (20 s) is longer than every value"
+   },
+   "_info": "both lengths are rounded to whole ms and must be 100..10000 ms (inclusive): outside that set_trim refuses everything in the call (accepted false, nothing stored). 99.4 rounds to 99 (refused), 99.6 to 100 (accepted)",
+   "rows": [
+    {
+     "set": {
+      "out": 20,
+      "fade_ms": 99
+     },
+     "accepted": false,
+     "stored": {},
+     "range_s": [
+      0.0,
+      30.0
+     ]
+    },
+    {
+     "set": {
+      "out": 20,
+      "fade_ms": 99.4
+     },
+     "accepted": false,
+     "stored": {},
+     "range_s": [
+      0.0,
+      30.0
+     ]
+    },
+    {
+     "set": {
+      "out": 20,
+      "fade_ms": 99.6
+     },
+     "accepted": true,
+     "stored": {
+      "out": 20.0,
+      "fade_ms": 100
+     },
+     "range_s": [
+      0.0,
+      20.0
+     ]
+    },
+    {
+     "set": {
+      "out": 20,
+      "fade_ms": 100
+     },
+     "accepted": true,
+     "stored": {
+      "out": 20.0,
+      "fade_ms": 100
+     },
+     "range_s": [
+      0.0,
+      20.0
+     ]
+    },
+    {
+     "set": {
+      "out": 20,
+      "fade_ms": 10000
+     },
+     "accepted": true,
+     "stored": {
+      "out": 20.0,
+      "fade_ms": 10000
+     },
+     "range_s": [
+      0.0,
+      20.0
+     ]
+    },
+    {
+     "set": {
+      "out": 20,
+      "fade_ms": 10000.4
+     },
+     "accepted": true,
+     "stored": {
+      "out": 20.0,
+      "fade_ms": 10000
+     },
+     "range_s": [
+      0.0,
+      20.0
+     ]
+    },
+    {
+     "set": {
+      "out": 20,
+      "fade_ms": 10000.6
+     },
+     "accepted": false,
+     "stored": {},
+     "range_s": [
+      0.0,
+      30.0
+     ]
+    },
+    {
+     "set": {
+      "out": 20,
+      "fade_ms": 10001
+     },
+     "accepted": false,
+     "stored": {},
+     "range_s": [
+      0.0,
+      30.0
+     ]
+    },
+    {
+     "set": {
+      "out": 20,
+      "fade_in_ms": 99,
+      "start": "fade"
+     },
+     "accepted": false,
+     "stored": {},
+     "range_s": [
+      0.0,
+      30.0
+     ]
+    },
+    {
+     "set": {
+      "out": 20,
+      "fade_in_ms": 99.4,
+      "start": "fade"
+     },
+     "accepted": false,
+     "stored": {},
+     "range_s": [
+      0.0,
+      30.0
+     ]
+    },
+    {
+     "set": {
+      "out": 20,
+      "fade_in_ms": 99.6,
+      "start": "fade"
+     },
+     "accepted": true,
+     "stored": {
+      "out": 20.0,
+      "fade_in_ms": 100,
+      "start": "fade"
+     },
+     "range_s": [
+      0.0,
+      20.0
+     ]
+    },
+    {
+     "set": {
+      "out": 20,
+      "fade_in_ms": 100,
+      "start": "fade"
+     },
+     "accepted": true,
+     "stored": {
+      "out": 20.0,
+      "fade_in_ms": 100,
+      "start": "fade"
+     },
+     "range_s": [
+      0.0,
+      20.0
+     ]
+    },
+    {
+     "set": {
+      "out": 20,
+      "fade_in_ms": 10000,
+      "start": "fade"
+     },
+     "accepted": true,
+     "stored": {
+      "out": 20.0,
+      "fade_in_ms": 10000,
+      "start": "fade"
+     },
+     "range_s": [
+      0.0,
+      20.0
+     ]
+    },
+    {
+     "set": {
+      "out": 20,
+      "fade_in_ms": 10000.4,
+      "start": "fade"
+     },
+     "accepted": true,
+     "stored": {
+      "out": 20.0,
+      "fade_in_ms": 10000,
+      "start": "fade"
+     },
+     "range_s": [
+      0.0,
+      20.0
+     ]
+    },
+    {
+     "set": {
+      "out": 20,
+      "fade_in_ms": 10000.6,
+      "start": "fade"
+     },
+     "accepted": false,
+     "stored": {},
+     "range_s": [
+      0.0,
+      30.0
+     ]
+    },
+    {
+     "set": {
+      "out": 20,
+      "fade_in_ms": 10001,
+      "start": "fade"
+     },
+     "accepted": false,
+     "stored": {},
+     "range_s": [
+      0.0,
+      30.0
+     ]
+    }
+   ]
+  },
+  "fade_length_held_to_window": {
+   "scenario": {
+    "library_s": {
+     "a.wav": 10,
+     "c.wav": 30,
+     "e.wav": 10.004
+    },
+    "playlist": [
+     "a.wav",
+     "c.wav",
+     "e.wav"
+    ],
+    "config": {
+     "trim_fade_ms": 1500,
+     "trim_fadein_ms": 0
+    },
+    "track_under_test": 1,
+    "file_length_s": 30.0,
+    "input": "set_trim(playlist 0, track 1, row.set) from an empty trim for each row"
+   },
+   "_info": "a fade length is held to the part that plays (B - A; the fade-in with no B: the rest of the file) but never below 100 ms; a fade length with no B is dropped (it belongs to B); the length is kept while the edge is Cut (end cut / start absent)",
+   "rows": [
+    {
+     "set": {
+      "out": 3,
+      "fade_ms": 5000
+     },
+     "accepted": true,
+     "stored": {
+      "out": 3.0,
+      "fade_ms": 3000
+     },
+     "range_s": [
+      0.0,
+      3.0
+     ]
+    },
+    {
+     "set": {
+      "in": 2,
+      "out": 3,
+      "fade_ms": 5000,
+      "start": "fade",
+      "fade_in_ms": 5000
+     },
+     "accepted": true,
+     "stored": {
+      "in": 2.0,
+      "out": 3.0,
+      "fade_ms": 1000,
+      "fade_in_ms": 1000,
+      "start": "fade"
+     },
+     "range_s": [
+      2.0,
+      3.0
+     ]
+    },
+    {
+     "set": {
+      "in": 2,
+      "out": 2.5,
+      "fade_ms": 5000,
+      "start": "fade",
+      "fade_in_ms": 5000
+     },
+     "accepted": true,
+     "stored": {
+      "in": 2.0,
+      "out": 2.5,
+      "fade_ms": 500,
+      "fade_in_ms": 500,
+      "start": "fade"
+     },
+     "range_s": [
+      2.0,
+      2.5
+     ]
+    },
+    {
+     "set": {
+      "in": 2,
+      "out": 2.5,
+      "fade_ms": 100,
+      "start": "fade",
+      "fade_in_ms": 100
+     },
+     "accepted": true,
+     "stored": {
+      "in": 2.0,
+      "out": 2.5,
+      "fade_ms": 100,
+      "fade_in_ms": 100,
+      "start": "fade"
+     },
+     "range_s": [
+      2.0,
+      2.5
+     ]
+    },
+    {
+     "set": {
+      "fade_ms": 2000
+     },
+     "accepted": true,
+     "stored": {},
+     "range_s": [
+      0.0,
+      30.0
+     ]
+    },
+    {
+     "set": {
+      "in": 29,
+      "start": "fade",
+      "fade_in_ms": 5000
+     },
+     "accepted": true,
+     "stored": {
+      "in": 29.0,
+      "fade_in_ms": 1000,
+      "start": "fade"
+     },
+     "range_s": [
+      29.0,
+      30.0
+     ]
+    },
+    {
+     "set": {
+      "in": 25,
+      "start": "fade",
+      "fade_in_ms": 10000
+     },
+     "accepted": true,
+     "stored": {
+      "in": 25.0,
+      "fade_in_ms": 5000,
+      "start": "fade"
+     },
+     "range_s": [
+      25.0,
+      30.0
+     ]
+    },
+    {
+     "set": {
+      "start": "fade",
+      "fade_in_ms": 10000
+     },
+     "accepted": true,
+     "stored": {
+      "fade_in_ms": 10000,
+      "start": "fade"
+     },
+     "range_s": [
+      0.0,
+      30.0
+     ]
+    },
+    {
+     "set": {
+      "start": "fade",
+      "fade_in_ms": 20000
+     },
+     "accepted": false,
+     "stored": {},
+     "range_s": [
+      0.0,
+      30.0
+     ]
+    },
+    {
+     "set": {
+      "out": 3,
+      "fade_ms": 5000,
+      "end": "cut"
+     },
+     "accepted": true,
+     "stored": {
+      "out": 3.0,
+      "fade_ms": 3000,
+      "end": "cut"
+     },
+     "range_s": [
+      0.0,
+      3.0
+     ]
+    }
+   ]
+  },
+  "fade_length_follows_window_changes": {
+   "scenario": {
+    "library_s": {
+     "a.wav": 10,
+     "c.wav": 30,
+     "e.wav": 10.004
+    },
+    "playlist": [
+     "a.wav",
+     "c.wav",
+     "e.wav"
+    ],
+    "config": {
+     "trim_fade_ms": 1500,
+     "trim_fadein_ms": 0
+    },
+    "track_under_test": 1,
+    "file_length_s": 30.0,
+    "input": "set_trim(playlist 0, track 1, row.set) one after the other WITHOUT clearing between rows (each row changes what the previous one left)"
+   },
+   "_info": "a stored fade length is re-clamped whenever the window shrinks, and never grows back when the window is widened again (row 2); removing B drops the fade length (last row)",
+   "rows": [
+    {
+     "set": {
+      "out": 3,
+      "fade_ms": 5000
+     },
+     "accepted": true,
+     "stored": {
+      "out": 3.0,
+      "fade_ms": 3000
+     },
+     "range_s": [
+      0.0,
+      3.0
+     ]
+    },
+    {
+     "set": {
+      "out": 20
+     },
+     "accepted": true,
+     "stored": {
+      "out": 20.0,
+      "fade_ms": 3000
+     },
+     "range_s": [
+      0.0,
+      20.0
+     ]
+    },
+    {
+     "set": {
+      "in": 1
+     },
+     "accepted": true,
+     "stored": {
+      "out": 20.0,
+      "fade_ms": 3000,
+      "in": 1.0
+     },
+     "range_s": [
+      1.0,
+      20.0
+     ]
+    },
+    {
+     "set": {
+      "out": 20,
+      "fade_ms": 5000
+     },
+     "accepted": true,
+     "stored": {
+      "out": 20.0,
+      "fade_ms": 5000,
+      "in": 1.0
+     },
+     "range_s": [
+      1.0,
+      20.0
+     ]
+    },
+    {
+     "set": {
+      "out": 3
+     },
+     "accepted": true,
+     "stored": {
+      "out": 3.0,
+      "fade_ms": 2000,
+      "in": 1.0
+     },
+     "range_s": [
+      1.0,
+      3.0
+     ]
+    },
+    {
+     "set": {
+      "out": null
+     },
+     "accepted": true,
+     "stored": {
+      "in": 1.0
+     },
+     "range_s": [
+      1.0,
+      30.0
+     ]
+    }
+   ]
+  },
+  "default_fade_longer_than_window": {
+   "scenario": {
+    "library_s": {
+     "a.wav": 10,
+     "c.wav": 30,
+     "e.wav": 10.004
+    },
+    "playlist": [
+     "a.wav",
+     "c.wav",
+     "e.wav"
+    ],
+    "config": {
+     "trim_fade_ms": 1500,
+     "trim_fadein_ms": 0
+    },
+    "track_under_test": 0,
+    "file_length_s": 10.0,
+    "trim": {
+     "in": 2,
+     "out": 3
+    },
+    "steps": [
+     "play track 0 from the start"
+    ],
+    "tick_step_s": 0.125,
+    "sampled_at_s": [
+     0.0,
+     0.125,
+     0.25,
+     0.375,
+     0.5,
+     0.625,
+     0.75,
+     0.875,
+     1.0
+    ]
+   },
+   "_info": "window [2, 3] (1 s) with the default 1500 ms fade (trim_fade_ms): the deck is started with end_fade_ms 1500, but Deck.update holds the fade to the length of one pass, so it starts at once (t = 0) and runs the whole window",
+   "deck": {
+    "end_fade_ms": 1500,
+    "fade_ms_eff": 1500
+   },
+   "rows": [
+    {
+     "t_s": 0.0,
+     "vol": 1.0,
+     "live": true
+    },
+    {
+     "t_s": 0.125,
+     "vol": 0.980785,
+     "live": true
+    },
+    {
+     "t_s": 0.25,
+     "vol": 0.92388,
+     "live": true
+    },
+    {
+     "t_s": 0.375,
+     "vol": 0.83147,
+     "live": true
+    },
+    {
+     "t_s": 0.5,
+     "vol": 0.707107,
+     "live": true
+    },
+    {
+     "t_s": 0.625,
+     "vol": 0.55557,
+     "live": true
+    },
+    {
+     "t_s": 0.75,
+     "vol": 0.382683,
+     "live": true
+    },
+    {
+     "t_s": 0.875,
+     "vol": 0.19509,
+     "live": true
+    },
+    {
+     "t_s": 1.0,
+     "vol": 0.0,
+     "live": false
+    }
+   ]
+  },
+  "out_fade_placement_loop": {
+   "scenario": {
+    "library_s": {
+     "a.wav": 10,
+     "c.wav": 30,
+     "e.wav": 10.004
+    },
+    "playlist": [
+     "a.wav",
+     "c.wav",
+     "e.wav"
+    ],
+    "config": {
+     "trim_fade_ms": 1500,
+     "trim_fadein_ms": 0
+    },
+    "track_under_test": 0,
+    "file_length_s": 10.0,
+    "trim": {
+     "out": 4,
+     "fade_ms": 1000
+    },
+    "tick_step_s": 0.25,
+    "end_action": "loop",
+    "steps": [
+     "set_end(0, 0, 'loop')",
+     "play track 0",
+     "tick every 0.25 s until 9.5 s"
+    ],
+    "sampled_at_s": [
+     0.0,
+     2.75,
+     3.0,
+     3.25,
+     3.5,
+     3.75,
+     4.0,
+     4.25,
+     6.75,
+     7.0,
+     7.25,
+     7.5,
+     7.75,
+     8.0,
+     8.25
+    ]
+   },
+   "_info": "window [0, 4], fade_ms 1000. The out-fade runs only in the LAST pass of a deck that ends; a looping deck never ends and never out-fades (vol stays 1 through every lap)",
+   "ended_at_s": null,
+   "ideal_ended_at_s": null,
+   "tolerance_s": 0.05,
+   "rows": [
+    {
+     "t_s": 0.0,
+     "vol": 1.0,
+     "live": true
+    },
+    {
+     "t_s": 2.75,
+     "vol": 1.0,
+     "live": true
+    },
+    {
+     "t_s": 3.0,
+     "vol": 1.0,
+     "live": true
+    },
+    {
+     "t_s": 3.25,
+     "vol": 1.0,
+     "live": true
+    },
+    {
+     "t_s": 3.5,
+     "vol": 1.0,
+     "live": true
+    },
+    {
+     "t_s": 3.75,
+     "vol": 1.0,
+     "live": true
+    },
+    {
+     "t_s": 4.0,
+     "vol": 1.0,
+     "live": true
+    },
+    {
+     "t_s": 4.25,
+     "vol": 1.0,
+     "live": true
+    },
+    {
+     "t_s": 6.75,
+     "vol": 1.0,
+     "live": true
+    },
+    {
+     "t_s": 7.0,
+     "vol": 1.0,
+     "live": true
+    },
+    {
+     "t_s": 7.25,
+     "vol": 1.0,
+     "live": true
+    },
+    {
+     "t_s": 7.5,
+     "vol": 1.0,
+     "live": true
+    },
+    {
+     "t_s": 7.75,
+     "vol": 1.0,
+     "live": true
+    },
+    {
+     "t_s": 8.0,
+     "vol": 1.0,
+     "live": true
+    },
+    {
+     "t_s": 8.25,
+     "vol": 1.0,
+     "live": true
+    }
+   ]
+  },
+  "out_fade_placement_once": {
+   "scenario": {
+    "library_s": {
+     "a.wav": 10,
+     "c.wav": 30,
+     "e.wav": 10.004
+    },
+    "playlist": [
+     "a.wav",
+     "c.wav",
+     "e.wav"
+    ],
+    "config": {
+     "trim_fade_ms": 1500,
+     "trim_fadein_ms": 0
+    },
+    "track_under_test": 0,
+    "file_length_s": 10.0,
+    "trim": {
+     "out": 4,
+     "fade_ms": 1000
+    },
+    "tick_step_s": 0.25,
+    "end_action": "once",
+    "steps": [
+     "set_end(0, 0, 'once')",
+     "play track 0",
+     "tick every 0.25 s until 9.5 s"
+    ],
+    "sampled_at_s": [
+     0.0,
+     2.75,
+     3.0,
+     3.25,
+     3.5,
+     3.75,
+     4.0,
+     4.25,
+     6.75,
+     7.0,
+     7.25,
+     7.5,
+     7.75,
+     8.0,
+     8.25
+    ]
+   },
+   "_info": "window [0, 4], fade_ms 1000. The out-fade runs only in the LAST pass of a deck that ends; two passes of the 4 s window: no fade in pass 1, the out-fade only in pass 2 (7 s .. 8 s), then it ends",
+   "ended_at_s": 8.0,
+   "ideal_ended_at_s": 8.0,
+   "tolerance_s": 0.05,
+   "rows": [
+    {
+     "t_s": 0.0,
+     "vol": 1.0,
+     "live": true
+    },
+    {
+     "t_s": 2.75,
+     "vol": 1.0,
+     "live": true
+    },
+    {
+     "t_s": 3.0,
+     "vol": 1.0,
+     "live": true
+    },
+    {
+     "t_s": 3.25,
+     "vol": 1.0,
+     "live": true
+    },
+    {
+     "t_s": 3.5,
+     "vol": 1.0,
+     "live": true
+    },
+    {
+     "t_s": 3.75,
+     "vol": 1.0,
+     "live": true
+    },
+    {
+     "t_s": 4.0,
+     "vol": 1.0,
+     "live": true
+    },
+    {
+     "t_s": 4.25,
+     "vol": 1.0,
+     "live": true
+    },
+    {
+     "t_s": 6.75,
+     "vol": 1.0,
+     "live": true
+    },
+    {
+     "t_s": 7.0,
+     "vol": 1.0,
+     "live": true
+    },
+    {
+     "t_s": 7.25,
+     "vol": 0.92388,
+     "live": true
+    },
+    {
+     "t_s": 7.5,
+     "vol": 0.707107,
+     "live": true
+    },
+    {
+     "t_s": 7.75,
+     "vol": 0.382683,
+     "live": true
+    },
+    {
+     "t_s": 8.0,
+     "vol": 0.0,
+     "live": false
+    },
+    {
+     "t_s": 8.25,
+     "vol": 0.0,
+     "live": false
+    }
+   ]
+  },
+  "out_fade_placement_default": {
+   "scenario": {
+    "library_s": {
+     "a.wav": 10,
+     "c.wav": 30,
+     "e.wav": 10.004
+    },
+    "playlist": [
+     "a.wav",
+     "c.wav",
+     "e.wav"
+    ],
+    "config": {
+     "trim_fade_ms": 1500,
+     "trim_fadein_ms": 0
+    },
+    "track_under_test": 0,
+    "file_length_s": 10.0,
+    "trim": {
+     "out": 4,
+     "fade_ms": 1000
+    },
+    "tick_step_s": 0.25,
+    "end_action": "default",
+    "steps": [
+     "set_end(0, 0, 'default')",
+     "play track 0",
+     "tick every 0.25 s until 9.5 s"
+    ],
+    "sampled_at_s": [
+     0.0,
+     2.75,
+     3.0,
+     3.25,
+     3.5,
+     3.75,
+     4.0,
+     4.25,
+     6.75,
+     7.0,
+     7.25,
+     7.5,
+     7.75,
+     8.0,
+     8.25
+    ]
+   },
+   "_info": "window [0, 4], fade_ms 1000. The out-fade runs only in the LAST pass of a deck that ends; out-fade over the last second of the window (3 s .. 4 s), then it ends",
+   "ended_at_s": 4.0,
+   "ideal_ended_at_s": 4.0,
+   "tolerance_s": 0.05,
+   "rows": [
+    {
+     "t_s": 0.0,
+     "vol": 1.0,
+     "live": true
+    },
+    {
+     "t_s": 2.75,
+     "vol": 1.0,
+     "live": true
+    },
+    {
+     "t_s": 3.0,
+     "vol": 1.0,
+     "live": true
+    },
+    {
+     "t_s": 3.25,
+     "vol": 0.92388,
+     "live": true
+    },
+    {
+     "t_s": 3.5,
+     "vol": 0.707107,
+     "live": true
+    },
+    {
+     "t_s": 3.75,
+     "vol": 0.382683,
+     "live": true
+    },
+    {
+     "t_s": 4.0,
+     "vol": 0.0,
+     "live": false
+    },
+    {
+     "t_s": 4.25,
+     "vol": 0.0,
+     "live": false
+    },
+    {
+     "t_s": 6.75,
+     "vol": 0.0,
+     "live": false
+    },
+    {
+     "t_s": 7.0,
+     "vol": 0.0,
+     "live": false
+    },
+    {
+     "t_s": 7.25,
+     "vol": 0.0,
+     "live": false
+    },
+    {
+     "t_s": 7.5,
+     "vol": 0.0,
+     "live": false
+    },
+    {
+     "t_s": 7.75,
+     "vol": 0.0,
+     "live": false
+    },
+    {
+     "t_s": 8.0,
+     "vol": 0.0,
+     "live": false
+    },
+    {
+     "t_s": 8.25,
+     "vol": 0.0,
+     "live": false
+    }
+   ]
+  },
+  "out_fade_placement_stop": {
+   "scenario": {
+    "library_s": {
+     "a.wav": 10,
+     "c.wav": 30,
+     "e.wav": 10.004
+    },
+    "playlist": [
+     "a.wav",
+     "c.wav",
+     "e.wav"
+    ],
+    "config": {
+     "trim_fade_ms": 1500,
+     "trim_fadein_ms": 0
+    },
+    "track_under_test": 0,
+    "file_length_s": 10.0,
+    "trim": {
+     "out": 4,
+     "fade_ms": 1000
+    },
+    "tick_step_s": 0.25,
+    "end_action": "stop",
+    "steps": [
+     "set_end(0, 0, 'stop')",
+     "play track 0",
+     "tick every 0.25 s until 9.5 s"
+    ],
+    "sampled_at_s": [
+     0.0,
+     2.75,
+     3.0,
+     3.25,
+     3.5,
+     3.75,
+     4.0,
+     4.25,
+     6.75,
+     7.0,
+     7.25,
+     7.5,
+     7.75,
+     8.0,
+     8.25
+    ]
+   },
+   "_info": "window [0, 4], fade_ms 1000. The out-fade runs only in the LAST pass of a deck that ends; same as default: stop only decides what follows",
+   "ended_at_s": 4.0,
+   "ideal_ended_at_s": 4.0,
+   "tolerance_s": 0.05,
+   "rows": [
+    {
+     "t_s": 0.0,
+     "vol": 1.0,
+     "live": true
+    },
+    {
+     "t_s": 2.75,
+     "vol": 1.0,
+     "live": true
+    },
+    {
+     "t_s": 3.0,
+     "vol": 1.0,
+     "live": true
+    },
+    {
+     "t_s": 3.25,
+     "vol": 0.92388,
+     "live": true
+    },
+    {
+     "t_s": 3.5,
+     "vol": 0.707107,
+     "live": true
+    },
+    {
+     "t_s": 3.75,
+     "vol": 0.382683,
+     "live": true
+    },
+    {
+     "t_s": 4.0,
+     "vol": 0.0,
+     "live": false
+    },
+    {
+     "t_s": 4.25,
+     "vol": 0.0,
+     "live": false
+    },
+    {
+     "t_s": 6.75,
+     "vol": 0.0,
+     "live": false
+    },
+    {
+     "t_s": 7.0,
+     "vol": 0.0,
+     "live": false
+    },
+    {
+     "t_s": 7.25,
+     "vol": 0.0,
+     "live": false
+    },
+    {
+     "t_s": 7.5,
+     "vol": 0.0,
+     "live": false
+    },
+    {
+     "t_s": 7.75,
+     "vol": 0.0,
+     "live": false
+    },
+    {
+     "t_s": 8.0,
+     "vol": 0.0,
+     "live": false
+    },
+    {
+     "t_s": 8.25,
+     "vol": 0.0,
+     "live": false
+    }
+   ]
+  },
+  "out_fade_once_switched_off_in_pass_1": {
+   "scenario": {
+    "library_s": {
+     "a.wav": 10,
+     "c.wav": 30,
+     "e.wav": 10.004
+    },
+    "playlist": [
+     "a.wav",
+     "c.wav",
+     "e.wav"
+    ],
+    "config": {
+     "trim_fade_ms": 1500,
+     "trim_fadein_ms": 0
+    },
+    "track_under_test": 0,
+    "file_length_s": 10.0,
+    "trim": {
+     "out": 4,
+     "fade_ms": 1000
+    },
+    "tick_step_s": 0.25,
+    "end_action": "once",
+    "switch_off_to": "default",
+    "switch_off_at_s": 1.0,
+    "steps": [
+     "set_end(0, 0, 'once')",
+     "play track 0",
+     "set_end(0, 0, 'default') at 1.0 s",
+     "tick every 0.25 s until 6.0 s"
+    ],
+    "sampled_at_s": [
+     0.0,
+     2.75,
+     3.0,
+     3.25,
+     3.5,
+     3.75,
+     4.0,
+     4.25,
+     6.75,
+     7.0,
+     7.25,
+     7.5,
+     7.75,
+     8.0,
+     8.25
+    ]
+   },
+   "_info": "once switched off in pass 1: that pass becomes the last one, so the out-fade runs at its end (3 s .. 4 s) and the deck ends at 4 s",
+   "ended_at_s": 4.0,
+   "ideal_ended_at_s": 4.0,
+   "tolerance_s": 0.05,
+   "rows": [
+    {
+     "t_s": 0.0,
+     "vol": 1.0,
+     "live": true
+    },
+    {
+     "t_s": 2.75,
+     "vol": 1.0,
+     "live": true
+    },
+    {
+     "t_s": 3.0,
+     "vol": 1.0,
+     "live": true
+    },
+    {
+     "t_s": 3.25,
+     "vol": 0.92388,
+     "live": true
+    },
+    {
+     "t_s": 3.5,
+     "vol": 0.707107,
+     "live": true
+    },
+    {
+     "t_s": 3.75,
+     "vol": 0.382683,
+     "live": true
+    },
+    {
+     "t_s": 4.0,
+     "vol": 0.0,
+     "live": false
+    },
+    {
+     "t_s": 4.25,
+     "vol": 0.0,
+     "live": false
+    }
+   ]
+  },
+  "loop_switched_off_in_pass_1_end": {
+   "scenario": {
+    "library_s": {
+     "a.wav": 10,
+     "c.wav": 30,
+     "e.wav": 10.004
+    },
+    "playlist": [
+     "a.wav",
+     "c.wav",
+     "e.wav"
+    ],
+    "config": {
+     "trim_fade_ms": 1500,
+     "trim_fadein_ms": 0
+    },
+    "track_under_test": 0,
+    "file_length_s": 10.0,
+    "trim": {
+     "out": 4,
+     "fade_ms": 1000
+    },
+    "tick_step_s": 0.25,
+    "end_action": "loop",
+    "switch_off_to": "default",
+    "switch_off_at_s": 1.0,
+    "steps": [
+     "set_end(0, 0, 'loop')",
+     "play track 0",
+     "set_end(0, 0, 'default') at 1.0 s",
+     "tick every 0.25 s until 6.0 s"
+    ]
+   },
+   "_info": "loop switched off in pass 1: the running pass is played out and the deck ends at B (4 s). ONLY THE END IS CONTRACT. What the level does in that last pass is a Python quirk (AUDIO-SPEC quirk 10): the deck was started looping, so Python never out-fades it and it stops dead at B; the ideal (a port may do it) is the out-fade 3 s .. 4 s like the default case. The measured levels are in _info_python_vol.",
+   "ended_at_s": 4.0,
+   "ideal_ended_at_s": 4.0,
+   "tolerance_s": 0.05,
+   "_info_python_vol": [
+    {
+     "t_s": 0.0,
+     "vol": 1.0,
+     "live": true
+    },
+    {
+     "t_s": 2.75,
+     "vol": 1.0,
+     "live": true
+    },
+    {
+     "t_s": 3.0,
+     "vol": 1.0,
+     "live": true
+    },
+    {
+     "t_s": 3.25,
+     "vol": 1.0,
+     "live": true
+    },
+    {
+     "t_s": 3.5,
+     "vol": 1.0,
+     "live": true
+    },
+    {
+     "t_s": 3.75,
+     "vol": 1.0,
+     "live": true
+    },
+    {
+     "t_s": 4.0,
+     "vol": 1.0,
+     "live": false
+    },
+    {
+     "t_s": 4.25,
+     "vol": 1.0,
+     "live": false
+    }
+   ]
+  },
+  "fade_in_start_threshold": {
+   "scenario": {
+    "library_s": {
+     "a.wav": 10,
+     "c.wav": 30,
+     "e.wav": 10.004
+    },
+    "playlist": [
+     "a.wav",
+     "c.wav",
+     "e.wav"
+    ],
+    "config": {
+     "trim_fade_ms": 1500,
+     "trim_fadein_ms": 0
+    },
+    "track_under_test": 0,
+    "file_length_s": 10.0,
+    "end_action": "loop",
+    "input": "set_trim(row.trim), set_end(0, 0, 'loop'), then _start(playlist 0, track 0, offset = row.offset_s [, paused / crossfade_ms]); the deck is read right away"
+   },
+   "_info": "TWO thresholds, both on `offset` = the position handed to _start, in FILE seconds (not relative to A). (1) fade-in: applied only when offset <= 0.05 s (0.05 yes, 0.0501 no), not paused and not under a crossfade; a start at offset = A itself (2.0 here) is a part-way start and does NOT fade in. (2) deck.fresh (the loop / once / trigger gate, 'at the In point'): |start - A| < 0.06 s where start = A for offset <= 0.05 else max(A, offset); 2.05 is fresh, 2.06 is not (0.0599 / 0.06 with A = 0). base_s = where the sound begins: offsets below A start at A",
+   "rows": [
+    {
+     "case": "A = 2 s, B = 8 s",
+     "trim": {
+      "in": 2,
+      "out": 8,
+      "start": "fade",
+      "fade_in_ms": 1000
+     },
+     "offset_s": 0.0,
+     "deck": {
+      "base_s": 2.0,
+      "fade_in_ms": 1000,
+      "start_vol": 0.0,
+      "fresh": true,
+      "loop": true
+     }
+    },
+    {
+     "case": "A = 2 s, B = 8 s",
+     "trim": {
+      "in": 2,
+      "out": 8,
+      "start": "fade",
+      "fade_in_ms": 1000
+     },
+     "offset_s": 0.05,
+     "deck": {
+      "base_s": 2.0,
+      "fade_in_ms": 1000,
+      "start_vol": 0.0,
+      "fresh": true,
+      "loop": true
+     }
+    },
+    {
+     "case": "A = 2 s, B = 8 s",
+     "trim": {
+      "in": 2,
+      "out": 8,
+      "start": "fade",
+      "fade_in_ms": 1000
+     },
+     "offset_s": 0.0501,
+     "deck": {
+      "base_s": 2.0,
+      "fade_in_ms": 0,
+      "start_vol": 1.0,
+      "fresh": true,
+      "loop": true
+     }
+    },
+    {
+     "case": "A = 2 s, B = 8 s",
+     "trim": {
+      "in": 2,
+      "out": 8,
+      "start": "fade",
+      "fade_in_ms": 1000
+     },
+     "offset_s": 0.06,
+     "deck": {
+      "base_s": 2.0,
+      "fade_in_ms": 0,
+      "start_vol": 1.0,
+      "fresh": true,
+      "loop": true
+     }
+    },
+    {
+     "case": "A = 2 s, B = 8 s",
+     "trim": {
+      "in": 2,
+      "out": 8,
+      "start": "fade",
+      "fade_in_ms": 1000
+     },
+     "offset_s": 1.9,
+     "deck": {
+      "base_s": 2.0,
+      "fade_in_ms": 0,
+      "start_vol": 1.0,
+      "fresh": true,
+      "loop": true
+     }
+    },
+    {
+     "case": "A = 2 s, B = 8 s",
+     "trim": {
+      "in": 2,
+      "out": 8,
+      "start": "fade",
+      "fade_in_ms": 1000
+     },
+     "offset_s": 2.0,
+     "deck": {
+      "base_s": 2.0,
+      "fade_in_ms": 0,
+      "start_vol": 1.0,
+      "fresh": true,
+      "loop": true
+     }
+    },
+    {
+     "case": "A = 2 s, B = 8 s",
+     "trim": {
+      "in": 2,
+      "out": 8,
+      "start": "fade",
+      "fade_in_ms": 1000
+     },
+     "offset_s": 2.04,
+     "deck": {
+      "base_s": 2.04,
+      "fade_in_ms": 0,
+      "start_vol": 1.0,
+      "fresh": true,
+      "loop": true
+     }
+    },
+    {
+     "case": "A = 2 s, B = 8 s",
+     "trim": {
+      "in": 2,
+      "out": 8,
+      "start": "fade",
+      "fade_in_ms": 1000
+     },
+     "offset_s": 2.05,
+     "deck": {
+      "base_s": 2.05,
+      "fade_in_ms": 0,
+      "start_vol": 1.0,
+      "fresh": true,
+      "loop": true
+     }
+    },
+    {
+     "case": "A = 2 s, B = 8 s",
+     "trim": {
+      "in": 2,
+      "out": 8,
+      "start": "fade",
+      "fade_in_ms": 1000
+     },
+     "offset_s": 2.06,
+     "deck": {
+      "base_s": 2.06,
+      "fade_in_ms": 0,
+      "start_vol": 1.0,
+      "fresh": false,
+      "loop": false
+     }
+    },
+    {
+     "case": "A = 2 s, B = 8 s",
+     "trim": {
+      "in": 2,
+      "out": 8,
+      "start": "fade",
+      "fade_in_ms": 1000
+     },
+     "offset_s": 2.2,
+     "deck": {
+      "base_s": 2.2,
+      "fade_in_ms": 0,
+      "start_vol": 1.0,
+      "fresh": false,
+      "loop": false
+     }
+    },
+    {
+     "case": "A = 0 (no In), B = 8 s",
+     "trim": {
+      "out": 8,
+      "start": "fade",
+      "fade_in_ms": 1000
+     },
+     "offset_s": 0.0,
+     "deck": {
+      "base_s": 0.0,
+      "fade_in_ms": 1000,
+      "start_vol": 0.0,
+      "fresh": true,
+      "loop": true
+     }
+    },
+    {
+     "case": "A = 0 (no In), B = 8 s",
+     "trim": {
+      "out": 8,
+      "start": "fade",
+      "fade_in_ms": 1000
+     },
+     "offset_s": 0.05,
+     "deck": {
+      "base_s": 0.0,
+      "fade_in_ms": 1000,
+      "start_vol": 0.0,
+      "fresh": true,
+      "loop": true
+     }
+    },
+    {
+     "case": "A = 0 (no In), B = 8 s",
+     "trim": {
+      "out": 8,
+      "start": "fade",
+      "fade_in_ms": 1000
+     },
+     "offset_s": 0.0501,
+     "deck": {
+      "base_s": 0.0501,
+      "fade_in_ms": 0,
+      "start_vol": 1.0,
+      "fresh": true,
+      "loop": true
+     }
+    },
+    {
+     "case": "A = 0 (no In), B = 8 s",
+     "trim": {
+      "out": 8,
+      "start": "fade",
+      "fade_in_ms": 1000
+     },
+     "offset_s": 0.0599,
+     "deck": {
+      "base_s": 0.0599,
+      "fade_in_ms": 0,
+      "start_vol": 1.0,
+      "fresh": true,
+      "loop": true
+     }
+    },
+    {
+     "case": "A = 0 (no In), B = 8 s",
+     "trim": {
+      "out": 8,
+      "start": "fade",
+      "fade_in_ms": 1000
+     },
+     "offset_s": 0.06,
+     "deck": {
+      "base_s": 0.06,
+      "fade_in_ms": 0,
+      "start_vol": 1.0,
+      "fresh": false,
+      "loop": false
+     }
+    },
+    {
+     "case": "A = 0 (no In), B = 8 s",
+     "trim": {
+      "out": 8,
+      "start": "fade",
+      "fade_in_ms": 1000
+     },
+     "offset_s": 0.07,
+     "deck": {
+      "base_s": 0.07,
+      "fade_in_ms": 0,
+      "start_vol": 1.0,
+      "fresh": false,
+      "loop": false
+     }
+    },
+    {
+     "case": "paused start",
+     "trim": {
+      "in": 2,
+      "out": 8,
+      "start": "fade",
+      "fade_in_ms": 1000
+     },
+     "offset_s": 0.0,
+     "deck": {
+      "base_s": 2.0,
+      "fade_in_ms": 0,
+      "start_vol": 1.0,
+      "fresh": true,
+      "loop": true
+     },
+     "crossfade_ms": 0,
+     "paused": true
+    },
+    {
+     "case": "start under a crossfade (500 ms)",
+     "trim": {
+      "in": 2,
+      "out": 8,
+      "start": "fade",
+      "fade_in_ms": 1000
+     },
+     "offset_s": 0.0,
+     "deck": {
+      "base_s": 2.0,
+      "fade_in_ms": 0,
+      "start_vol": 0.0,
+      "fresh": true,
+      "loop": true
+     },
+     "crossfade_ms": 500,
+     "paused": false
+    }
+   ]
+  },
+  "fade_in_cap": {
+   "scenario": {
+    "library_s": {
+     "a.wav": 10,
+     "c.wav": 30,
+     "e.wav": 10.004
+    },
+    "playlist": [
+     "a.wav",
+     "c.wav",
+     "e.wav"
+    ],
+    "config": {
+     "trim_fade_ms": 1500,
+     "trim_fadein_ms": 0
+    },
+    "track_under_test": 0,
+    "file_length_s": 10.0,
+    "input": "set_trim(row.set), then _start from the start (offset 0); the deck is read right away"
+   },
+   "_info": "fade_in_ms of the deck = min(stored fade-in, window - out-fade) when that is >= 100 ms (inclusive: 100 left is kept, 99 left is not); otherwise it is min(stored fade-in, window) and the out-fade is NOT shortened (they then overlap: see fade_in_out_fade_overlap). end_fade_ms is 0 for a Cut at B or no B; the default out-fade (trim_fade_ms 1500) counts even when longer than the window",
+   "rows": [
+    {
+     "case": "out-fade 1500, fade-in 2499",
+     "set": {
+      "in": 0,
+      "out": 4,
+      "fade_ms": 1500,
+      "start": "fade",
+      "fade_in_ms": 2499
+     },
+     "accepted": true,
+     "stored": {
+      "out": 4.0,
+      "fade_ms": 1500,
+      "fade_in_ms": 2499,
+      "start": "fade"
+     },
+     "window_s": 4.0,
+     "deck": {
+      "end_fade_ms": 1500,
+      "fade_in_ms": 2499,
+      "fade_in_ramp_s": 2.499
+     }
+    },
+    {
+     "case": "out-fade 1500, fade-in 2500",
+     "set": {
+      "in": 0,
+      "out": 4,
+      "fade_ms": 1500,
+      "start": "fade",
+      "fade_in_ms": 2500
+     },
+     "accepted": true,
+     "stored": {
+      "out": 4.0,
+      "fade_ms": 1500,
+      "fade_in_ms": 2500,
+      "start": "fade"
+     },
+     "window_s": 4.0,
+     "deck": {
+      "end_fade_ms": 1500,
+      "fade_in_ms": 2500,
+      "fade_in_ramp_s": 2.5
+     }
+    },
+    {
+     "case": "out-fade 1500, fade-in 2501",
+     "set": {
+      "in": 0,
+      "out": 4,
+      "fade_ms": 1500,
+      "start": "fade",
+      "fade_in_ms": 2501
+     },
+     "accepted": true,
+     "stored": {
+      "out": 4.0,
+      "fade_ms": 1500,
+      "fade_in_ms": 2501,
+      "start": "fade"
+     },
+     "window_s": 4.0,
+     "deck": {
+      "end_fade_ms": 1500,
+      "fade_in_ms": 2500,
+      "fade_in_ramp_s": 2.5
+     }
+    },
+    {
+     "case": "out-fade 1500, fade-in 3000",
+     "set": {
+      "in": 0,
+      "out": 4,
+      "fade_ms": 1500,
+      "start": "fade",
+      "fade_in_ms": 3000
+     },
+     "accepted": true,
+     "stored": {
+      "out": 4.0,
+      "fade_ms": 1500,
+      "fade_in_ms": 3000,
+      "start": "fade"
+     },
+     "window_s": 4.0,
+     "deck": {
+      "end_fade_ms": 1500,
+      "fade_in_ms": 2500,
+      "fade_in_ramp_s": 2.5
+     }
+    },
+    {
+     "case": "1 s window, out-fade 800, fade-in 500",
+     "set": {
+      "in": 1,
+      "out": 2,
+      "fade_ms": 800,
+      "start": "fade",
+      "fade_in_ms": 500
+     },
+     "accepted": true,
+     "stored": {
+      "in": 1.0,
+      "out": 2.0,
+      "fade_ms": 800,
+      "fade_in_ms": 500,
+      "start": "fade"
+     },
+     "window_s": 1.0,
+     "deck": {
+      "end_fade_ms": 800,
+      "fade_in_ms": 200,
+      "fade_in_ramp_s": 0.2
+     }
+    },
+    {
+     "case": "1 s window, out-fade 900, fade-in 500 (100 ms left)",
+     "set": {
+      "in": 1,
+      "out": 2,
+      "fade_ms": 900,
+      "start": "fade",
+      "fade_in_ms": 500
+     },
+     "accepted": true,
+     "stored": {
+      "in": 1.0,
+      "out": 2.0,
+      "fade_ms": 900,
+      "fade_in_ms": 500,
+      "start": "fade"
+     },
+     "window_s": 1.0,
+     "deck": {
+      "end_fade_ms": 900,
+      "fade_in_ms": 100,
+      "fade_in_ramp_s": 0.1
+     }
+    },
+    {
+     "case": "1 s window, out-fade 901, fade-in 500 (99 ms left)",
+     "set": {
+      "in": 1,
+      "out": 2,
+      "fade_ms": 901,
+      "start": "fade",
+      "fade_in_ms": 500
+     },
+     "accepted": true,
+     "stored": {
+      "in": 1.0,
+      "out": 2.0,
+      "fade_ms": 901,
+      "fade_in_ms": 500,
+      "start": "fade"
+     },
+     "window_s": 1.0,
+     "deck": {
+      "end_fade_ms": 901,
+      "fade_in_ms": 500,
+      "fade_in_ramp_s": 0.5
+     }
+    },
+    {
+     "case": "1 s window, out-fade 1000, fade-in 500 (nothing left)",
+     "set": {
+      "in": 1,
+      "out": 2,
+      "fade_ms": 1000,
+      "start": "fade",
+      "fade_in_ms": 500
+     },
+     "accepted": true,
+     "stored": {
+      "in": 1.0,
+      "out": 2.0,
+      "fade_ms": 1000,
+      "fade_in_ms": 500,
+      "start": "fade"
+     },
+     "window_s": 1.0,
+     "deck": {
+      "end_fade_ms": 1000,
+      "fade_in_ms": 500,
+      "fade_in_ramp_s": 0.5
+     }
+    },
+    {
+     "case": "1 s window, out-fade 1000, fade-in 1000",
+     "set": {
+      "in": 1,
+      "out": 2,
+      "fade_ms": 1000,
+      "start": "fade",
+      "fade_in_ms": 1000
+     },
+     "accepted": true,
+     "stored": {
+      "in": 1.0,
+      "out": 2.0,
+      "fade_ms": 1000,
+      "fade_in_ms": 1000,
+      "start": "fade"
+     },
+     "window_s": 1.0,
+     "deck": {
+      "end_fade_ms": 1000,
+      "fade_in_ms": 1000,
+      "fade_in_ramp_s": 1.0
+     }
+    },
+    {
+     "case": "1 s window, default out-fade (1500), fade-in 900",
+     "set": {
+      "in": 1,
+      "out": 2,
+      "start": "fade",
+      "fade_in_ms": 900
+     },
+     "accepted": true,
+     "stored": {
+      "in": 1.0,
+      "out": 2.0,
+      "fade_in_ms": 900,
+      "start": "fade"
+     },
+     "window_s": 1.0,
+     "deck": {
+      "end_fade_ms": 1500,
+      "fade_in_ms": 900,
+      "fade_in_ramp_s": 0.9
+     }
+    },
+    {
+     "case": "Out is Cut (no out-fade), 0.5 s window, fade-in 500",
+     "set": {
+      "in": 1,
+      "out": 1.5,
+      "end": "cut",
+      "start": "fade",
+      "fade_in_ms": 500
+     },
+     "accepted": true,
+     "stored": {
+      "in": 1.0,
+      "out": 1.5,
+      "fade_in_ms": 500,
+      "start": "fade",
+      "end": "cut"
+     },
+     "window_s": 0.5,
+     "deck": {
+      "end_fade_ms": 0,
+      "fade_in_ms": 500,
+      "fade_in_ramp_s": 0.5
+     }
+    },
+    {
+     "case": "no Out (no out-fade), fade-in 900",
+     "set": {
+      "in": 1,
+      "start": "fade",
+      "fade_in_ms": 900
+     },
+     "accepted": true,
+     "stored": {
+      "in": 1.0,
+      "fade_in_ms": 900,
+      "start": "fade"
+     },
+     "window_s": 9.0,
+     "deck": {
+      "end_fade_ms": 0,
+      "fade_in_ms": 900,
+      "fade_in_ramp_s": 0.9
+     }
+    }
+   ]
+  },
+  "fade_in_out_fade_overlap_901": {
+   "scenario": {
+    "library_s": {
+     "a.wav": 10,
+     "c.wav": 30,
+     "e.wav": 10.004
+    },
+    "playlist": [
+     "a.wav",
+     "c.wav",
+     "e.wav"
+    ],
+    "config": {
+     "trim_fade_ms": 1500,
+     "trim_fadein_ms": 0
+    },
+    "track_under_test": 0,
+    "file_length_s": 10.0,
+    "trim": {
+     "in": 1,
+     "out": 2,
+     "fade_ms": 901,
+     "start": "fade",
+     "fade_in_ms": 500
+    },
+    "tick_step_s": 0.125,
+    "steps": [
+     "play track 0 from the start"
+    ]
+   },
+   "_info": "Only the deck values are contract (the fade-in keeps its whole length, the out-fade is not shortened). What the level does while they overlap is Python's (AUDIO-SPEC quirk 11, in _info_python_vol, not compared): the out-fade cannot start while another fade is running, so it starts at the first tick after the fade-in ends and runs over what is left (901: from 0.5 s, 0.5 s long; 1000: never, the deck ends at full level at B). A port may multiply the two envelopes instead.",
+   "deck": {
+    "end_fade_ms": 901,
+    "fade_in_ms": 500
+   },
+   "_info_python_vol": [
+    {
+     "t_s": 0.0,
+     "vol": 0.0,
+     "live": true
+    },
+    {
+     "t_s": 0.125,
+     "vol": 0.382683,
+     "live": true
+    },
+    {
+     "t_s": 0.25,
+     "vol": 0.707107,
+     "live": true
+    },
+    {
+     "t_s": 0.375,
+     "vol": 0.92388,
+     "live": true
+    },
+    {
+     "t_s": 0.5,
+     "vol": 1.0,
+     "live": true
+    },
+    {
+     "t_s": 0.625,
+     "vol": 0.92388,
+     "live": true
+    },
+    {
+     "t_s": 0.75,
+     "vol": 0.707107,
+     "live": true
+    },
+    {
+     "t_s": 0.875,
+     "vol": 0.382683,
+     "live": true
+    },
+    {
+     "t_s": 1.0,
+     "vol": 0.0,
+     "live": false
+    },
+    {
+     "t_s": 1.125,
+     "vol": 0.0,
+     "live": false
+    }
+   ]
+  },
+  "fade_in_out_fade_overlap_1000": {
+   "scenario": {
+    "library_s": {
+     "a.wav": 10,
+     "c.wav": 30,
+     "e.wav": 10.004
+    },
+    "playlist": [
+     "a.wav",
+     "c.wav",
+     "e.wav"
+    ],
+    "config": {
+     "trim_fade_ms": 1500,
+     "trim_fadein_ms": 0
+    },
+    "track_under_test": 0,
+    "file_length_s": 10.0,
+    "trim": {
+     "in": 1,
+     "out": 2,
+     "fade_ms": 1000,
+     "start": "fade",
+     "fade_in_ms": 1000
+    },
+    "tick_step_s": 0.125,
+    "steps": [
+     "play track 0 from the start"
+    ]
+   },
+   "_info": "Only the deck values are contract (the fade-in keeps its whole length, the out-fade is not shortened). What the level does while they overlap is Python's (AUDIO-SPEC quirk 11, in _info_python_vol, not compared): the out-fade cannot start while another fade is running, so it starts at the first tick after the fade-in ends and runs over what is left (901: from 0.5 s, 0.5 s long; 1000: never, the deck ends at full level at B). A port may multiply the two envelopes instead.",
+   "deck": {
+    "end_fade_ms": 1000,
+    "fade_in_ms": 1000
+   },
+   "_info_python_vol": [
+    {
+     "t_s": 0.0,
+     "vol": 0.0,
+     "live": true
+    },
+    {
+     "t_s": 0.125,
+     "vol": 0.19509,
+     "live": true
+    },
+    {
+     "t_s": 0.25,
+     "vol": 0.382683,
+     "live": true
+    },
+    {
+     "t_s": 0.375,
+     "vol": 0.55557,
+     "live": true
+    },
+    {
+     "t_s": 0.5,
+     "vol": 0.707107,
+     "live": true
+    },
+    {
+     "t_s": 0.625,
+     "vol": 0.83147,
+     "live": true
+    },
+    {
+     "t_s": 0.75,
+     "vol": 0.92388,
+     "live": true
+    },
+    {
+     "t_s": 0.875,
+     "vol": 0.980785,
+     "live": true
+    },
+    {
+     "t_s": 1.0,
+     "vol": 1.0,
+     "live": false
+    },
+    {
+     "t_s": 1.125,
+     "vol": 1.0,
+     "live": false
+    }
+   ]
   }
  }
 }

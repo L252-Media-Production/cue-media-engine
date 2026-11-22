@@ -210,7 +210,205 @@ async def trim():
             r.at(f * fi_trim["fade_in_ms"] / 1000.0)
             rows.append({"x": f, "vol": r6(d.vol)})
         cases["fade_in_at_A"] = {"scenario": dict(base, trim=fi_trim, steps=["play track 0 from the start"], sampled_at_fractions=FRACS), "_info": "fade_in_ms 1500: sin(x*pi/2) up to full level", "rows": rows}
+    cases.update(await trim_boundaries())
     return doc("trim", "Trim windows (A/B), fade-in at A, fade or cut at B: what set_trim stores, what _start sets on the deck, and the gain curve near B.", cases)
+
+
+# Boundary cases (added to Audio spec 1, no change of behaviour): both sides of every threshold of the trim rules.
+async def _deck_for(r, t, trim_, end="default", offset=0.0, xfade_ms=0, paused=False, raw=False):
+    """Start track t of playlist 0 with a trim (through set_trim, or written straight into `trims` when raw) and return its deck (clock rebased)."""
+    P = r.P
+    r.reset()
+    fid = P.playlists[0]["tracks"][t]
+    ok = True
+    if raw:
+        P.playlists[0]["trims"] = {fid: dict(trim_)}
+    else:
+        ok = P.set_trim(0, t, trim_)
+    if end != "default":
+        P.set_end(0, t, end)
+    tr = P.track(0, t)
+    snd = await P.ensure_loaded(tr["path"])
+    P._start(0, t, tr, snd, xfade_ms, offset=offset, paused=paused)
+    d = r.live()
+    r.rebase()
+    return ok, d
+
+
+def _deck_row(d):
+    return {"base_s": r6(d.base), "lo_s": r6(d.lo), "hi_s": r6(d.hi), "duration_s": r6(d.duration), "end_fade_ms": d.end_fade_ms, "fade_in_ms": d.fade_in_ms,
+            "fade_in_ramp_s": r6(d.fade["len"]) if d.fade and d.fade["b"] >= d.fade["a"] and d.fade_in_ms else None,
+            "start_vol": r6(d.vol), "fresh": d.fresh, "loop": d.loop, "passes": d.passes}
+
+
+def _set_row(P, t, fields, full=None):
+    ok = P.set_trim(0, t, fields)
+    lo, hi, _tm = P.trim_range(0, t, full or P.DURS[P.playlists[0]["tracks"][t]][2])
+    return {"set": fields, "accepted": bool(ok), "stored": dict(P.trim_of(0, t)), "range_s": [r6(lo), r6(hi)]}
+
+
+async def trim_boundaries():
+    cases = {}
+    lib = {"a.wav": 10, "c.wav": 30, "e.wav": 10.004}
+    tcfg = {"trim_fade_ms": 1500, "trim_fadein_ms": 0}
+    names = ["a.wav", "c.wav", "e.wav"]
+    base = {"library_s": dict(lib), "playlist": names, "config": tcfg}
+    async with Rig(lib, [{"name": "A", "tracks": names}], cfg=tcfg) as r:
+        P = r.P
+        for n in names:
+            await r.load(n)
+
+        # ---- 1. a stored window that is too short
+        rows = []
+        for fields in ({"in": 2.0, "out": 2.49}, {"in": 2.0, "out": 2.5}, {"in": 2.0, "out": 2.51}, {"in": 5.0, "out": 5.49}, {"in": 5.0, "out": 5.5}, {"in": 5.0, "out": 3.0},
+                       {"in": 9.4, "out": 9.8}, {"in": 9.5, "out": 9.9}, {"in": 9.49}, {"in": 9.5}, {"in": 9.51}, {"in": 9.8, "out": 9.95}, {"out": 0.49}, {"out": 0.5}, {"out": 0.0}):
+            ok, d = await _deck_for(r, 0, fields, raw=True)
+            lo, hi, _ = P.trim_range(0, 0, 10.0)
+            rows.append({"stored": fields, "range_s": [r6(lo), r6(hi)], "dur_eff_s": r6(P.dur_eff(0, 0)), "deck": {k: v for k, v in _deck_row(d).items() if k in ("base_s", "lo_s", "hi_s", "duration_s", "end_fade_ms")}})
+        cases["short_window_stored"] = {"scenario": dict(base, track_under_test=0, file_length_s=10.0, input="each `stored` trim dict is written straight into playlists[0]['trims'] (old data; set_trim would refuse some of them), then trim_range, dur_eff and _start (from the start) are read"),
+                                        "_info": "file is 10 s. trim_range: A is first held to at most file - 0.5 s; then, when B < A + 0.5 (B missing counts as the end), B BECOMES THE END OF THE FILE and A is KEPT (so [2.0, 10.0], not the whole file). Exactly 0.5 s is long enough. A fallen-back window has no out-fade (hi = end of file)", "rows": rows}
+
+        # ---- 2. rounding, what is not stored, the 0.5 s rule of set_trim
+        rows = []
+        for fields in ({"in": 0.0}, {"in": 0.004}, {"in": 0.01}, {"in": 0.014}, {"in": 0.016}, {"in": 0.02}, {"in": 3.454}, {"in": 3.456},
+                       {"out": 9.98}, {"out": 9.99}, {"out": 10.0}, {"out": 10.5}):
+            P.playlists[0].pop("trims", None)
+            rows.append(_set_row(P, 0, fields, 10.0))
+        cases["set_trim_rounding_a_b"] = {"scenario": dict(base, track_under_test=0, file_length_s=10.0, input="set_trim(playlist 0, track 0, row.set) from an empty trim for each row"),
+                                          "_info": "values are rounded to 0.01 s (round(v, 2)). An In that is <= 0.01 s after rounding is not stored (so 0.01 is dropped and 0.02 is the smallest stored In); an Out that is >= file length - 0.01 s after rounding is not stored; an Out past the end is first clipped to the file length (and then dropped)", "rows": rows}
+        rows = []
+        for fields in ({"in": 2.0, "out": 2.49}, {"in": 2.0, "out": 2.5}, {"in": 2.0, "out": 2.51}, {"in": 2.0, "out": 2.3}, {"in": 4.0, "out": 4.5}, {"in": 2.004, "out": 2.496}, {"in": 2.004, "out": 2.494}):
+            P.playlists[0].pop("trims", None)
+            rows.append(_set_row(P, 0, fields, 10.0))
+        P.playlists[0].pop("trims", None)
+        P.set_trim(0, 0, {"in": 1.0, "out": 5.0})                                           # a refused change leaves what was stored
+        keep = _set_row(P, 0, {"out": 1.2}, 10.0)
+        keep["previous"] = {"in": 1.0, "out": 5.0}
+        rows.append(keep)
+        for fields in ({"out": 0.3}, {"out": 0.5}):                                       # B alone is never compared with A
+            P.playlists[0].pop("trims", None)
+            rows.append(_set_row(P, 0, fields, 10.0))
+        cases["set_trim_minimum_window"] = {"scenario": dict(base, track_under_test=0, file_length_s=10.0, input="set_trim(row.set) from an empty trim (the row with `previous` starts from {in 1.0, out 5.0})"),
+                                            "_info": "the window is checked AFTER rounding and only when both A and B are stored: B < A + 0.5 is refused (accepted false, nothing changes), exactly 0.5 s is accepted. B alone (no A) is accepted whatever it is, but a stored B under 0.5 s then falls back to the end of the file when played (see short_window_stored); range_s shows that", "rows": rows}
+        rows = []
+        for fields in ({"out": 9.98}, {"out": 9.99}, {"out": 9.995}, {"out": 10.0}, {"out": 10.004}, {"out": 10.5}):
+            P.playlists[0].pop("trims", None)
+            rows.append(_set_row(P, 2, fields, 10.004))
+        cases["set_trim_out_vs_file_length"] = {"scenario": dict(base, track_under_test=2, file_length_s=10.004, input="set_trim(playlist 0, track 2, row.set) from an empty trim; the file is 10.004 s"),
+                                                "_info": "the Out is compared with the file length itself, not with a rounded length: Out >= 10.004 - 0.01 (= 9.994) is dropped, so 9.99 is stored here but was dropped for a file of exactly 10 s; an Out past the end is clipped to the length rounded to 0.01 s (10.0)", "rows": rows}
+
+        # ---- 3. fade length limits (file c.wav, 30 s, track 1)
+        rows = []
+        for key, start in (("fade_ms", None), ("fade_in_ms", "fade")):
+            for v in (99, 99.4, 99.6, 100, 10000, 10000.4, 10000.6, 10001):
+                P.playlists[0].pop("trims", None)
+                f = {"out": 20, key: v}
+                if start:
+                    f["start"] = start
+                rows.append(_set_row(P, 1, f, 30.0))
+        cases["fade_length_limits"] = {"scenario": dict(base, track_under_test=1, file_length_s=30.0, input="set_trim(playlist 0, track 1, {out 20, fade_ms or fade_in_ms = value}) from an empty trim; the window (20 s) is longer than every value"),
+                                       "_info": "both lengths are rounded to whole ms and must be 100..10000 ms (inclusive): outside that set_trim refuses everything in the call (accepted false, nothing stored). 99.4 rounds to 99 (refused), 99.6 to 100 (accepted)", "rows": rows}
+        rows = []
+        for fields in ({"out": 3, "fade_ms": 5000}, {"in": 2, "out": 3, "fade_ms": 5000, "start": "fade", "fade_in_ms": 5000}, {"in": 2, "out": 2.5, "fade_ms": 5000, "start": "fade", "fade_in_ms": 5000},
+                       {"in": 2, "out": 2.5, "fade_ms": 100, "start": "fade", "fade_in_ms": 100}, {"fade_ms": 2000}, {"in": 29, "start": "fade", "fade_in_ms": 5000},
+                       {"in": 25, "start": "fade", "fade_in_ms": 10000}, {"start": "fade", "fade_in_ms": 10000}, {"start": "fade", "fade_in_ms": 20000}, {"out": 3, "fade_ms": 5000, "end": "cut"}):
+            P.playlists[0].pop("trims", None)
+            rows.append(_set_row(P, 1, fields, 30.0))
+        cases["fade_length_held_to_window"] = {"scenario": dict(base, track_under_test=1, file_length_s=30.0, input="set_trim(playlist 0, track 1, row.set) from an empty trim for each row"),
+                                               "_info": "a fade length is held to the part that plays (B - A; the fade-in with no B: the rest of the file) but never below 100 ms; a fade length with no B is dropped (it belongs to B); the length is kept while the edge is Cut (end cut / start absent)", "rows": rows}
+        rows = []
+        P.playlists[0].pop("trims", None)
+        for fields in ({"out": 3, "fade_ms": 5000}, {"out": 20}, {"in": 1}, {"out": 20, "fade_ms": 5000}, {"out": 3}, {"out": None}):
+            rows.append(_set_row(P, 1, fields, 30.0))
+        cases["fade_length_follows_window_changes"] = {"scenario": dict(base, track_under_test=1, file_length_s=30.0, input="set_trim(playlist 0, track 1, row.set) one after the other WITHOUT clearing between rows (each row changes what the previous one left)"),
+                                                       "_info": "a stored fade length is re-clamped whenever the window shrinks, and never grows back when the window is widened again (row 2); removing B drops the fade length (last row)", "rows": rows}
+
+        # the default fade at B is not stored, so it can be longer than the window: it is then held to the played part when it runs
+        ok, d = await _deck_for(r, 0, {"in": 2, "out": 3})
+        step = 0.125
+        samples = []
+        for i in range(0, 9):
+            r.at(i * step)
+            samples.append({"t_s": i * step, "vol": r6(d.vol), "live": d in P.decks})
+        cases["default_fade_longer_than_window"] = {"scenario": dict(base, track_under_test=0, file_length_s=10.0, trim={"in": 2, "out": 3}, steps=["play track 0 from the start"], tick_step_s=step, sampled_at_s=[x["t_s"] for x in samples]),
+                                                    "_info": "window [2, 3] (1 s) with the default 1500 ms fade (trim_fade_ms): the deck is started with end_fade_ms 1500, but Deck.update holds the fade to the length of one pass, so it starts at once (t = 0) and runs the whole window", "deck": {"end_fade_ms": d.end_fade_ms, "fade_ms_eff": P.fade_ms_of(0, 0)}, "rows": samples}
+
+        # ---- 4. where the out-fade runs
+        base4 = dict(base, track_under_test=0, file_length_s=10.0, trim={"out": 4, "fade_ms": 1000}, tick_step_s=0.25)
+        sample_times = [0.0, 2.75, 3.0, 3.25, 3.5, 3.75, 4.0, 4.25, 6.75, 7.0, 7.25, 7.5, 7.75, 8.0, 8.25]
+
+        async def outfade_case(end, switch=None, run_s=9.5):
+            ok, d = await _deck_for(r, 0, {"out": 4, "fade_ms": 1000}, end=end)
+            rows, ended = [], None
+            steps = int(run_s / 0.25)
+            for i in range(0, steps + 1):
+                t = i * 0.25
+                if switch and t == switch[0]:
+                    P.set_end(0, 0, switch[1])
+                r.at(t)
+                if ended is None and d not in P.decks:
+                    ended = t
+                if t in sample_times:
+                    rows.append({"t_s": t, "vol": r6(d.vol), "live": d in P.decks})
+            return d, rows, ended
+        for end, ideal_end, info in (("loop", None, "a looping deck never ends and never out-fades (vol stays 1 through every lap)"),
+                                     ("once", 8.0, "two passes of the 4 s window: no fade in pass 1, the out-fade only in pass 2 (7 s .. 8 s), then it ends"),
+                                     ("default", 4.0, "out-fade over the last second of the window (3 s .. 4 s), then it ends"),
+                                     ("stop", 4.0, "same as default: stop only decides what follows")):
+            d, rows, ended = await outfade_case(end)
+            assert (ended is None) == (ideal_end is None) and (ended is None or 0 <= ended - ideal_end <= END_TOL + 1e-6)
+            cases[f"out_fade_placement_{end}"] = {"scenario": dict(base4, end_action=end, steps=[f"set_end(0, 0, {end!r})", "play track 0", "tick every 0.25 s until 9.5 s"], sampled_at_s=list(sample_times)),
+                                                  "_info": "window [0, 4], fade_ms 1000. The out-fade runs only in the LAST pass of a deck that ends; " + info, "ended_at_s": ended, "ideal_ended_at_s": ideal_end, "tolerance_s": END_TOL, "rows": rows}
+        d, rows, ended = await outfade_case("once", switch=(1.0, "default"), run_s=6.0)
+        assert ended is not None and 0 <= ended - 4.0 <= END_TOL + 1e-6
+        cases["out_fade_once_switched_off_in_pass_1"] = {"scenario": dict(base4, end_action="once", switch_off_to="default", switch_off_at_s=1.0, steps=["set_end(0, 0, 'once')", "play track 0", "set_end(0, 0, 'default') at 1.0 s", "tick every 0.25 s until 6.0 s"], sampled_at_s=list(sample_times)),
+                                                         "_info": "once switched off in pass 1: that pass becomes the last one, so the out-fade runs at its end (3 s .. 4 s) and the deck ends at 4 s", "ended_at_s": ended, "ideal_ended_at_s": 4.0, "tolerance_s": END_TOL, "rows": [x for x in rows if x["t_s"] <= 8.25]}
+        d, rows, ended = await outfade_case("loop", switch=(1.0, "default"), run_s=6.0)
+        assert ended is not None and 0 <= ended - 4.0 <= END_TOL + 1e-6
+        cases["loop_switched_off_in_pass_1_end"] = {"scenario": dict(base4, end_action="loop", switch_off_to="default", switch_off_at_s=1.0, steps=["set_end(0, 0, 'loop')", "play track 0", "set_end(0, 0, 'default') at 1.0 s", "tick every 0.25 s until 6.0 s"]),
+                                                    "_info": "loop switched off in pass 1: the running pass is played out and the deck ends at B (4 s). ONLY THE END IS CONTRACT. What the level does in that last pass is a Python quirk (AUDIO-SPEC quirk 10): the deck was started looping, so Python never out-fades it and it stops dead at B; the ideal (a port may do it) is the out-fade 3 s .. 4 s like the default case. The measured levels are in _info_python_vol.",
+                                                    "ended_at_s": ended, "ideal_ended_at_s": 4.0, "tolerance_s": END_TOL, "_info_python_vol": [x for x in rows if x["t_s"] <= 4.25]}
+
+        # ---- 5. when a start counts as "at A"
+        rows = []
+        P.playlists[0].pop("end_actions", None)
+        for label, trim_, offs in (("A = 2 s, B = 8 s", {"in": 2, "out": 8, "start": "fade", "fade_in_ms": 1000}, (0.0, 0.05, 0.0501, 0.06, 1.9, 2.0, 2.04, 2.05, 2.06, 2.2)),
+                                   ("A = 0 (no In), B = 8 s", {"out": 8, "start": "fade", "fade_in_ms": 1000}, (0.0, 0.05, 0.0501, 0.0599, 0.06, 0.07))):
+            for off in offs:
+                ok, d = await _deck_for(r, 0, trim_, end="loop", offset=off)
+                row = _deck_row(d)
+                rows.append({"case": label, "trim": trim_, "offset_s": off, "deck": {k: row[k] for k in ("base_s", "fade_in_ms", "start_vol", "fresh", "loop")}})
+        for label, kw in (("paused start", {"paused": True}), ("start under a crossfade (500 ms)", {"xfade_ms": 500})):
+            ok, d = await _deck_for(r, 0, {"in": 2, "out": 8, "start": "fade", "fade_in_ms": 1000}, end="loop", **kw)
+            row = _deck_row(d)
+            rows.append({"case": label, "trim": {"in": 2, "out": 8, "start": "fade", "fade_in_ms": 1000}, "offset_s": 0.0, "deck": {k: row[k] for k in ("base_s", "fade_in_ms", "start_vol", "fresh", "loop")}, "crossfade_ms": kw.get("xfade_ms", 0), "paused": bool(kw.get("paused"))})
+        cases["fade_in_start_threshold"] = {"scenario": dict(base, track_under_test=0, file_length_s=10.0, end_action="loop", input="set_trim(row.trim), set_end(0, 0, 'loop'), then _start(playlist 0, track 0, offset = row.offset_s [, paused / crossfade_ms]); the deck is read right away"),
+                                            "_info": "TWO thresholds, both on `offset` = the position handed to _start, in FILE seconds (not relative to A). (1) fade-in: applied only when offset <= 0.05 s (0.05 yes, 0.0501 no), not paused and not under a crossfade; a start at offset = A itself (2.0 here) is a part-way start and does NOT fade in. (2) deck.fresh (the loop / once / trigger gate, 'at the In point'): |start - A| < 0.06 s where start = A for offset <= 0.05 else max(A, offset); 2.05 is fresh, 2.06 is not (0.0599 / 0.06 with A = 0). base_s = where the sound begins: offsets below A start at A", "rows": rows}
+
+        # ---- 6. the fade-in is capped to the window minus the out-fade
+        rows = []
+        for label, trim_ in (("out-fade 1500, fade-in 2499", {"in": 0, "out": 4, "fade_ms": 1500, "start": "fade", "fade_in_ms": 2499}), ("out-fade 1500, fade-in 2500", {"in": 0, "out": 4, "fade_ms": 1500, "start": "fade", "fade_in_ms": 2500}),
+                             ("out-fade 1500, fade-in 2501", {"in": 0, "out": 4, "fade_ms": 1500, "start": "fade", "fade_in_ms": 2501}), ("out-fade 1500, fade-in 3000", {"in": 0, "out": 4, "fade_ms": 1500, "start": "fade", "fade_in_ms": 3000}),
+                             ("1 s window, out-fade 800, fade-in 500", {"in": 1, "out": 2, "fade_ms": 800, "start": "fade", "fade_in_ms": 500}), ("1 s window, out-fade 900, fade-in 500 (100 ms left)", {"in": 1, "out": 2, "fade_ms": 900, "start": "fade", "fade_in_ms": 500}),
+                             ("1 s window, out-fade 901, fade-in 500 (99 ms left)", {"in": 1, "out": 2, "fade_ms": 901, "start": "fade", "fade_in_ms": 500}), ("1 s window, out-fade 1000, fade-in 500 (nothing left)", {"in": 1, "out": 2, "fade_ms": 1000, "start": "fade", "fade_in_ms": 500}),
+                             ("1 s window, out-fade 1000, fade-in 1000", {"in": 1, "out": 2, "fade_ms": 1000, "start": "fade", "fade_in_ms": 1000}), ("1 s window, default out-fade (1500), fade-in 900", {"in": 1, "out": 2, "start": "fade", "fade_in_ms": 900}),
+                             ("Out is Cut (no out-fade), 0.5 s window, fade-in 500", {"in": 1, "out": 1.5, "end": "cut", "start": "fade", "fade_in_ms": 500}), ("no Out (no out-fade), fade-in 900", {"in": 1, "start": "fade", "fade_in_ms": 900})):
+            ok, d = await _deck_for(r, 0, trim_)
+            row = _deck_row(d)
+            rows.append({"case": label, "set": trim_, "accepted": bool(ok), "stored": dict(P.trim_of(0, 0)), "window_s": r6(d.hi - d.lo), "deck": {k: row[k] for k in ("end_fade_ms", "fade_in_ms", "fade_in_ramp_s")}})
+        cases["fade_in_cap"] = {"scenario": dict(base, track_under_test=0, file_length_s=10.0, input="set_trim(row.set), then _start from the start (offset 0); the deck is read right away"),
+                                "_info": "fade_in_ms of the deck = min(stored fade-in, window - out-fade) when that is >= 100 ms (inclusive: 100 left is kept, 99 left is not); otherwise it is min(stored fade-in, window) and the out-fade is NOT shortened (they then overlap: see fade_in_out_fade_overlap). end_fade_ms is 0 for a Cut at B or no B; the default out-fade (trim_fade_ms 1500) counts even when longer than the window", "rows": rows}
+        step = 0.125
+        for label, trim_ in (("fade-in 500 + out-fade 901 in a 1 s window", {"in": 1, "out": 2, "fade_ms": 901, "start": "fade", "fade_in_ms": 500}), ("fade-in 1000 + out-fade 1000 in a 1 s window", {"in": 1, "out": 2, "fade_ms": 1000, "start": "fade", "fade_in_ms": 1000})):
+            ok, d = await _deck_for(r, 0, trim_)
+            vols = []
+            for i in range(0, 10):
+                r.at(i * step)
+                vols.append({"t_s": i * step, "vol": r6(d.vol), "live": d in P.decks})
+            cases["fade_in_out_fade_overlap_" + ("901" if "901" in label else "1000")] = {"scenario": dict(base, track_under_test=0, file_length_s=10.0, trim=trim_, tick_step_s=step, steps=["play track 0 from the start"]),
+                                                                                           "_info": "Only the deck values are contract (the fade-in keeps its whole length, the out-fade is not shortened). What the level does while they overlap is Python's (AUDIO-SPEC quirk 11, in _info_python_vol, not compared): the out-fade cannot start while another fade is running, so it starts at the first tick after the fade-in ends and runs over what is left (901: from 0.5 s, 0.5 s long; 1000: never, the deck ends at full level at B). A port may multiply the two envelopes instead.",
+                                                                                           "deck": {"end_fade_ms": d.end_fade_ms, "fade_in_ms": d.fade_in_ms}, "_info_python_vol": vols}
+    return cases
 
 
 # ------------------------------------------------------------------------------------------------ end_actions.json
@@ -268,7 +466,49 @@ async def end_actions():
             order.append(r.P.end_of(0, 0))
             r.P.set_end(0, 0)
         cases["end_action_cycle"] = {"scenario": {"playlist": ["a.wav"], "input": "set_end(0, 0) with no value, 8 times; sequence[0] is the value before the first call"}, "_info": "set_end with no value cycles default > once > loop > stop", "sequence": order}
+    cases.update(await end_action_switching())
     return doc("end_actions", "Per-track end actions: pass counts, remaining time per pass and the moment the track ends (fake clock, 0.25 s steps).", cases)
+
+
+# Switching an end action while the track is playing (added to Audio spec 1, no change of behaviour).
+async def end_action_switching():
+    lib = {"a.wav": 2, "b.wav": 2}
+    step_s, run_s = 0.25, 9.0
+    names = ["a.wav", "b.wav"]
+    # (from, to, switch at s): every pair that is deliberate. "to once" is NOT pinned: see AUDIO-SPEC quirk 12.
+    pairs = [("default", "loop", 1.0), ("default", "stop", 1.0), ("stop", "default", 1.0), ("stop", "loop", 1.0),
+             ("once", "default", 1.0), ("once", "default", 3.0), ("once", "loop", 1.0), ("once", "loop", 3.0), ("once", "stop", 1.0), ("once", "stop", 3.0),
+             ("loop", "default", 1.0), ("loop", "default", 3.0), ("loop", "stop", 1.0), ("loop", "stop", 3.0)]
+    rows = []
+    async with Rig(lib, [{"name": "A", "tracks": names, "mode": "stop"}]) as r:
+        await r.load(*names)
+        for frm, to, at in pairs:
+            row = {"from": frm, "to": to, "switch_at_s": at, "ideal_ended_at_s": 2.0 if at < 2.0 else 4.0}
+            for mode in ("stop", "loop_playlist"):
+                r.reset([{"name": "A", "tracks": names, "mode": mode}])
+                r.P.set_end(0, 0, frm)
+                r.P.play(0, 0)
+                d0 = r.live()
+                ended, after = None, None
+                for i in range(1, int(run_s / step_s) + 1):
+                    r.fake.t += step_s
+                    t = round(i * step_s, 6)
+                    if t == at:
+                        r.P.set_end(0, 0, to)
+                    r.P.tick()
+                    if ended is None and d0 not in r.P.decks:
+                        ended = t
+                        d = r.live()
+                        after = {"track": d.pt[1], "pass_no": d.pass_no()} if d else None
+                assert ended is not None and 0 <= ended - row["ideal_ended_at_s"] <= END_TOL + 1e-6, (frm, to, at, ended)
+                row[f"play_mode_{mode}"] = {"ended_at_s": ended, "live_at_that_tick": after}
+            rows.append(row)
+    return {"end_action_switched_mid_play": {
+        "scenario": {"library_s": dict(lib), "playlist": names, "play_modes": ["stop", "loop_playlist"], "tick_step_s": step_s, "run_s": run_s,
+                     "steps": ["set_end(0, 0, from)", "play track 0 (2 s)", "set_end(0, 0, to) at switch_at_s of play", f"tick every {step_s} s; ended_at_s = first tick where that deck is gone; live_at_that_tick = what is live after that same tick (track index and pass_no, or null)"],
+                     "row_inputs": "from / to / switch_at_s; each row is run once with the playlist mode stop and once with loop_playlist (2 tracks)"},
+        "_info": "the pass that is running is always played out; the NEW action then decides what follows: default = the playlist mode (stop: nothing, loop_playlist: track 1), stop = nothing, loop = track 0 starts again (a restart: Python has a gap there, quirk 7; a port may loop seamlessly), and once / loop switched to something else ends after the RUNNING pass (a switched-off once in pass 1 ends after pass 1). ideal_ended_at_s = the end of the pass running at switch_at_s (2 s passes); measured is on the 0.25 s grid. NOT pinned: switching TO once while playing (default / stop / loop -> once): see AUDIO-SPEC quirk 12",
+        "tolerance_s": END_TOL, "rows": rows}}
 
 
 # ------------------------------------------------------------------------------------------------ play_modes.json
