@@ -1,7 +1,7 @@
 export const SLOTS = 32
 
 /** This module's version: keep it equal to "version" in package.json. The player's APP_VERSION must have the same major.minor. */
-export const MODULE_VERSION = '2.8.0'
+export const MODULE_VERSION = '2.8.1'
 
 /** The player's level-meter taper (METER_STOPS in player.py): dBFS -> % of the meter height. Mirrored here only to place the gauge
  *  colour stops; the values themselves (live_fader_l/r ...) come from the player already on this scale. */
