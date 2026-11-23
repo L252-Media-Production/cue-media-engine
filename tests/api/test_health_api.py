@@ -182,3 +182,14 @@ def test_the_report_has_the_two_soak_lines_and_they_change_nothing(api):
     after = api.state()["health"]
     assert after["state"] == before["state"] and [c["id"] for c in after["checks"]] == [c["id"] for c in before["checks"]]
     assert "Process memory" not in str(after) and "Open files" not in str(after)
+
+
+@pytest.mark.sev(3)
+def test_the_report_has_the_track_cache_memory_line_and_the_row_its_note(api):
+    """2.8.1: 'Track cache memory: <used> MB of <limit> MB' right after Process memory; the Track cache row's note says the same in words."""
+    text = api.get("/api/health/report").json["text"]
+    lines = text.splitlines()
+    i = next(k for k, line in enumerate(lines) if line.startswith("Process memory:"))
+    assert re.fullmatch(r"Track cache memory: [\d,]+ MB of [\d,]+ MB", lines[i + 1]), lines[i + 1]
+    row = next(c for c in api.state()["health"]["checks"] if c["id"] == "cache")
+    assert re.fullmatch(r"[\d,]+ MB of [\d,]+ MB", row.get("note", "")), row

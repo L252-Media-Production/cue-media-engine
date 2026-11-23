@@ -1572,7 +1572,8 @@ def health_report(force=False):
            "engine": {"stalled": WD.stalled, "gave_up": WD.gave_up, "restarts": WD.total},
            "companion": {"polled": last is not None, "silent_s": 0 if last is None else now - last, "host_found": getattr(osc_out, "found", None)},
            "disk": disk_reading(),
-           "cache": {"measured": bool(ri and ri.get("tracks_total")), "full": bool(ri and ri.get("full")), "failing": bool(S.LAST_LOAD_ERR and clock.time() - S.LAST_LOAD_ERR[0] < 120)},
+           "cache": {"measured": bool(ri and ri.get("tracks_total")), "full": bool(ri and ri.get("full")), "failing": bool(S.LAST_LOAD_ERR and clock.time() - S.LAST_LOAD_ERR[0] < 120),
+                     "used": cache.cache_bytes(), "limit": cache.limit_bytes(), "available": cache.mem_available()},
            "uptime_s": max(0.0, now - _STARTED),
            "issues": ht if hs == "error" else ""}
     rep = healthm.compact(healthm.evaluate(inp))
@@ -2310,7 +2311,7 @@ def health_report_text():
               f"Preview output: {outalias.shown(pv) if pv else 'none'}" + ("" if not pv else (" (found in the device list)" if pv in names else " (NOT in the device list)" if known and not decks else " (not checked while audio plays)" if decks else " (not checked yet)")),
               f"Audio engine: {healthm.restarts_note(WD.total)}" + ("" if CFG["watchdog"] else " (watchdog is off)"),
               f"Push messages: {'on' if CFG['push_enabled'] and CFG['push_url'] else 'off'}" + (f"; last failure: {POSTER.last_error}" if POSTER.last_error else ""),
-              healthm.process_memory_text(), healthm.open_files_text()]
+              healthm.process_memory_text(), healthm.cache_memory_text(cache.cache_bytes(), cache.limit_bytes()), healthm.open_files_text()]
     return "\n".join(lines) + "\n"
 
 

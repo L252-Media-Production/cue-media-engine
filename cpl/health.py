@@ -119,13 +119,31 @@ def check_disk(x):
     return _chk("disk", OK)
 
 
+LOW_MEMORY_BYTES = 1 * GB          # 2.8.1: the machine's available memory (MemAvailable) below this = warning on the Track cache row
+MB = 1024 ** 2
+
+
+def cache_amount(used, limit):
+    """"412 MB of 1,024 MB": what the track cache holds and its limit (2.8.1), whole MB with thousands separators."""
+    return f"{max(0, used) / MB:,.0f} MB of {max(0, limit) / MB:,.0f} MB"
+
+
 def check_cache(x):
+    c = _check_cache(x)
+    if x and x.get("limit"):
+        c["note"] = cache_amount(x.get("used") or 0, x["limit"])          # always shown on this row, like the engine's restart count
+    return c
+
+
+def _check_cache(x):
+    if x and x.get("available") is not None and x["available"] < LOW_MEMORY_BYTES:
+        return _chk("cache", WARN, "The machine is low on memory.")
     if not x or not x.get("measured", True):
         return _chk("cache", UNKNOWN, "")
     if x.get("failing"):
         return _chk("cache", WARN, "A track could not be loaded into memory. See the track list for the file.")
     if x.get("full"):
-        return _chk("cache", WARN, "The track cache is full, so some tracks load when they start. Raise the cache size in Settings or shorten the playlists.")
+        return _chk("cache", WARN, "The track cache is full, so some tracks load when they start. Shorten the playlists, or raise cache_mb in config.json if the machine has memory to spare.")
     return _chk("cache", OK)
 
 
@@ -151,6 +169,8 @@ def evaluate(inp):
     summary = SUMMARY.get(first["id"], first["title"]) if first else ""
     if first and first["id"] == "disk":
         summary = "Disk space critical" if first["status"] == BAD else "Disk space low"
+    if first and first["id"] == "cache" and first["text"] == "The machine is low on memory.":
+        summary = "Low on memory"
     return {"state": state, "summary": summary, "checks": checks}
 
 
@@ -183,6 +203,11 @@ def process_memory_text(status_path=PROC_STATUS, platform=None, rusage=None):
     except Exception:
         pass
     return "Process memory: not available"
+
+
+def cache_memory_text(used, limit):
+    """"Track cache memory: 412 MB of 1,024 MB" (2.8.1), the line next to Process memory in the report. Read-only: no effect on any check."""
+    return f"Track cache memory: {cache_amount(used, limit)}"
 
 
 def open_files_text(fd_dir=PROC_FD, platform=None, own_fd=1):

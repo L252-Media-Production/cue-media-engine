@@ -18,7 +18,7 @@ with no value steps to the next setting, `/<p>/<t>/loop` still toggles loop fore
 
 ## RAM indicator numbers
 
-The numbers are in `/api/state` (`ram`: `used_mb`, `budget_mb`, `tracks_total`, `tracks_in_ram`, `loading`, `full`, `rev`) and `/api/playlists` (`ram`, `ram_in`, `ram_total`). They are for the web page only: nothing about them goes to Companion. They are computed from the cache with lookups, cached for one second, and reading them never changes which track the cache drops first.
+The numbers are in `/api/state` (`ram`: `used_mb`, `budget_mb` (2.8.1: the effective limit = the smallest of `cache_mb`, 25 % of MemTotal and MemTotal minus 1 GB; `mem.cache_budget` is the same in bytes), `tracks_total`, `tracks_in_ram`, `loading`, `full`, `rev`) and `/api/playlists` (`ram`, `ram_in`, `ram_total`). They are for the web page only: nothing about them goes to Companion. They are computed from the cache with lookups, cached for one second, and reading them never changes which track the cache drops first.
 
 ## Playlist progress: how the sums are made
 

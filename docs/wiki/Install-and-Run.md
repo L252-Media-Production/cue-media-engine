@@ -71,8 +71,11 @@ the old data as `playlists.pre-library.json`.
   playlist you haven't focused), whatever is playing carries on, the page shows "Preparing …" and `mp_loading`
   holds the track name, and the new track cuts or crossfades in as soon as it is ready (a few seconds for a long
   MP3 or FLAC). Pressing Stop or Fade out cancels it, and triggering another track replaces it.
-- `cache_mb` (default 768) is the RAM used for decoded tracks, least recently used first out. Decoded audio is
-  about 11 MB per minute (stereo), so 768 MB holds roughly an hour. Lower it on a Raspberry Pi with little RAM; the
-  warm-up then covers fewer tracks. Plain WAV files load fastest.
+- `cache_mb` (default 768) is the most RAM used for decoded tracks, least recently used first out. Decoded audio is
+  about 11 MB per minute (stereo, whatever the file type), so 768 MB holds roughly an hour. Since 2.8.1 the player
+  never uses more than a quarter of the machine's RAM, nor the RAM minus 1 GB, whatever `cache_mb` says, so the same
+  `config.json` is safe on a 4 GB Raspberry Pi (limit about 1 GB) and a 31 GB NUC (about 7.7 GB). The track that is
+  playing, the one after it and the cue are never dropped; a track that is not in RAM is decoded from its file when it
+  is played. `tests/tools/ram_breakdown.py <install folder>` prints what a library needs. Plain WAV files load fastest.
 - Formats: wav, mp3, ogg, flac.
 - Crossfades use equal-power curves so loudness stays steady.
