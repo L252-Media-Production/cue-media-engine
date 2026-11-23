@@ -443,3 +443,28 @@ def next_in_order(p, t):
     _bag[p] = bag
     first = ids.index(pick)
     return [first] + [i for i in range(n) if i != first]
+
+
+def peek_next(p, t):
+    """The library id that auto_advance would play after track t of playlist p, WITHOUT changing anything (the shuffle bag is only read),
+    or None when nothing follows or it is not decided yet: a shuffle playlist whose bag is empty draws its next round at random at the
+    moment the track ends. Used by the track cache (2.8.1) to keep that track decoded and never drop it while the current one plays."""
+    ids = playlists[p]["tracks"] if 0 <= p < len(playlists) else []
+    n = len(ids)
+    if not 0 <= t < n or end_of(p, t) == "stop":
+        return None
+    mode = pl_mode(p)
+    if mode == "next_playlist":                            # the same order as auto_advance: the rest of this list, then the next lists
+        order = [ids[i] for i in range(t + 1, n)]
+        for q in range(p + 1, len(playlists)):
+            order += playlists[q]["tracks"]
+    elif is_loop(p, t):
+        order = [ids[t]]
+    elif mode == "stop":
+        return None
+    elif mode == "loop_playlist":
+        order = [ids[(t + 1 + k) % n] for k in range(n)]
+    else:
+        bag = [x for x in _bag.get(p, []) if x in ids and x != ids[t]]
+        order = bag[-1:]                                   # next_in_order pops the last one
+    return next((fid for fid in order if fid in library), None)

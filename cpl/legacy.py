@@ -583,7 +583,15 @@ def _start(p, t, tr, snd, xfade_ms, offset=0.0, paused=False, top=False):
     if start > 0.05 or hi < full - 0.01:             # begin at the In point / resume part-way in / stop at the Out point
         play_snd = trimmed_cached(tr["path"], lo, hi) if offset <= 0.05 else None      # cut ahead of time by the warm-up
         if play_snd is None:
-            play_snd = cut_sound(snd, start, hi)
+            try:
+                play_snd = cut_sound(snd, start, hi)
+            except MemoryError:                      # 2.8.1: drop the cached tracks that are not in use and try once more; never crash the audio
+                print(f"WARNING: out of memory while cutting {tr['name']}; dropped {cache.shed()} cached track(s) that were not in use", flush=True)
+                try:
+                    play_snd = cut_sound(snd, start, hi)
+                except MemoryError:
+                    print(f"could not start {tr['name']}: not enough memory", flush=True)
+                    return False
     top = bool(top and decks)
     old_top = [d for d in decks if d.top] if top else []
     if top:                                         # Play on Top: duck what is playing instead of replacing it
@@ -1114,6 +1122,10 @@ def tick():
     except Exception as e:                       # the watchdog must never stop fades and auto-advance
         log_once("watchdog", "watchdog: error in the tick", e)
     lin.LI.watchdog()                            # a Live input detector that has not run for 250 ms must not leave the music ducked
+    try:
+        warm.check_soon()                        # once a second: the track after the live one (and the cue) decoded ahead (2.8.1 track cache)
+    except Exception as e:
+        log_once("warm-soon", "track cache: could not check the next track", e)
     update_meters()
     save_resume()
 
@@ -1278,6 +1290,16 @@ class Mirror(Preview):
 
 preview = Preview()
 mirror = Mirror()
+
+
+def _preview_keep():
+    """The track cache's keeper for the Preview output (2.8.1): the previewed file is never dropped from the player's cache while it is previewed."""
+    if preview.fid and preview.status.get("state") in ("loading", "playing", "paused"):
+        return {str(LIB / preview.fid)}
+    return ()
+
+
+cache.keepers.append(_preview_keep)
 
 
 def input_solo_msg():

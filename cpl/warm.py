@@ -5,12 +5,13 @@ Moved verbatim from cpl/legacy.py in split step P5/P6 (docs/split-plan.md 2.1); 
 import asyncio
 from pathlib import Path
 
-from cpl import clock
+from cpl import cache, clock
+from cpl import playlists as plm
 from cpl import state as S
 from cpl.cache import _cache_lock, _tcache, cache_bytes, cached, cut_sound, ensure_loaded, ram_snapshot, trimmed_cached, trimmed_put
-from cpl.config import CFG, LIB
+from cpl.config import LIB
 from cpl.playlists import trim_of, trim_range
-from cpl.state import focus, library, playlists
+from cpl.state import DURS, decks, focus, library, playlists
 from cpl.triggers_data import trigger_targets
 from cpl.util import log_once
 
@@ -33,6 +34,73 @@ def request_warm():
 S.on_change.append(request_warm)       # bump() runs it (split step P4, F2): the lists changed, so keep the tracks around the focus decoded
 
 
+# ---------------------------------------------------------------- what is needed soon (2.8.1)
+# The track that follows the live one (what auto-advance will play, plm.peek_next), the cue (what Go plays) and the live track's trigger targets.
+# The warm-up decodes them whatever the fill level, and the cache never drops them (nor a track that is playing or fading) while something plays.
+def soon_ids():
+    out = list(trigger_targets())
+    d = S.live_deck
+    if d is not None and d.top and d.under in decks:
+        d = d.under                                    # under a Play on Top, the track underneath is the one that will advance
+    if d is not None and d.pt:
+        nxt = plm.peek_next(*d.pt)
+        if nxt:
+            out.append(nxt)
+    if not S.cue_cleared and 0 <= focus[0] < len(playlists) and 0 <= focus[1] < len(playlists[focus[0]]["tracks"]):
+        out.append(playlists[focus[0]]["tracks"][focus[1]])
+    return [f for i, f in enumerate(out) if f in library and f not in out[:i]]
+
+
+def cache_keep():
+    """The track cache's keeper (cache.keepers): every deck's file (playing, fading out under a crossfade, under a Play on Top), and, while
+    something plays, what is needed soon."""
+    keep = {d.path for d in decks if getattr(d, "path", None)}
+    if decks:
+        keep.update(str(LIB / f) for f in soon_ids())
+    return keep
+
+
+cache.keepers.append(cache_keep)
+
+
+_soon = {"t": None}
+
+
+def check_soon():
+    """Called by tick(): once a second, if a track needed soon is not decoded (a track that started after an on-demand decode, a shuffle draw),
+    start the warm-up. A few set lookups: nothing heavy on the tick."""
+    now = clock.monotonic()
+    if _soon["t"] is not None and now - _soon["t"] < 1.0:
+        return
+    _soon["t"] = now
+    if not decks:
+        return
+    for f in soon_ids():
+        path = str(LIB / f)
+        if not cache.has(path) and not cache.is_loading(path) and not cache.is_oversize(path):
+            request_warm()
+            return
+
+
+def _est(path):
+    """Decoded bytes of a library file from its known length (durations.json), 0 while the length is unknown (then the fill level is checked after it loads)."""
+    try:
+        d = DURS.get(Path(path).relative_to(LIB).as_posix())
+    except ValueError:
+        d = None
+    return int(d[2] * cache.BPS) if d and d[2] else 0
+
+
+async def _load_all(paths):
+    for i in range(0, len(paths), 2):                  # two at a time: the player has cores to spare, and a cold start waits less
+        if _warm["again"]:
+            return
+        res = await asyncio.gather(*(ensure_loaded(x) for x in paths[i:i + 2]), return_exceptions=True)
+        for r in res:
+            if isinstance(r, Exception):
+                print("warm-up:", r)
+
+
 async def _warm_loop():
     while True:
         _warm["again"] = False
@@ -42,23 +110,26 @@ async def _warm_loop():
         order += [ids[(t + k) % len(ids)] for k in range(len(ids))]
         for q in list(range(p + 1, len(playlists))) + list(range(0, p)):
             order += playlists[q]["tracks"]
-        todo, seen = [], set()
+        paths, seen = [], set()
         for fid in order:
             if fid in seen or fid not in library:
                 continue
             seen.add(fid)
-            if cached(str(LIB / fid)) is None:
-                todo.append(str(LIB / fid))
-        i = 0
-        while i < len(todo) and not _warm["again"]:
-            if cache_bytes() > 0.8 * float(CFG["cache_mb"]) * 1048576:
+            paths.append(str(LIB / fid))
+        cache.touch(paths)                      # the tracks nearest the cue count as the most recently used, so the cache drops the farthest first
+        soon = [x for x in (str(LIB / f) for f in soon_ids()) if not cache.has(x) and not cache.is_oversize(x)]
+        await _load_all(soon)                   # needed soon: decoded whatever the fill level (the cache makes room by dropping what is not in use)
+        fill = cache.fill_bytes()
+        todo = [x for x in paths if x not in soon and not cache.has(x) and not cache.is_oversize(x)]
+        while todo and not _warm["again"]:      # in playlist order from the cue, and stop at the fill level: never load everything and then trim
+            used, batch = cache_bytes(), []
+            while todo and len(batch) < 2 and used + _est(todo[0]) <= fill:
+                used += _est(todo[0])
+                batch.append(todo.pop(0))
+            if not batch:
                 break
-            batch = todo[i:i + 2]               # two at a time: the player has cores to spare, and a cold start waits less
-            i += 2
-            res = await asyncio.gather(*(ensure_loaded(x) for x in batch), return_exceptions=True)
-            for r in res:
-                if isinstance(r, Exception):
-                    print("warm-up:", r)
+            await _load_all(batch)
+        cache.touch(paths)
         await _warm_trims()
         if not _warm["again"]:
             return
@@ -84,7 +155,7 @@ async def _warm_trims():
         for k in [k for k in _tcache if k not in keep]:
             del _tcache[k]
     for path, lo, hi in want:
-        if _warm["again"] or cache_bytes() > 0.9 * float(CFG["cache_mb"]) * 1048576:
+        if _warm["again"] or cache_bytes() > max(0.9 * cache.limit_bytes(), cache.limit_bytes() - 256 * cache.MIB):
             return
         snd = cached(path)
         if snd is None or trimmed_cached(path, lo, hi) is not None:
@@ -119,7 +190,7 @@ def _ram_compute():
             total += 1
             n_in += st == "in"
             missing_out = missing_out or st != "in"
-    budget = int(float(CFG["cache_mb"]) * 1048576)
+    budget = cache.limit_bytes()
     busy = bool(loading) or bool(_warm["task"] and not _warm["task"].done())
     sig = (n_in, tuple(sorted(f for f, v in states.items() if v != "out")), busy)
     if sig != _ram["sig"]:
