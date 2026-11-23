@@ -12,6 +12,15 @@ function applyLook(){
  d.dataset.skin=LOOK.skin;d.dataset.pref=LOOK.theme;d.dataset.theme=LOOK.theme==='system'?(dark?'dark':'light'):LOOK.theme}
 function setLook(k,v){LOOK[k]=v;try{localStorage.setItem('cp_'+k,v)}catch(e){}applyLook();if(window.syncLook)syncLook()}
 applyLook();
+/* page width (desktop and tablet): standard | wide | full | custom (cp_pagew_px, 800-3840 px); sets --pagew before the first paint. Phone widths ignore it (style.css). */
+var PAGEW={STD:1320,WIDE:1800,MIN:800,MAX:3840,mode:'standard',px:1600};
+function pagewClamp(v){if(v===null||v===undefined||String(v).trim()==='')return null;v=Math.round(+v);return isFinite(v)?Math.min(PAGEW.MAX,Math.max(PAGEW.MIN,v)):null}
+function pagewCss(m,px){return m==='wide'?PAGEW.WIDE+'px':m==='full'?'100vw':m==='custom'?pagewClamp(px)+'px':PAGEW.STD+'px'}
+function applyPageW(){var d=document.documentElement,m=PAGEW.mode,px=pagewClamp(PAGEW.px);
+ if(['standard','wide','full','custom'].indexOf(m)<0||(m==='custom'&&px===null))m=PAGEW.mode='standard';
+ PAGEW.px=px===null?1600:px;d.dataset.pagew=m;d.style.setProperty('--pagew',pagewCss(m,PAGEW.px))}
+try{PAGEW.mode=localStorage.getItem('cp_pagew')||'standard';var pw=localStorage.getItem('cp_pagew_px');if(pw!==null)PAGEW.px=pw}catch(e){PAGEW.mode='standard'}
+try{applyPageW()}catch(e){}
 try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',applyLook)}catch(e){}
 </script>
 <style><!--@include style.css--></style>
@@ -43,6 +52,8 @@ try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',applyLo
    <option value=console>Console - dense, amber</option><option value=studio>Studio - clean, soft cards</option><option value=stage>Stage - big, touch friendly</option></select></div>
   <div class=sr data-s="theme light dark system"><label>Theme</label><span class=seg id=set_theme>
    <button data-v=system onclick="setLook('theme','system')">System</button><button data-v=light onclick="setLook('theme','light')">Light</button><button data-v=dark onclick="setLook('theme','dark')">Dark</button></span></div>
+  <div class="sr pwrow" data-s="page width wide full screen custom pixels"><span class=lb2><span id=pw_lbl>Page width</span><button class=ib2 data-tip="How wide the page may grow on a large screen. Standard is the usual centred column, Full width uses the whole window, Custom takes 800 to 3840 pixels. Phones are not affected." aria-label="More information about the page width">i</button></span><span class=pwc><span class=seg id=set_pagew role=group aria-labelledby=pw_lbl>
+   <button data-v=standard onclick="pagewSet('standard')">Standard</button><button data-v=wide onclick="pagewSet('wide')">Wide</button><button data-v=full onclick="pagewSet('full')">Full width</button><button data-v=custom onclick="pagewSet('custom')">Custom</button></span><span id=pw_cw class=pwcw hidden><input type=number id=set_pagewpx min=800 max=3840 step=10 inputmode=numeric oninput="pagewLive(this.value)" onchange="pagewPx(this.value)" aria-label="Custom page width in pixels, 800 to 3840"><em>px</em></span><button class=lnk id=pw_reset onclick="pagewSet('standard')" hidden>Reset to Standard</button></span></div>
   <div class=sr data-s="show waveforms wave"><label for=set_wave>Show waveforms</label><span class=swl><input type=checkbox id=set_wave onchange="setWave(this.checked)" aria-label="Show waveforms"><i></i></span></div>
   <div class=sr data-s="pin live panel keep in view scroll"><span class=lb2><label for=set_pin>Pin the Live panel</label><button class=ib2 data-tip="Keeps the Live panel in view while you scroll. The pin button on the panel does the same." aria-label="More information about pinning the Live panel">i</button></span><span class=swl><input type=checkbox id=set_pin onchange="pinSet(this.checked)" aria-label="Pin the Live panel"><i></i></span></div>
   <div class=sr data-s="shrink one line scrolled live panel"><span class=lb2><label for=set_pinmini>Shrink to one line when scrolled</label><button class=ib2 data-tip="When the full Live panel has scrolled out of view, a one-line version stays at the top: title, pause, time and the meters. Off: the whole panel stays at the top." aria-label="More information about the one-line Live panel">i</button></span><span class=swl><input type=checkbox id=set_pinmini onchange="pinOpt('mini',this.checked)" aria-label="Shrink to one line when scrolled"><i></i></span></div>

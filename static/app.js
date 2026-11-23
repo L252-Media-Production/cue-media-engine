@@ -755,7 +755,7 @@ const THM={system:'System',light:'Light',dark:'Dark'};
 function syncLook(){
  setTimeout(fitInf,0);
  thm.textContent=THM[LOOK.theme]+(LOOK.theme==='system'?' ('+document.documentElement.dataset.theme+')':'');
- set_skin.value=LOOK.skin;set_wave.checked=WAVE;wnFill();if(wn_body.hidden===wnOpen())wnTog();topLoad();trLoad();set_theme.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v===LOOK.theme));setSums()}
+ set_skin.value=LOOK.skin;set_wave.checked=WAVE;wnFill();if(wn_body.hidden===wnOpen())wnTog();topLoad();trLoad();set_theme.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v===LOOK.theme));pagewUi()}
 /* Time warnings live on the player (state.json), so every page, and the stage page, use the same list. They are always on.
    WN.warnings is [{t: seconds left, c: colour}], longest first: the first row is "First warning", the last "Final warning". */
 let WN={warnings:[{t:60,c:'#f97316'},{t:30,c:'#ef4444'}]},wnTouch=0,wnMig=false;
@@ -797,6 +797,14 @@ function wnApply(r){lastRem=r;let col='';
  if(/^\d+:\d\d$/.test(r)){const s=ptime(r);let best=null;for(const w of WN.warnings)if(s<=w.t&&(!best||w.t<=best.t))best=w;if(best)col=best.c}   // the colour of the shortest warning time still reached
  remv.style.color=col;if(window.ms_rem)ms_rem.style.color=col}
 function setWave(v){WAVE=!!v;try{localStorage.setItem('cp_wave',WAVE?'1':'0')}catch(e){}document.body.classList.toggle('wave',WAVE);syncLook()}
+/* page width (Settings > Appearance; PAGEW / applyPageW / pagewClamp are in the head script of index.html): saved on every change, shown at once */
+function pagewSave(){try{localStorage.setItem('cp_pagew',PAGEW.mode);localStorage.setItem('cp_pagew_px',String(PAGEW.px))}catch(e){}}
+function pagewSet(m){PAGEW.mode=m;applyPageW();pagewSave();pagewUi();if(m==='custom')set_pagewpx.focus()}
+function pagewLive(v){const n=+v;if(String(v).trim()!==''&&n>=PAGEW.MIN&&n<=PAGEW.MAX)document.documentElement.style.setProperty('--pagew',Math.round(n)+'px')}   // while typing or stepping: shown live, saved (and clamped) on change
+function pagewPx(v){const n=pagewClamp(v);if(n!==null)PAGEW.px=n;PAGEW.mode='custom';applyPageW();pagewSave();pagewUi(true)}
+function pagewUi(force){const m=PAGEW.mode;set_pagew.querySelectorAll('button').forEach(b=>{const on=b.dataset.v===m;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on)});
+ pw_cw.hidden=m!=='custom';pw_reset.hidden=m==='standard';if(force||document.activeElement!==set_pagewpx)set_pagewpx.value=PAGEW.px;setSums()}
+const PWN={standard:'',wide:'Wide page',full:'Full-width page'};
 function cycleTheme(){setLook('theme',{system:'light',light:'dark',dark:'system'}[LOOK.theme])}
 try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',syncLook)}catch(e){}
 function say(t,ok){setmsg.textContent=t;setmsg.className='msg '+(ok?'ok':'bad')}
@@ -833,7 +841,7 @@ function setSums(){try{setSums1()}catch(e){}}
 function setSums1(){
  const set=(id,t)=>{const e=document.getElementById('sum_'+id);if(e)e.textContent=t};
  const SK={console:'Console',studio:'Studio',stage:'Stage'};
- set('appearance',(SK[LOOK.skin]||LOOK.skin)+' · '+THM[LOOK.theme]+' theme');
+ set('appearance',(SK[LOOK.skin]||LOOK.skin)+' · '+THM[LOOK.theme]+' theme'+(PAGEW.mode==='custom'?' · '+PAGEW.px+' px page':PWN[PAGEW.mode]?' · '+PWN[PAGEW.mode]:''));
  set('audio',({browser:'This browser',pi:'Player output',both:'Both'}[pvt()]||'')+' · Mirror '+(set_mir.checked?'on':'off')+(INP&&INP.device?' · Input '+(INP.armed?'armed':'off'):''));
  set('transitions',(TRD==='cut'?'Cut':'Crossfade')+' · crossfade '+(+tr_ms.value||0)+' s');
  set('companion',(CMP.warn?'Still using ':'')+cmpFmt(CMP.target));

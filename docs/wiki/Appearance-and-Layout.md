@@ -8,8 +8,9 @@ Open **⚙ Settings > Look > Appearance** (or use the Theme button in the header
 
 - **Style**: *Console* (dense, amber), *Studio* (clean, soft cards) or *Stage* (large, touch friendly).
 - **Theme**: *System* (follows the device's light/dark setting and changes live), *Light* or *Dark*.
+- **Page width** (desktop and tablet): how wide the page may grow on a large screen. *Standard* is the usual centred column (1320 pixels), *Wide* allows 1800, *Full width* uses the whole window, *Custom* takes 800 to 3840 pixels (a number outside that is brought into the range). It applies as you pick it; **Reset to Standard** goes back. Phones are not affected and do not show the row.
 
-The choice is remembered per browser, so a touch panel can run Stage while your laptop runs Console. Nothing about it is stored on the player.
+These choices are remembered per browser, so a touch panel can run Stage while your laptop runs Console. Nothing about it is stored on the player.
 
 Drag and drop: drag a library row (⠿) onto a playlist to add it, before or after any track (a line shows where it will land).
 Drag a playlist row to reorder it or drop it on another playlist. Drop audio files from your computer straight onto a playlist to upload and add them.
