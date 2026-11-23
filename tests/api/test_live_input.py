@@ -59,6 +59,19 @@ class Rig:
         assert self.api.res("0/0") == "ok"
 
 
+def settle(r, level, timeout=10):
+    """Wait until the detector reads `level` dB and its reduction has stopped moving (equal on two reads 0.25 s apart). The helper and the
+    detector run in other processes in wall time, so a fixed sleep can sample a ramp that a loaded machine has not finished; this waits for
+    the state itself. The exact claim (Solo changes no detector number) is proven with the fake clock in tests/engine/test_live_input_engine.py."""
+    prev = [None]
+
+    def ok(i):
+        same = prev[0] is not None and i["gr"] == prev[0]
+        prev[0] = i["gr"]
+        return abs(i["level_db"] - level) < 0.05 and same
+    return r.until(ok, timeout, f"the detector settled at {level} dB", interval=0.25)
+
+
 def build(preview=True, wav_only=True, extra_config=None, extra_env=None, feed=None, tones=False):
     d, env = make_env(extra_env=extra_env)
     if feed:
@@ -344,9 +357,9 @@ def test_solo_plays_a_pair_as_stereo_and_a_single_channel_to_both_ears_without_t
         assert r.api.post("/api/input", {"channels": chs}).status == 200
         r.until(lambda i: i["present"] and i["channel_list"] == chs, 15, f"channels {chs} open")
         r.feed(state="run", db=-90.0, channels=2, ch_db={"1": -20.0, "2": -60.0})
-        time.sleep(1.5)
+        settle(r, -20.0)
         assert r.api.post("/api/input/solo", {"on": solo}).status == 200
-        time.sleep(1.5)
+        settle(r, -20.0)
         out = [(r.info()["gr"], r.info()["level_db"]) for _ in range(6)]
         pv = r.api.state()["preview"]
         return out, pv
@@ -492,7 +505,7 @@ def test_solo_plays_the_input_on_the_preview_output_and_changes_nothing_in_the_d
         r.feed(state="run", db=-90.0, channels=2)
         r.until(lambda i: i["gr"] == 0, 6, "quiet")
         r.feed(state="run", db=-20.0, channels=2)
-        time.sleep(1.5)                                           # settle at the full depth
+        settle(r, -20.0)                                          # at the full depth (waited for, not a fixed sleep)
         samples = []
         for _ in range(8):
             i = r.info()

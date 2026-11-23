@@ -762,6 +762,23 @@ class StereoCase(InputCase):
 
 
 class StereoPair(StereoCase):
+    def test_solo_on_and_off_give_identical_numbers_for_a_pair(self):
+        """The fake-clock twin of the API test test_solo_plays_a_pair_as_stereo...: Solo on a stereo pair changes no level, reduction or deck volume."""
+        def run(solo):
+            self.log = []
+            self.LI.reset_detector()
+            self.writer.new_epoch()
+            self.LI.set_solo(solo)
+            self.sblocks(-90, -90, 10)
+            self.sblocks(-20, -60, 80)
+            self.sblocks(-60, -15, 40)
+            self.sblocks(-90, -90, 100)
+            return list(self.log), self.LI.signal(), self.LI.ducking()
+        a, b, c = run(False), run(True), run(False)
+        self.assertEqual(a, b, "Solo on changed the detector level, the reduction or the Live deck volume")
+        self.assertEqual(a, c)
+        self.assertGreater(max(x[0] for x in a[0]), 5, "the burst did duck, so the comparison means something")
+
     def test_only_left_loud_ducks(self):
         rl, rr = self.sblocks(-5, -90, 120)[-1]
         self.assertGreater(self.LI.gr, 18)
