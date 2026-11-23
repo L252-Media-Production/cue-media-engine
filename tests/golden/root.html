@@ -12,6 +12,15 @@ function applyLook(){
  d.dataset.skin=LOOK.skin;d.dataset.pref=LOOK.theme;d.dataset.theme=LOOK.theme==='system'?(dark?'dark':'light'):LOOK.theme}
 function setLook(k,v){LOOK[k]=v;try{localStorage.setItem('cp_'+k,v)}catch(e){}applyLook();if(window.syncLook)syncLook()}
 applyLook();
+/* page width (desktop and tablet): standard | wide | full | custom (cp_pagew_px, 800-3840 px); sets --pagew before the first paint. Phone widths ignore it (style.css). */
+var PAGEW={STD:1320,WIDE:1800,MIN:800,MAX:3840,mode:'standard',px:1600};
+function pagewClamp(v){if(v===null||v===undefined||String(v).trim()==='')return null;v=Math.round(+v);return isFinite(v)?Math.min(PAGEW.MAX,Math.max(PAGEW.MIN,v)):null}
+function pagewCss(m,px){return m==='wide'?PAGEW.WIDE+'px':m==='full'?'100vw':m==='custom'?pagewClamp(px)+'px':PAGEW.STD+'px'}
+function applyPageW(){var d=document.documentElement,m=PAGEW.mode,px=pagewClamp(PAGEW.px);
+ if(['standard','wide','full','custom'].indexOf(m)<0||(m==='custom'&&px===null))m=PAGEW.mode='standard';
+ PAGEW.px=px===null?1600:px;d.dataset.pagew=m;d.style.setProperty('--pagew',pagewCss(m,PAGEW.px))}
+try{PAGEW.mode=localStorage.getItem('cp_pagew')||'standard';var pw=localStorage.getItem('cp_pagew_px');if(pw!==null)PAGEW.px=pw}catch(e){PAGEW.mode='standard'}
+try{applyPageW()}catch(e){}
 try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',applyLook)}catch(e){}
 </script>
 <style>
@@ -30,7 +39,7 @@ try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',applyLo
 :root[data-skin=stage]{--ibs:40px;--r:14px;--fs:16px;--pad:.8rem;--btn:46px;--lbl:uppercase;--lblsp:.12em}
 :root{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
 *{box-sizing:border-box}
-body{font:var(--fs)/1.4 var(--font);background:var(--bg);color:var(--text);margin:0 auto;max-width:1320px;padding:1rem 1.2rem 2rem}
+body{font:var(--fs)/1.4 var(--font);background:var(--bg);color:var(--text);margin:0 auto;max-width:var(--pagew,1320px);padding:1rem 1.2rem 2rem}   /* --pagew: Settings > Appearance > Page width (head script of index.html) */
 code{font-family:var(--mono);font-size:.9em}
 h2{margin:0;font-size:1.15rem;letter-spacing:.02em}h3{margin:.1rem 0 .7rem;font-size:1rem}
 small,.dim{color:var(--dim)}
@@ -558,7 +567,7 @@ button.pinb.on{color:var(--accent)}button.pinb.on svg{fill:currentColor}button.p
 #settings #set_hidout:not(:checked)+i{box-shadow:inset 0 0 0 2px var(--dim)}   /* the off track of the shared switch is 1.3:1 against the row; this one gets a 2px ring so the control reads at 3:1 or more */
 .cbo-g{font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);padding:.45rem .55rem .15rem}
 /* the one-line Live panel: stays at the top once the full panel has scrolled out of view */
-#ms{position:fixed;top:0;left:50%;transform:translateX(-50%);width:min(100%,1320px);box-sizing:border-box;z-index:90;display:flex;align-items:center;gap:.7rem;padding:.35rem .9rem .35rem .6rem;background:var(--panel);border:1px solid var(--line);border-top:0;border-left:4px solid var(--live);border-radius:0 0 var(--r) var(--r);box-shadow:0 8px 18px #0006}
+#ms{position:fixed;top:0;left:50%;transform:translateX(-50%);width:min(100%,var(--pagew,1320px));box-sizing:border-box;z-index:90;display:flex;align-items:center;gap:.7rem;padding:.35rem .9rem .35rem .6rem;background:var(--panel);border:1px solid var(--line);border-top:0;border-left:4px solid var(--live);border-radius:0 0 var(--r) var(--r);box-shadow:0 8px 18px #0006}
 #ms .mr1,#ms .mr2{display:contents}
 #ms .mst{font-weight:700;min-width:0;flex:1 1 6rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #ms .pill{margin:0;flex:none;background:var(--live);color:#fff}#ms.idle .pill{background:var(--panel2);color:var(--dim)}
@@ -746,6 +755,15 @@ li.t .ib:hover,.lt .ib:hover,li.t button:not(.ib):hover,.lt button:not(.ib):hove
 :root[data-skin=stage] .setx,:root[data-skin=stage] .hpx{width:2.5rem;height:2.5rem;min-width:2.5rem;min-height:2.5rem;padding:0;display:inline-flex;align-items:center;justify-content:center;line-height:1}
 :root[data-skin=stage] #dlchip button,:root[data-skin=stage] #plchip button,:root[data-skin=stage] #infopop .ifx,:root[data-skin=stage] #lvpop .lvx{width:2rem;height:2rem;min-width:2rem;min-height:2rem;padding:0;border-radius:50%;flex:none;aspect-ratio:1;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;line-height:1}
 #plchip button{width:1.6rem;height:1.6rem;min-width:0;padding:0}
+/* Page width (2.8.1): desktop and tablet only. At phone width the page and the one-line Live strip keep the standard limit and the Settings row is hidden. */
+#settings .pwc{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:.4rem .6rem;min-width:0}
+#settings .pwcw{display:inline-flex;align-items:center;gap:.3rem}#settings .pwcw em{font-style:normal;color:var(--dim)}
+#settings #set_pagewpx{width:calc(5ch + 2.6rem);font-variant-numeric:tabular-nums}
+#settings #pw_reset{margin-left:0;white-space:nowrap;background:none;border:0;box-shadow:none;padding:0 .2rem;min-height:0;height:auto;width:auto;color:color-mix(in srgb,var(--accent) 50%,var(--text));text-decoration:underline;font:inherit}   /* the accent alone is too faint on the light themes */
+@media(max-width:34rem){body{max-width:1320px}#settings .pwrow{display:none}}
+/* Inner limits so a wide page does not spread one row of controls apart; each is above what Standard ever gives (strip bar 569 px, Device 935 px, gain slider 1046 px), so Standard is unchanged */
+#ms .msw{max-width:40rem}   /* the one-line Live strip: pause, stop, bar, time and meters stay together, the title takes the rest */
+.inprow .inpdev{max-width:60rem}.inpg input{max-width:72rem}   /* Live input card: Device menu and Input gain slider */
 </style>
 <div class=top><div class=brand><button id=hdot type=button data-h=starting title="Health: starting" aria-label="Health: starting" aria-haspopup=dialog aria-expanded=false aria-controls=hpop onclick="hpTog()"></button><svg class=bmark viewBox="0 0 100 100" role=img aria-label="Cue Media Engine"><rect width=100 height=100 rx=22 fill="#2b2b2b"/><rect x=16 y=32 width=30 height=30 fill=none stroke="#f5f5f5" stroke-width=9 /><rect x=54 y=28 width=38 height=38 fill="#47c86e"/></svg><h2>Cue Media Engine</h2></div>
  <div id=memro class=memro title="Memory">
@@ -775,6 +793,8 @@ li.t .ib:hover,.lt .ib:hover,li.t button:not(.ib):hover,.lt button:not(.ib):hove
    <option value=console>Console - dense, amber</option><option value=studio>Studio - clean, soft cards</option><option value=stage>Stage - big, touch friendly</option></select></div>
   <div class=sr data-s="theme light dark system"><label>Theme</label><span class=seg id=set_theme>
    <button data-v=system onclick="setLook('theme','system')">System</button><button data-v=light onclick="setLook('theme','light')">Light</button><button data-v=dark onclick="setLook('theme','dark')">Dark</button></span></div>
+  <div class="sr pwrow" data-s="page width wide full screen custom pixels"><span class=lb2><span id=pw_lbl>Page width</span><button class=ib2 data-tip="How wide the page may grow on a large screen. Standard is the usual centred column, Full width uses the whole window, Custom takes 800 to 3840 pixels. Phones are not affected." aria-label="More information about the page width">i</button></span><span class=pwc><span class=seg id=set_pagew role=group aria-labelledby=pw_lbl>
+   <button data-v=standard onclick="pagewSet('standard')">Standard</button><button data-v=wide onclick="pagewSet('wide')">Wide</button><button data-v=full onclick="pagewSet('full')">Full width</button><button data-v=custom onclick="pagewSet('custom')">Custom</button></span><span id=pw_cw class=pwcw hidden><input type=number id=set_pagewpx min=800 max=3840 step=10 inputmode=numeric oninput="pagewLive(this.value)" onchange="pagewPx(this.value)" aria-label="Custom page width in pixels, 800 to 3840"><em>px</em></span><button class=lnk id=pw_reset onclick="pagewSet('standard')" hidden>Reset to Standard</button></span></div>
   <div class=sr data-s="show waveforms wave"><label for=set_wave>Show waveforms</label><span class=swl><input type=checkbox id=set_wave onchange="setWave(this.checked)" aria-label="Show waveforms"><i></i></span></div>
   <div class=sr data-s="pin live panel keep in view scroll"><span class=lb2><label for=set_pin>Pin the Live panel</label><button class=ib2 data-tip="Keeps the Live panel in view while you scroll. The pin button on the panel does the same." aria-label="More information about pinning the Live panel">i</button></span><span class=swl><input type=checkbox id=set_pin onchange="pinSet(this.checked)" aria-label="Pin the Live panel"><i></i></span></div>
   <div class=sr data-s="shrink one line scrolled live panel"><span class=lb2><label for=set_pinmini>Shrink to one line when scrolled</label><button class=ib2 data-tip="When the full Live panel has scrolled out of view, a one-line version stays at the top: title, pause, time and the meters. Off: the whole panel stays at the top." aria-label="More information about the one-line Live panel">i</button></span><span class=swl><input type=checkbox id=set_pinmini onchange="pinOpt('mini',this.checked)" aria-label="Shrink to one line when scrolled"><i></i></span></div>
@@ -1805,7 +1825,7 @@ const THM={system:'System',light:'Light',dark:'Dark'};
 function syncLook(){
  setTimeout(fitInf,0);
  thm.textContent=THM[LOOK.theme]+(LOOK.theme==='system'?' ('+document.documentElement.dataset.theme+')':'');
- set_skin.value=LOOK.skin;set_wave.checked=WAVE;wnFill();if(wn_body.hidden===wnOpen())wnTog();topLoad();trLoad();set_theme.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v===LOOK.theme));setSums()}
+ set_skin.value=LOOK.skin;set_wave.checked=WAVE;wnFill();if(wn_body.hidden===wnOpen())wnTog();topLoad();trLoad();set_theme.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v===LOOK.theme));pagewUi()}
 /* Time warnings live on the player (state.json), so every page, and the stage page, use the same list. They are always on.
    WN.warnings is [{t: seconds left, c: colour}], longest first: the first row is "First warning", the last "Final warning". */
 let WN={warnings:[{t:60,c:'#f97316'},{t:30,c:'#ef4444'}]},wnTouch=0,wnMig=false;
@@ -1847,6 +1867,14 @@ function wnApply(r){lastRem=r;let col='';
  if(/^\d+:\d\d$/.test(r)){const s=ptime(r);let best=null;for(const w of WN.warnings)if(s<=w.t&&(!best||w.t<=best.t))best=w;if(best)col=best.c}   // the colour of the shortest warning time still reached
  remv.style.color=col;if(window.ms_rem)ms_rem.style.color=col}
 function setWave(v){WAVE=!!v;try{localStorage.setItem('cp_wave',WAVE?'1':'0')}catch(e){}document.body.classList.toggle('wave',WAVE);syncLook()}
+/* page width (Settings > Appearance; PAGEW / applyPageW / pagewClamp are in the head script of index.html): saved on every change, shown at once */
+function pagewSave(){try{localStorage.setItem('cp_pagew',PAGEW.mode);localStorage.setItem('cp_pagew_px',String(PAGEW.px))}catch(e){}}
+function pagewSet(m){PAGEW.mode=m;applyPageW();pagewSave();pagewUi();if(m==='custom')set_pagewpx.focus()}
+function pagewLive(v){const n=+v;if(String(v).trim()!==''&&n>=PAGEW.MIN&&n<=PAGEW.MAX)document.documentElement.style.setProperty('--pagew',Math.round(n)+'px')}   // while typing or stepping: shown live, saved (and clamped) on change
+function pagewPx(v){const n=pagewClamp(v);if(n!==null)PAGEW.px=n;PAGEW.mode='custom';applyPageW();pagewSave();pagewUi(true)}
+function pagewUi(force){const m=PAGEW.mode;set_pagew.querySelectorAll('button').forEach(b=>{const on=b.dataset.v===m;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on)});
+ pw_cw.hidden=m!=='custom';pw_reset.hidden=m==='standard';if(force||document.activeElement!==set_pagewpx)set_pagewpx.value=PAGEW.px;setSums()}
+const PWN={standard:'',wide:'Wide page',full:'Full-width page'};
 function cycleTheme(){setLook('theme',{system:'light',light:'dark',dark:'system'}[LOOK.theme])}
 try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',syncLook)}catch(e){}
 function say(t,ok){setmsg.textContent=t;setmsg.className='msg '+(ok?'ok':'bad')}
@@ -1883,7 +1911,7 @@ function setSums(){try{setSums1()}catch(e){}}
 function setSums1(){
  const set=(id,t)=>{const e=document.getElementById('sum_'+id);if(e)e.textContent=t};
  const SK={console:'Console',studio:'Studio',stage:'Stage'};
- set('appearance',(SK[LOOK.skin]||LOOK.skin)+' · '+THM[LOOK.theme]+' theme');
+ set('appearance',(SK[LOOK.skin]||LOOK.skin)+' · '+THM[LOOK.theme]+' theme'+(PAGEW.mode==='custom'?' · '+PAGEW.px+' px page':PWN[PAGEW.mode]?' · '+PWN[PAGEW.mode]:''));
  set('audio',({browser:'This browser',pi:'Player output',both:'Both'}[pvt()]||'')+' · Mirror '+(set_mir.checked?'on':'off')+(INP&&INP.device?' · Input '+(INP.armed?'armed':'off'):''));
  set('transitions',(TRD==='cut'?'Cut':'Crossfade')+' · crossfade '+(+tr_ms.value||0)+' s');
  set('companion',(CMP.warn?'Still using ':'')+cmpFmt(CMP.target));

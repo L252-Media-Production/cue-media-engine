@@ -7,7 +7,7 @@
      page, and writes playlists.json
   2. an EXISTING folder of the same build: playlists with a trim, a crossfade time, an end action and a trigger point, resume on, a hard kill: after the
      restart the playlists are identical and the track carries on
-  3. an UPGRADE: the data files written by the PREVIOUS release (default v2.7.0, started from `git archive`) are copied into a folder of this build; the
+  3. an UPGRADE: the data files written by the PREVIOUS release (default v2.8.0, started from `git archive`) are copied into a folder of this build; the
      new build reads them (playlists, trim, crossfade, end action, trigger) and resumes the track that the old build was playing
 """
 import argparse, json, os, shutil, subprocess, sys, tempfile, time, unittest
@@ -19,7 +19,7 @@ sys.path.insert(0, str(HERE))
 from harness import client           # noqa: E402
 from harness.instance import Instance  # noqa: E402
 
-OLD_REV = os.environ.get("COLD_OLD_REV", "v2.7.0")
+OLD_REV = os.environ.get("COLD_OLD_REV", "v2.8.0")
 DATA = ("playlists.json", "state.json", "resume.json", "durations.json", "formats.json", "fileinfo.json", "loudness.json")
 
 

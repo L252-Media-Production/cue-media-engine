@@ -2,6 +2,10 @@
 
 Newest first. The player (`player.py` + `static/`) and the Companion module share the major.minor version; the module warns when they differ.
 
+## 2.8.1 (in progress)
+
+- **Page width:** on a wide screen you can now choose how wide the page gets, in **Settings > Look > Appearance > Page width**: Standard (the usual 1320-pixel column, still the default), Wide (1800), Full width (the whole window) or Custom (800 to 3840 pixels). It changes as you pick it, is kept in this browser only, and Reset to Standard goes back. Phones are not affected. On a wide page the one-line pinned Live strip keeps its controls together and the Live input card's Device menu and Input gain slider stop growing at a comfortable length (at Standard nothing moves). Web page only; no audio change.
+
 ## Audio spec 1 (matches v2.8.0; no player change)
 
 A written contract for what the player does with sound, so that a second engine (CueME Stage, Swift / Core Audio) can be built to match it. **The player is unchanged**: no file under `cpl/`, `static/` or `player.py` was touched, and the version is still 2.8.0.
