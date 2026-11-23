@@ -40,3 +40,8 @@ dist/
 dist/
 
 CLAUDE.local.md
+
+# Claude Code: personal prompt handoff folder and local settings
+prompts/
+.claude/settings.local.json
+.vscode/settings.json
