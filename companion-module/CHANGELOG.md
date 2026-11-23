@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.8.1
+- Version aligned with player 2.8.1; nothing else changed.
+
 ## Rename (version unchanged)
 - The module is now named *Cue Media Engine* (short name CueME). Manifest id `cue-media-engine`, the old id `companionplayer` is in `legacyIds`. Names, descriptions and the config label changed; actions, feedbacks, presets, variables and the polling are unchanged. The `X-CompanionPlayer-Client` header is kept (the player recognises it).
 
