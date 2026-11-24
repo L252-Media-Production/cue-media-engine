@@ -745,7 +745,7 @@ li.t .ib:hover,.lt .ib:hover,li.t button:not(.ib):hover,.lt button:not(.ib):hove
 /* Page width (2.8.1): desktop and tablet only. At phone width the page and the one-line Live strip keep the standard limit and the Settings row is hidden. */
 #settings .pwc{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:.4rem .6rem;min-width:0}
 #settings .pwcw{display:inline-flex;align-items:center;gap:.3rem}#settings .pwcw em{font-style:normal;color:var(--dim)}
-#settings #set_pagewpx{width:calc(5ch + 2.6rem);font-variant-numeric:tabular-nums}
+#settings .sr #set_pagewpx{width:10rem;flex:0 1 10rem;min-width:6rem;margin:0}#settings #pw_val{min-width:8ch;text-align:right;font-variant-numeric:tabular-nums}#settings #pw_sl_lbl{color:var(--dim);font-size:.9em;white-space:nowrap}   /* 2.9.1: the Custom slider, its visible label and its value */
 #settings #pw_reset{margin-left:0;white-space:nowrap;background:none;border:0;box-shadow:none;padding:0 .2rem;min-height:0;height:auto;width:auto;color:color-mix(in srgb,var(--accent) 50%,var(--text));text-decoration:underline;font:inherit}   /* the accent alone is too faint on the light themes */
 @media(max-width:34rem){body{max-width:1320px}#settings .pwrow,#settings .phrow{display:none}}
 @media(max-width:34rem){#lvl .pcol{outline:1px solid color-mix(in srgb,var(--pv) 55%,transparent);outline-offset:3px}#ms .mg.pvc{border-color:color-mix(in srgb,var(--pv) 60%,transparent)}}   /* 2.9.1 removed the Preview pair's teal outline on desktop and tablet only: the phone keeps it as it was */

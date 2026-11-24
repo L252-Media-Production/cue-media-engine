@@ -817,10 +817,15 @@ function setWave(v){WAVE=!!v;try{localStorage.setItem('cp_wave',WAVE?'1':'0')}ca
 /* page width (Settings > Appearance; PAGEW / applyPageW / pagewClamp are in the head script of index.html): saved on every change, shown at once */
 function pagewSave(){try{localStorage.setItem('cp_pagew',PAGEW.mode);localStorage.setItem('cp_pagew_px',String(PAGEW.px))}catch(e){}}
 function pagewSet(m){PAGEW.mode=m;applyPageW();pagewSave();pagewUi();if(m==='custom')set_pagewpx.focus()}
-function pagewLive(v){const n=+v;if(String(v).trim()!==''&&n>=PAGEW.MIN&&n<=PAGEW.MAX)document.documentElement.style.setProperty('--pagew',Math.round(n)+'px')}   // while typing or stepping: shown live, saved (and clamped) on change
+/* 2.9.1: Custom is a range slider (800-3840 px, steps of 20) with the value as text beside it. Dragging shows the width live (pagewLive, input event);
+   it is saved on release or on a keyboard step (pagewPx, change event). A stored value off the steps (or clamped into the range) is applied as it is and
+   only SHOWN at the nearest step: nothing is written until the slider is moved. */
+const pagewTxt=n=>Number(n).toLocaleString('en-US')+' px';
+function pagewShow(n){pw_val.textContent=pagewTxt(n);set_pagewpx.setAttribute('aria-valuetext',pagewTxt(n))}
+function pagewLive(v){const n=+v;if(String(v).trim()!==''&&n>=PAGEW.MIN&&n<=PAGEW.MAX){document.documentElement.style.setProperty('--pagew',Math.round(n)+'px');pagewShow(Math.round(n))}}
 function pagewPx(v){const n=pagewClamp(v);if(n!==null)PAGEW.px=n;PAGEW.mode='custom';applyPageW();pagewSave();pagewUi(true)}
 function pagewUi(force){const m=PAGEW.mode;set_pagew.querySelectorAll('button').forEach(b=>{const on=b.dataset.v===m;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on)});
- pw_cw.hidden=m!=='custom';pw_reset.hidden=m==='standard';if(force||document.activeElement!==set_pagewpx)set_pagewpx.value=PAGEW.px;setSums()}
+ pw_cw.hidden=m!=='custom';pw_reset.hidden=m==='standard';if(force||document.activeElement!==set_pagewpx){set_pagewpx.value=PAGEW.px;pagewShow(PAGEW.px)}setSums()}
 const PWN={standard:'',wide:'Wide page',full:'Full-width page'};
 function cycleTheme(){setLook('theme',{system:'light',light:'dark',dark:'system'}[LOOK.theme])}
 try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',syncLook)}catch(e){}
