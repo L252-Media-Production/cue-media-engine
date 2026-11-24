@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.9.0
+- Version aligned with player 2.9.0; nothing else changed.
+
 ## 2.8.1
 - Version aligned with player 2.8.1; nothing else changed.
 

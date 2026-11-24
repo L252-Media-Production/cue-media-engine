@@ -6,7 +6,7 @@ from pathlib import Path
 
 from cpl.util import atomic_write
 
-APP_VERSION = "2.8.1"       # the one product version: Settings footer, /api/state "version", the player_version variable (the Companion module compares major.minor)
+APP_VERSION = "2.9.0"       # the one product version: Settings footer, /api/state "version", the player_version variable (the Companion module compares major.minor)
 
 
 # ---------------------------------------------------------------- config

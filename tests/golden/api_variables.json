@@ -70,7 +70,7 @@
   {
    "info": "Version of the player program (e.g. 2.7.0). The Companion module warns when its major.minor differs",
    "name": "player_version",
-   "value": "2.8.1"
+   "value": "2.9.0"
   },
   {
    "info": "1 while a track is playing on top of a ducked background (Play on Top), else 0",

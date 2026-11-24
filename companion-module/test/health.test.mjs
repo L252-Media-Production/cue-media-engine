@@ -30,7 +30,7 @@ function inst(state, prefix = 'mp_') {
 }
 const health = (state, summary = '') => ({ health: { status: 'ready', detail: 'Ready', state, summary, checks: [] } })
 
-test('the module is 2.8.1', () => assert.equal(MODULE_VERSION, '2.8.1'))
+test('the module is 2.9.0', () => assert.equal(MODULE_VERSION, '2.9.0'))
 
 test('variables: health_state follows the player, health_text only while degraded or in a problem', () => {
 	for (const [state, summary, text] of [['ready', '', ''], ['starting', '', ''], ['degraded', 'Disk space low', 'Disk space low'], ['problem', 'Live output problem', 'Live output problem'], ['ready', 'stale words', '']]) {
