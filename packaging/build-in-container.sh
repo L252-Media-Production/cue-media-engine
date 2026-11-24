@@ -189,7 +189,7 @@ say "built $DEB ($(du -h "$DEB" | cut -f1), Installed-Size $SIZE KiB)"
 
 if [ "${LINT:-}" = 1 ]; then
     say "lintian (report only)"
-    lintian --no-tag-display-limit --info "$DEB" > "$OUT/$BASE.lintian.txt" 2>&1 || true
+    lintian --tag-display-limit 0 --info "$DEB" > "$OUT/$BASE.lintian.txt" 2>&1 || true
     cat "$OUT/$BASE.lintian.txt"
     grep -c '^E:' "$OUT/$BASE.lintian.txt" | sed 's/^/build-deb: lintian errors: /' || true
 fi
