@@ -1996,7 +1996,7 @@ def meter_label(d):
 
 
 def _scale(ticks):
-    return "".join(f'<b style="bottom:{pct_of(-(d if d is not None else 90)):.1f}%">{meter_label(d).replace(chr(0x221e), '<span class=inf>' + chr(0x221e) + '</span>')}</b>' for d in ticks)
+    return "".join(f'<b style="bottom:{pct_of(-(d if d is not None else 90)):.1f}%">{meter_label(d).replace(chr(0x221e), "<span class=inf>" + chr(0x221e) + "</span>")}</b>' for d in ticks)
 
 
 def _include(text, marker, piece):
