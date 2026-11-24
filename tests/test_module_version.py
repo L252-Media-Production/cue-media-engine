@@ -36,6 +36,8 @@ class ModuleVersion(unittest.TestCase):
         if not shutil.which("node") or not (MOD / "node_modules" / "@companion-module").is_dir():
             self.skipTest("node or companion-module/node_modules is not available")
         app, mod, pkg = self.versions()
+        maj, minor = (int(x) for x in mm(mod).split("."))
+        minor_ahead = f"{maj}.{minor + 1}.0"   # a player one minor version ahead of the module, whatever the module is
         js = """
 import M from %r
 const logs = []
@@ -44,12 +46,12 @@ const chk = (v) => M.prototype.checkVersion.call(self, v)
 const out = { same: chk(%r), warnedAfterSame: logs.length }
 out.patchAhead = chk(%r)
 out.patchAheadLogs = logs.length
-out.minorAhead = chk('2.9.0'); out.minorLogs = logs.length
-out.again = chk('2.9.0'); out.againLogs = logs.length
+out.minorAhead = chk(%r); out.minorLogs = logs.length
+out.again = chk(%r); out.againLogs = logs.length
 out.major = chk('3.8.0')
 out.none = chk(undefined); out.noneLogs = logs.length
 console.log(JSON.stringify(out))
-""" % ((MOD / "src" / "main.js").as_uri(), mod, mm(mod) + ".9")
+""" % ((MOD / "src" / "main.js").as_uri(), mod, mm(mod) + ".9", minor_ahead, minor_ahead)
         r = subprocess.run(["node", "--input-type=module", "-e", js], cwd=str(MOD), capture_output=True, text=True, timeout=60)
         self.assertEqual(r.returncode, 0, r.stderr[-800:])
         o = json.loads(r.stdout.strip().splitlines()[-1])
