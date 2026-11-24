@@ -523,7 +523,7 @@ dialog:modal,#tour .tcard{overscroll-behavior:contain}
 #lvl .msb{grid-row:3;grid-column:1;justify-self:center;margin:3px 0 0}#lvl .msb.pvb{grid-column:3;margin:3px 0 0;padding:0;border:0}
 #lvl .scl b{left:0;right:0;text-align:center;font-variant-numeric:tabular-nums}
 #lvl .scl .inf{font-size:1.9em;font-weight:inherit;line-height:0;position:relative;margin-left:.12em}   /* its vertical offset is set by fitInf() from the real font metrics */
-#lvl .pcol{outline:1px solid color-mix(in srgb,var(--pv) 55%,transparent);outline-offset:3px;border-radius:8px;padding:0}   /* a teal chip around the pair that adds no height: its bars span the same scale as the Live pair */
+#lvl .pcol{border-radius:8px;padding:0}   /* 2.9.1: no outline around the Preview pair (it was a teal chip); the PRV caption, its colour and the Preview buttons still mark it. Its bars span the same scale as the Live pair */
 #lvl .pcol .bars{display:flex;gap:3px;align-self:stretch}#lvl .pcol .vm{width:6px;border-radius:3px}:root[data-skin=stage] #lvl .pcol .vm{width:9px}
 button.msq.out{width:auto;min-width:0;padding:0 .22rem;gap:1px;display:inline-flex;align-items:center;justify-content:center}
 button.msq.out svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}button.msq.out svg.chv{width:10px;height:10px;opacity:.7}
@@ -550,7 +550,7 @@ button.pinb.on{color:var(--accent)}button.pinb.on svg{fill:currentColor}button.p
 #ms .msw{flex:2 1 8rem;min-width:3rem;height:.5rem;border-radius:99px;background:var(--panel2);overflow:hidden}#ms .msw i{display:block;height:100%;width:0;background:var(--live)}
 #ms .mstm{white-space:nowrap;font-family:var(--mono)}#ms .mstm b{font-size:1.1em}#ms .mstm small{color:var(--dim)}
 #ms .mgp{display:flex;align-items:center;gap:.6rem;flex:none}
-#ms .mg{display:flex;align-items:center;gap:.35rem}#ms .mg.pvc{padding:3px 6px;border:1px solid color-mix(in srgb,var(--pv) 60%,transparent);border-radius:7px;background:color-mix(in srgb,var(--pv) 12%,transparent)}
+#ms .mg{display:flex;align-items:center;gap:.35rem}#ms .mg.pvc{padding:3px 6px;border:1px solid transparent;border-radius:7px;background:color-mix(in srgb,var(--pv) 12%,transparent)}   /* 2.9.1: no outline (transparent border keeps the size) */
 #ms .ml{font:700 .58rem var(--mono);letter-spacing:.12em;color:var(--dim)}#ms .ml.pvl{color:var(--pv)}
 #ms .hm{display:flex;flex-direction:column;gap:3px;width:3.4rem}
 #ms .hm>span{display:block;height:7px;border-radius:4px;position:relative;overflow:hidden;background:linear-gradient(90deg,#3cb371 0 @@AMB@@%,#f5a623 @@AMB@@% @@RED@@%,#e5392e @@RED@@%)}
@@ -748,6 +748,7 @@ li.t .ib:hover,.lt .ib:hover,li.t button:not(.ib):hover,.lt button:not(.ib):hove
 #settings #set_pagewpx{width:calc(5ch + 2.6rem);font-variant-numeric:tabular-nums}
 #settings #pw_reset{margin-left:0;white-space:nowrap;background:none;border:0;box-shadow:none;padding:0 .2rem;min-height:0;height:auto;width:auto;color:color-mix(in srgb,var(--accent) 50%,var(--text));text-decoration:underline;font:inherit}   /* the accent alone is too faint on the light themes */
 @media(max-width:34rem){body{max-width:1320px}#settings .pwrow,#settings .phrow{display:none}}
+@media(max-width:34rem){#lvl .pcol{outline:1px solid color-mix(in srgb,var(--pv) 55%,transparent);outline-offset:3px}#ms .mg.pvc{border-color:color-mix(in srgb,var(--pv) 60%,transparent)}}   /* 2.9.1 removed the Preview pair's teal outline on desktop and tablet only: the phone keeps it as it was */
 /* Inner limits so a wide page does not spread one row of controls apart; each is above what Standard ever gives (strip bar 569 px, Device 935 px, gain slider 1046 px), so Standard is unchanged */
 #ms .msw{max-width:40rem}   /* the one-line Live strip: pause, stop, bar, time and meters stay together, the title takes the rest */
 .inprow .inpdev{max-width:60rem}.inpg input{max-width:72rem}   /* Live input card: Device menu and Input gain slider */
