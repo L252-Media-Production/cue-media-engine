@@ -179,7 +179,10 @@ IC.cplay='<svg width=16 height=16 viewBox="0 0 24 24" fill=none stroke=currentCo
 IC.shuf='<svg width=16 height=16 viewBox="0 0 24 24" fill=none stroke=currentColor stroke-width=2 stroke-linecap=round stroke-linejoin=round><path d="m18 14 4 4-4 4"/><path d="m18 2 4 4-4 4"/><path d="M2 18h1.973a4 4 0 0 0 3.3-1.7l5.454-8.6a4 4 0 0 1 3.3-1.7H22"/><path d="M2 6h1.972a4 4 0 0 1 3.6 2.2"/><path d="M22 18h-6.041a4 4 0 0 1-3.3-1.8l-.359-.45"/></svg>';
 IC.info='<svg width=15 height=15 viewBox="0 0 24 24" fill=none stroke=currentColor stroke-width=2 stroke-linecap=round stroke-linejoin=round><circle cx=12 cy=12 r=10 /><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>';
 let TRFADE=1500,TRFADEIN=0,PVTRIM=null,TR=null,PVCUR={id:null,state:'stopped'},LIBC={},LIBI={},FLASH={path:null,id:null,until:0},WAVE=false,PVST={pos:0,dur:0,state:'stopped',t0:0},LIVE={fid:null,pos:0,dur:0,lo:0,hi:0,playing:false,t0:0},WF={},scrub=null;
-try{WAVE=localStorage.getItem('cp_wave')==='1'}catch(e){}
+/* 2.9.1: waveforms are on by default on desktop and tablet. A stored choice always wins ('1' on, '0' off); nothing stored, a bad value or no storage = the
+   default. Phone width (34 rem or less when the page loads) keeps the old default, off, so nothing changes there. */
+const PHQ=matchMedia('(max-width:34rem)');
+try{const w=localStorage.getItem('cp_wave');WAVE=w==='1'?true:w==='0'?false:!PHQ.matches}catch(e){WAVE=!PHQ.matches}
 document.body.classList.toggle('wave',WAVE);
 function folderColor(id){let d=id.includes('/')?id.slice(0,id.lastIndexOf('/')):'';while(d){if(LIBC[d])return LIBC[d];d=d.includes('/')?d.slice(0,d.lastIndexOf('/')):''}return ''}
 function markPv(){                    // the preview button of the track being previewed shows pause (or play when paused)
@@ -1602,7 +1605,7 @@ function waveLoop(ts){
  if(document.hidden||ts-wfT<33)return;
  trgTick();
  if(TR&&trdlg.open){trDraw();trIcons()}
- if(!WAVE){return}wfT=ts;
+ if(!WAVE){if(window.ms_prog&&!PHQ.matches){const d=LIVE.dur||0,p=LIVE.playing?LIVE.pos+(performance.now()-LIVE.t0)/1000:LIVE.pos;ms_prog.style.width=(d?Math.min(1,p/d)*100:0).toFixed(1)+'%'}return}wfT=ts;   // 2.9.1: the one-line strip's bar also moves with waveforms off (desktop and tablet; the phone is left as it was)
  const lw=LIVE.fid?waveFor(LIVE.fid):null,ld=LIVE.dur||(lw&&lw.dur)||0;
  const lpos=scrub&&scrub.cv===wfl?scrub.pos:(LIVE.playing?LIVE.pos+(performance.now()-LIVE.t0)/1000:LIVE.pos);
  if(window.ms_prog)ms_prog.style.width=(ld?Math.min(1,lpos/ld)*100:0).toFixed(1)+'%';
