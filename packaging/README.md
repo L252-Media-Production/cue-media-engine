@@ -1,7 +1,7 @@
 # Debian package (.deb)
 
 Builds `cue-media-engine_<version>_debian<12|13>_<amd64|arm64>.deb`, which installs Cue Media Engine as the systemd service
-`cue-media-engine`. The CI workflow `.github/workflows/deb.yml` builds all four on a `v*` tag and attaches them to a draft Release.
+`cue-media-engine`. The CI workflow `.github/workflows/deb.yml` builds all four (see [CI](#ci)).
 User guide: [Install from a .deb](../docs/wiki/Install-and-Run.md#install-from-a-deb-debian-12-and-13).
 
 ## Build
@@ -16,6 +16,21 @@ DEB_VERSION=2.9.1-rc2 packaging/build-deb.sh                                    
 read-only. Output next to each `.deb`: `<name>.requirements.frozen.txt` and, with `LINT=1`, `<name>.lintian.txt`.
 `STAGE_ONLY=1 STAGE_DIR=<empty dir> bash packaging/build-in-container.sh` only assembles the tree (no Docker, no pip; used by
 `tests/test_deb_packaging.py`).
+
+## CI
+
+`.github/workflows/deb.yml` builds Debian 12 and 13 on amd64 and arm64 (four jobs, lintian on), version from
+`packaging/ci-version.sh`:
+
+| Started by | Package version | What it makes |
+|---|---|---|
+| a push to a `release/**` branch that changes `packaging/`, the workflow, `requirements.txt`, `player.py`, `cpl/` or `static/` | `<APP_VERSION>~ci.<7-char commit>`, e.g. `2.9.0~ci.b09456b` (sorts below `2.9.0`) | four run artifacts `deb-debian<12\|13>-<arch>` (`.deb`, frozen requirements, lintian report), nothing else |
+| a manual run (`gh workflow run deb.yml`, only once the file is on `main`) | the same as a branch push | the same |
+| a `vX.Y.Z-rcN` tag | `X.Y.Z~rcN` | the artifacts, then a **draft** pre-release with the `.deb` files, frozen requirements and `SHA256SUMS` |
+| a `vX.Y.Z` tag | `X.Y.Z`; the job fails if that is not `APP_VERSION` in `cpl/config.py` | the artifacts, then a **draft** Release |
+
+Only a tag build creates or changes a Release; any other `v*` tag fails the build. A newer push to the same branch cancels the
+running branch build; tag builds are never cancelled. Download a run's files with `gh run download <run id> -D <dir>`.
 
 ## What is in it
 

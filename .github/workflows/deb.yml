@@ -1,17 +1,33 @@
-# Debian packages (packaging/README.md): build the .deb for Debian 12 and 13 on amd64 and arm64, and on a v* tag
-# attach them to a DRAFT GitHub Release (JC publishes it by hand). Action SHAs were read from the tag refs of each
-# repository (git ls-remote / gh api repos/actions/<name>/git/ref/tags/<tag>).
+# Debian packages (packaging/README.md, "CI"): build the .deb for Debian 12 and 13 on amd64 and arm64.
+#   - push to release/** that touches the package inputs (paths below): build and upload the four artifacts, version
+#     <APP_VERSION>~ci.<commit>; nothing else (no Release).
+#   - push of a v* tag: version from the tag (packaging/ci-version.sh), then attach the files to a DRAFT GitHub Release
+#     (JC publishes it by hand). A final vX.Y.Z tag must equal APP_VERSION.
+#   - workflow_dispatch: like a branch push (works only once this file is on main).
+# Action SHAs were read from the tag refs of each repository (git ls-remote / gh api repos/actions/<name>/git/ref/tags/<tag>).
 name: Debian packages
 
 on:
   push:
-    tags: ["v*"]
+    tags: ["v*"]                     # path filters are not evaluated for tag pushes: every v* tag builds
+    branches: ["release/**"]
+    paths:
+      - "packaging/**"
+      - ".github/workflows/deb.yml"
+      - "requirements.txt"
+      - "player.py"
+      - "cpl/**"
+      - "static/**"
   workflow_dispatch:
     inputs:
       ref:
         description: "Branch, tag or commit to build (empty = the branch selected above)"
         required: false
         default: ""
+
+concurrency:
+  group: deb-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref_type == 'branch' }}   # a newer branch push replaces the old build; never cancel a tag build
 
 permissions:
   contents: read
@@ -36,6 +52,15 @@ jobs:
         with:
           ref: ${{ inputs.ref || github.ref }}
           persist-credentials: false
+
+      - name: Package version
+        env:
+          REF_TYPE: ${{ github.event_name == 'push' && github.ref_type || 'manual' }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          v=$(packaging/ci-version.sh "$REF_TYPE" "$REF_NAME" "$(git rev-parse HEAD)")
+          echo "DEB_VERSION=$v" >> "$GITHUB_ENV"
+          echo "package version: $v"
 
       - name: Build the package (with lintian)
         env:

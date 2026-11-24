@@ -210,5 +210,172 @@ class Scripts(unittest.TestCase):
         self.assertIn("# SDL_AUDIODRIVER=alsa", lines)
 
 
+WORKFLOW = ROOT / ".github" / "workflows" / "deb.yml"
+CI_VERSION = PK / "ci-version.sh"
+
+
+def top_sections(text):
+    """{top-level key: its block text} of a YAML file (the key line included); no YAML library needed."""
+    out, key, buf = {}, None, []
+    for line in text.splitlines():
+        m = re.match(r"^([A-Za-z_][\w-]*):", line)
+        if m:
+            if key:
+                out[key] = "\n".join(buf)
+            key, buf = m.group(1), [line]
+        elif key:
+            buf.append(line)
+    if key:
+        out[key] = "\n".join(buf)
+    return out
+
+
+def job_block(text, name):
+    m = re.search(r"^  %s:\n(.*?)(?=^  [A-Za-z_][\w-]*:\n|\Z)" % re.escape(name), top_sections(text)["jobs"] + "\n", re.M | re.S)
+    return m.group(1) if m else None
+
+
+class Workflow(unittest.TestCase):
+    """.github/workflows/deb.yml: when it runs, what it may do, and how the version is chosen (prompt 07 decisions)."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.text = WORKFLOW.read_text()
+        cls.on = top_sections(cls.text)["on"]
+
+    def test_parses(self):
+        try:
+            import yaml
+        except ImportError:
+            self.skipTest("PyYAML not installed (the text checks below still run)")
+        d = yaml.safe_load(self.text)
+        on = d[True]                                          # YAML 1.1 reads the key "on" as True
+        self.assertEqual(set(on), {"push", "workflow_dispatch"})
+        self.assertEqual(on["push"]["tags"], ["v*"])
+        self.assertEqual(on["push"]["branches"], ["release/**"])
+        self.assertEqual(d["permissions"], {"contents": "read"})
+        self.assertEqual(d["jobs"]["release"]["permissions"], {"contents": "write"})
+        self.assertNotIn("permissions", d["jobs"]["build"])
+
+    def test_triggers(self):
+        events = re.findall(r"^  ([a-z_]+):", self.on, re.M)
+        self.assertEqual(events, ["push", "workflow_dispatch"], "only push and workflow_dispatch may start this workflow")
+        self.assertRegex(self.on, r'(?m)^    tags: \["v\*"\]')
+        self.assertRegex(self.on, r'(?m)^    branches: \["release/\*\*"\]')
+        for bad in ("pull_request", "pull_request_target", "schedule", "workflow_run", "repository_dispatch"):
+            self.assertNotRegex(self.text, r"(?m)^\s*%s\s*:" % bad, bad)
+
+    def test_paths(self):
+        m = re.search(r"(?m)^    paths:\n((?:      - .*\n)+)", self.on + "\n")
+        self.assertIsNotNone(m, "push needs a paths: list")
+        paths = re.findall(r'- "([^"]+)"', m.group(1))
+        self.assertEqual(paths, ["packaging/**", ".github/workflows/deb.yml", "requirements.txt", "player.py", "cpl/**", "static/**"])
+
+    def test_concurrency(self):
+        c = top_sections(self.text).get("concurrency", "")
+        self.assertIn("group: deb-${{ github.ref }}", c)
+        self.assertIn("cancel-in-progress: ${{ github.ref_type == 'branch' }}", c, "never cancel a tag build")
+
+    def test_permissions(self):
+        self.assertEqual(top_sections(self.text)["permissions"].strip(), "permissions:\n  contents: read")
+        self.assertEqual(len(re.findall(r"contents: write", self.text)), 1)
+        rel = job_block(self.text, "release")
+        self.assertIn("    permissions:\n      contents: write", rel)
+        self.assertNotIn("permissions", job_block(self.text, "build"))
+
+    def test_release_only_on_tags(self):
+        rel = job_block(self.text, "release")
+        self.assertIn("    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')\n", rel)
+        self.assertIn("needs: build", rel)
+        self.assertNotIn("gh release", job_block(self.text, "build"), "a branch build never touches a Release")
+
+    def test_no_trace_and_no_secrets(self):
+        self.assertNotRegex(self.text, r"set -[a-z]*x|set -o xtrace|bash -x")
+        self.assertEqual(re.findall(r"\$\{\{\s*secrets\.", self.text), [], "only github.token may be used")
+        self.assertEqual(set(re.findall(r"\$\{\{\s*github\.token\s*\}\}", self.text)), {"${{ github.token }}"})
+
+    def test_actions_pinned(self):
+        uses = re.findall(r"uses: (\S+)", self.text)
+        self.assertEqual({u.split("@")[0] for u in uses},
+                         {"actions/checkout", "actions/upload-artifact", "actions/download-artifact"})
+        for u in uses:
+            self.assertRegex(u, r"@[0-9a-f]{40}$", u)
+
+    def test_version_step(self):
+        build = job_block(self.text, "build")
+        i_ver, i_build = build.find("name: Package version"), build.find("name: Build the package")
+        self.assertTrue(0 < i_ver < i_build, "the version step runs before the build")
+        step = build[i_ver:i_build]
+        self.assertIn("REF_TYPE: ${{ github.event_name == 'push' && github.ref_type || 'manual' }}", step)
+        self.assertIn("REF_NAME: ${{ github.ref_name }}", step)
+        self.assertIn('packaging/ci-version.sh "$REF_TYPE" "$REF_NAME" "$(git rev-parse HEAD)"', step)
+        self.assertIn('echo "DEB_VERSION=$v" >> "$GITHUB_ENV"', step)
+        self.assertIn("LINT: \"1\"", build)
+        self.assertIn("timeout-minutes: 45", build)
+
+
+@unittest.skipUnless(shutil.which("sh") and os.name != "nt", "needs sh")
+class CiVersion(unittest.TestCase):
+    """packaging/ci-version.sh, run directly against a stand-in cpl/config.py."""
+
+    def run_it(self, ref_type, ref_name, sha="b09456b0123456789abcdef0123456789abcdef0", app="2.9.1"):
+        with tempfile.TemporaryDirectory() as d:
+            cfg = Path(d) / "config.py"
+            cfg.write_text(f'import os\nAPP_VERSION = "{app}"   # product version\nOTHER = "x"\n')
+            return subprocess.run(["sh", str(CI_VERSION), ref_type, ref_name, sha, str(cfg)], capture_output=True, text=True)
+
+    def ok(self, *a, **kw):
+        r = self.run_it(*a, **kw)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertEqual(r.stderr, "")
+        return r.stdout.strip()
+
+    def fails(self, *a, **kw):
+        r = self.run_it(*a, **kw)
+        self.assertNotEqual(r.returncode, 0, r.stdout)
+        self.assertEqual(r.stdout, "")
+        self.assertTrue(r.stderr.startswith("ci-version: "), r.stderr)
+        return r.stderr
+
+    def test_script(self):
+        text = CI_VERSION.read_text()
+        self.assertTrue(text.startswith("#!/bin/sh\n"))
+        self.assertIn("\nset -eu\n", text)
+        self.assertEqual(subprocess.run(["sh", "-n", str(CI_VERSION)]).returncode, 0)
+        self.assertTrue(os.access(CI_VERSION, os.X_OK), "ci-version.sh must be executable (mode 100755)")
+        # the same APP_VERSION expression as the build
+        expr = "sed -nE 's/^APP_VERSION[[:space:]]*=[[:space:]]*\"([^\"]+)\".*/\\1/p'"
+        self.assertIn(expr, text)
+        self.assertIn(expr, (PK / "build-in-container.sh").read_text())
+
+    def test_rc_tag(self):
+        self.assertEqual(self.ok("tag", "v2.9.1-rc2"), "2.9.1-rc2")
+        self.assertEqual(self.ok("tag", "v2.9.1-rc2", app="2.9.0"), "2.9.1-rc2", "an rc tag does not need the bump yet")
+
+    def test_final_tag(self):
+        self.assertEqual(self.ok("tag", "v2.9.1", app="2.9.1"), "2.9.1")
+        self.assertIn("APP_VERSION", self.fails("tag", "v2.9.1", app="2.9.0"))
+
+    def test_bad_tags(self):
+        for t in ("v2.9", "vfoo", "2.9.1", "v2.9.1-beta1", "v2.9.1-rc", "v2.9.1-rc2x", "v2.9.1.4"):
+            self.assertIn("not vX.Y.Z", self.fails("tag", t), t)
+
+    def test_branch_and_manual(self):
+        self.assertEqual(self.ok("branch", "release/2.9.1", app="2.9.0"), "2.9.0~ci.b09456b")
+        self.assertEqual(self.ok("manual", "main", app="2.9.0"), "2.9.0~ci.b09456b")
+        self.fails("branch", "release/2.9.1", sha="")
+        self.fails("branch", "release/2.9.1", sha="not-a-sha")
+
+    def test_ci_sorts_below_release(self):
+        if not shutil.which("dpkg"):
+            self.skipTest("needs dpkg")
+        r = subprocess.run(["dpkg", "--compare-versions", "2.9.0~ci.b09456b", "lt", "2.9.0"])
+        self.assertEqual(r.returncode, 0)
+
+    def test_real_config(self):
+        self.assertEqual(subprocess.run(["sh", str(CI_VERSION), "branch", "release/x", "abcdef0123"], capture_output=True,
+                                        text=True).stdout.strip(), app_version() + "~ci.abcdef0")
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
