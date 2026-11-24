@@ -5,8 +5,8 @@ async function j(u,o){return (await fetch(u,o)).json()}
    its scroll position (body{position:fixed;top:-y}, the only method iOS respects); html keeps a (idle) scrollbar track so nothing shifts sideways. Every
    <dialog> opened with showModal() is covered by the wrapper below; the tour calls pageLock / pageUnlock itself. */
 const PGLOCK={n:0,y:0};
-function pageLock(){if(PGLOCK.n++)return;const b=document.body;PGLOCK.y=window.scrollY;b.style.top=-PGLOCK.y+'px';document.documentElement.classList.add('plock');b.classList.add('plock')}
-function pageUnlock(){if(PGLOCK.n===0||--PGLOCK.n)return;const b=document.body;document.documentElement.classList.remove('plock');b.classList.remove('plock');b.style.top='';window.scrollTo(0,PGLOCK.y)}
+function pageLock(){if(PGLOCK.n++)return;const b=document.body;PGLOCK.y=window.scrollY;b.style.top=-PGLOCK.y+'px';b.style.setProperty('--ply',PGLOCK.y+'px');document.documentElement.classList.add('plock');b.classList.add('plock')}   // --ply: the pinned header stays at the top while locked (style.css)
+function pageUnlock(){if(PGLOCK.n===0||--PGLOCK.n)return;const b=document.body;document.documentElement.classList.remove('plock');b.classList.remove('plock');b.style.top='';b.style.removeProperty('--ply');window.scrollTo(0,PGLOCK.y)}
 /* ---- 2.7.5 rc1: Live output / Preview buttons, Preview meters while previewing, Preview Mute, the pinned Live panel and its one-line strip */
 function outOpen(sel,btn){cbOpenSel(sel,btn)}
 /* The infinity sign of the dB scale comes from whatever font has it, so its glyph sits higher or lower than the digits: move it by the difference of the real ink centres (canvas metrics), so it is centred on its dB level like the numbers. */
@@ -40,7 +40,18 @@ function mstripSync(s){
  ms_rem.textContent=remv.textContent;const tl=(s.live_out||0)-(s.live_in||0),tot=s.live_dur?(tl>0.5&&tl<s.live_dur-0.5?tl:s.live_dur):0;ms_tot.textContent=tot?' / '+mmss(tot):'';
  ms.classList.toggle('idle',s.state==='stopped');ms_pill.textContent=s.state==='paused'?'PAUSED':'LIVE'}
 /* the one-line bar shows when MORE THAN HALF of the full panel has scrolled out of the top of the view and goes when less than half is out. The observer is told at 48 % and 52 % visible (a few percent of hysteresis, so nothing flickers at 50 %); it does not depend on scroll events and the bar is fixed, so no layout moves. */
-try{new IntersectionObserver(es=>{const e=es[es.length-1];PASSED=e.boundingClientRect.top<0&&e.intersectionRatio<0.5;mstripShow()},{threshold:[0,0.48,0.52,1]}).observe(document.getElementById('cl'))}catch(e){}
+/* 2.9.1: with the header pinned, "out of view" means under the header: the observer's root is shrunk by the header height (rebuilt when it changes) */
+var STRIPIO=null;
+function stripObs(off){if(STRIPIO&&STRIPIO._off===off)return;if(STRIPIO)STRIPIO.disconnect();
+ try{STRIPIO=new IntersectionObserver(es=>{const e=es[es.length-1];PASSED=e.boundingClientRect.top<off&&e.intersectionRatio<0.5;mstripShow()},{rootMargin:(-off)+'px 0px 0px 0px',threshold:[0,0.48,0.52,1]});STRIPIO._off=off;STRIPIO.observe(document.getElementById('cl'))}catch(e){}}
+/* Pin header (PINHDR, cp_pinhdr and applyPinHdr are in the head script of index.html): --hdrh = the pinned header's height, 0 when it is not pinned (off, or phone width) */
+function hdrSync(){const t=document.querySelector('body>.top');if(!t)return;const h=getComputedStyle(t).position==='sticky'?t.getBoundingClientRect().height:0;
+ document.documentElement.style.setProperty('--hdrh',h+'px');stripObs(Math.round(h))}
+function pinHdrSet(on){PINHDR.on=!!on;try{localStorage.setItem('cp_pinhdr',PINHDR.on?'on':'off')}catch(e){}applyPinHdr();hdrSync();pinHdrUi()}
+function pinHdrUi(){if(window.set_pinhdr)set_pinhdr.checked=PINHDR.on}
+hdrSync();
+try{new ResizeObserver(hdrSync).observe(document.querySelector('body>.top'))}catch(e){}
+addEventListener('resize',hdrSync);
 (()=>{const o=HTMLDialogElement.prototype.showModal;HTMLDialogElement.prototype.showModal=function(){const was=this.open;o.call(this);if(!was&&this.open){pageLock();this.addEventListener('close',pageUnlock,{once:true})}}})();
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const escAttr=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -758,7 +769,7 @@ const THM={system:'System',light:'Light',dark:'Dark'};
 function syncLook(){
  setTimeout(fitInf,0);
  thm.textContent=THM[LOOK.theme]+(LOOK.theme==='system'?' ('+document.documentElement.dataset.theme+')':'');
- set_skin.value=LOOK.skin;set_wave.checked=WAVE;wnFill();if(wn_body.hidden===wnOpen())wnTog();topLoad();trLoad();set_theme.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v===LOOK.theme));pagewUi()}
+ set_skin.value=LOOK.skin;set_wave.checked=WAVE;wnFill();if(wn_body.hidden===wnOpen())wnTog();topLoad();trLoad();set_theme.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v===LOOK.theme));pagewUi();pinHdrUi()}
 /* Time warnings live on the player (state.json), so every page, and the stage page, use the same list. They are always on.
    WN.warnings is [{t: seconds left, c: colour}], longest first: the first row is "First warning", the last "Final warning". */
 let WN={warnings:[{t:60,c:'#f97316'},{t:30,c:'#ef4444'}]},wnTouch=0,wnMig=false;

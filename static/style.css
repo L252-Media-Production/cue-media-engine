@@ -558,6 +558,18 @@ button.pinb.on{color:var(--accent)}button.pinb.on svg{fill:currentColor}button.p
 #ms .mg.pvc .hm{width:2.8rem}
 body.ledit #ms,body.lay-on.ledit #ms{display:none}
 body.pinfull #now{position:sticky;top:0;z-index:40;background:var(--bg);padding-bottom:.15rem}
+/* 2.9.1 Pin header (Settings > Appearance, html[data-pinhdr], default on; desktop and tablet only): the top bar sticks to the top, its background
+   reaches the page edges and the negative margins keep its content exactly where it was. --hdrh = its height (hdrSync in app.js): the one-line Live
+   strip and the sticky full panel sit directly under it, rows scrolled into view stay clear of both. z-index 50: over the page and the sticky full
+   panel (40), under the popovers (60), the layout tools (80-86), the Live strip (90) and the output menu (200); dialogs are in the top layer. */
+@media(min-width:34.01rem){
+ html[data-pinhdr=on] body>.top{position:sticky;top:0;z-index:50;background:var(--bg);margin:-.5rem -1.2rem .4rem;padding:.5rem 1.2rem}
+ html[data-pinhdr=on] #ms{top:var(--hdrh,0px)}
+ html[data-pinhdr=on] body.pinfull #now{top:var(--hdrh,0px)}
+ html[data-pinhdr=on] :is(li.t,.pl,.lt,.fd){scroll-margin-top:calc(5rem + var(--hdrh,0px))}
+ html[data-pinhdr=on] body.plock>.top{top:calc(var(--ply,0px) - 1rem)}   /* page lock: the fixed body (overflow hidden) becomes the sticky container, so the header is held at the old scroll offset less the body's 1rem top padding (pageLock sets --ply) and does not move behind the dialog */
+ html[data-pinhdr=on] .hpop{z-index:95}   /* the health panel drops down from the pinned header over the one-line Live strip (90) */
+}
 @media(max-width:34rem){
  #ms{flex-direction:column;align-items:stretch;gap:.1rem;padding:.3rem .6rem .5rem .4rem;width:100%}
  #ms .mr1,#ms .mr2{display:flex;align-items:center;gap:.5rem}
@@ -735,7 +747,7 @@ li.t .ib:hover,.lt .ib:hover,li.t button:not(.ib):hover,.lt button:not(.ib):hove
 #settings .pwcw{display:inline-flex;align-items:center;gap:.3rem}#settings .pwcw em{font-style:normal;color:var(--dim)}
 #settings #set_pagewpx{width:calc(5ch + 2.6rem);font-variant-numeric:tabular-nums}
 #settings #pw_reset{margin-left:0;white-space:nowrap;background:none;border:0;box-shadow:none;padding:0 .2rem;min-height:0;height:auto;width:auto;color:color-mix(in srgb,var(--accent) 50%,var(--text));text-decoration:underline;font:inherit}   /* the accent alone is too faint on the light themes */
-@media(max-width:34rem){body{max-width:1320px}#settings .pwrow{display:none}}
+@media(max-width:34rem){body{max-width:1320px}#settings .pwrow,#settings .phrow{display:none}}
 /* Inner limits so a wide page does not spread one row of controls apart; each is above what Standard ever gives (strip bar 569 px, Device 935 px, gain slider 1046 px), so Standard is unchanged */
 #ms .msw{max-width:40rem}   /* the one-line Live strip: pause, stop, bar, time and meters stay together, the title takes the rest */
 .inprow .inpdev{max-width:60rem}.inpg input{max-width:72rem}   /* Live input card: Device menu and Input gain slider */
