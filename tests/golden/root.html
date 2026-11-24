@@ -21,6 +21,11 @@ function applyPageW(){var d=document.documentElement,m=PAGEW.mode,px=pagewClamp(
  PAGEW.px=px===null?1600:px;d.dataset.pagew=m;d.style.setProperty('--pagew',pagewCss(m,PAGEW.px))}
 try{PAGEW.mode=localStorage.getItem('cp_pagew')||'standard';var pw=localStorage.getItem('cp_pagew_px');if(pw!==null)PAGEW.px=pw}catch(e){PAGEW.mode='standard'}
 try{applyPageW()}catch(e){}
+/* pin header (desktop and tablet): on | off in cp_pinhdr, default on; sets html[data-pinhdr] before the first paint. A bad stored value or no storage = on. Phone widths ignore it (style.css). */
+var PINHDR={on:true};
+function applyPinHdr(){document.documentElement.dataset.pinhdr=PINHDR.on?'on':'off'}
+try{PINHDR.on=localStorage.getItem('cp_pinhdr')!=='off'}catch(e){PINHDR.on=true}
+try{applyPinHdr()}catch(e){}
 try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',applyLook)}catch(e){}
 </script>
 <style>
@@ -548,7 +553,7 @@ dialog:modal,#tour .tcard{overscroll-behavior:contain}
 #lvl .msb{grid-row:3;grid-column:1;justify-self:center;margin:3px 0 0}#lvl .msb.pvb{grid-column:3;margin:3px 0 0;padding:0;border:0}
 #lvl .scl b{left:0;right:0;text-align:center;font-variant-numeric:tabular-nums}
 #lvl .scl .inf{font-size:1.9em;font-weight:inherit;line-height:0;position:relative;margin-left:.12em}   /* its vertical offset is set by fitInf() from the real font metrics */
-#lvl .pcol{outline:1px solid color-mix(in srgb,var(--pv) 55%,transparent);outline-offset:3px;border-radius:8px;padding:0}   /* a teal chip around the pair that adds no height: its bars span the same scale as the Live pair */
+#lvl .pcol{border-radius:8px;padding:0}   /* 2.9.1: no outline around the Preview pair (it was a teal chip); the PRV caption, its colour and the Preview buttons still mark it. Its bars span the same scale as the Live pair */
 #lvl .pcol .bars{display:flex;gap:3px;align-self:stretch}#lvl .pcol .vm{width:6px;border-radius:3px}:root[data-skin=stage] #lvl .pcol .vm{width:9px}
 button.msq.out{width:auto;min-width:0;padding:0 .22rem;gap:1px;display:inline-flex;align-items:center;justify-content:center}
 button.msq.out svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}button.msq.out svg.chv{width:10px;height:10px;opacity:.7}
@@ -575,7 +580,7 @@ button.pinb.on{color:var(--accent)}button.pinb.on svg{fill:currentColor}button.p
 #ms .msw{flex:2 1 8rem;min-width:3rem;height:.5rem;border-radius:99px;background:var(--panel2);overflow:hidden}#ms .msw i{display:block;height:100%;width:0;background:var(--live)}
 #ms .mstm{white-space:nowrap;font-family:var(--mono)}#ms .mstm b{font-size:1.1em}#ms .mstm small{color:var(--dim)}
 #ms .mgp{display:flex;align-items:center;gap:.6rem;flex:none}
-#ms .mg{display:flex;align-items:center;gap:.35rem}#ms .mg.pvc{padding:3px 6px;border:1px solid color-mix(in srgb,var(--pv) 60%,transparent);border-radius:7px;background:color-mix(in srgb,var(--pv) 12%,transparent)}
+#ms .mg{display:flex;align-items:center;gap:.35rem}#ms .mg.pvc{padding:3px 6px;border:1px solid transparent;border-radius:7px;background:color-mix(in srgb,var(--pv) 12%,transparent)}   /* 2.9.1: no outline (transparent border keeps the size) */
 #ms .ml{font:700 .58rem var(--mono);letter-spacing:.12em;color:var(--dim)}#ms .ml.pvl{color:var(--pv)}
 #ms .hm{display:flex;flex-direction:column;gap:3px;width:3.4rem}
 #ms .hm>span{display:block;height:7px;border-radius:4px;position:relative;overflow:hidden;background:linear-gradient(90deg,#3cb371 0 64.8%,#f5a623 64.8% 85.6%,#e5392e 85.6%)}
@@ -583,6 +588,18 @@ button.pinb.on{color:var(--accent)}button.pinb.on svg{fill:currentColor}button.p
 #ms .mg.pvc .hm{width:2.8rem}
 body.ledit #ms,body.lay-on.ledit #ms{display:none}
 body.pinfull #now{position:sticky;top:0;z-index:40;background:var(--bg);padding-bottom:.15rem}
+/* 2.9.1 Pin header (Settings > Appearance, html[data-pinhdr], default on; desktop and tablet only): the top bar sticks to the top, its background
+   reaches the page edges and the negative margins keep its content exactly where it was. --hdrh = its height (hdrSync in app.js): the one-line Live
+   strip and the sticky full panel sit directly under it, rows scrolled into view stay clear of both. z-index 50: over the page and the sticky full
+   panel (40), under the popovers (60), the layout tools (80-86), the Live strip (90) and the output menu (200); dialogs are in the top layer. */
+@media(min-width:34.01rem){
+ html[data-pinhdr=on] body>.top{position:sticky;top:0;z-index:50;background:var(--bg);margin:-.5rem -1.2rem .4rem;padding:.5rem 1.2rem}
+ html[data-pinhdr=on] #ms{top:var(--hdrh,0px)}
+ html[data-pinhdr=on] body.pinfull #now{top:var(--hdrh,0px)}
+ html[data-pinhdr=on] :is(li.t,.pl,.lt,.fd){scroll-margin-top:calc(5rem + var(--hdrh,0px))}
+ html[data-pinhdr=on] body.plock>.top{top:calc(var(--ply,0px) - 1rem)}   /* page lock: the fixed body (overflow hidden) becomes the sticky container, so the header is held at the old scroll offset less the body's 1rem top padding (pageLock sets --ply) and does not move behind the dialog */
+ html[data-pinhdr=on] .hpop{z-index:95}   /* the health panel drops down from the pinned header over the one-line Live strip (90) */
+}
 @media(max-width:34rem){
  #ms{flex-direction:column;align-items:stretch;gap:.1rem;padding:.3rem .6rem .5rem .4rem;width:100%}
  #ms .mr1,#ms .mr2{display:flex;align-items:center;gap:.5rem}
@@ -758,9 +775,10 @@ li.t .ib:hover,.lt .ib:hover,li.t button:not(.ib):hover,.lt button:not(.ib):hove
 /* Page width (2.8.1): desktop and tablet only. At phone width the page and the one-line Live strip keep the standard limit and the Settings row is hidden. */
 #settings .pwc{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:.4rem .6rem;min-width:0}
 #settings .pwcw{display:inline-flex;align-items:center;gap:.3rem}#settings .pwcw em{font-style:normal;color:var(--dim)}
-#settings #set_pagewpx{width:calc(5ch + 2.6rem);font-variant-numeric:tabular-nums}
+#settings .sr #set_pagewpx{width:10rem;flex:0 1 10rem;min-width:6rem;margin:0}#settings #pw_val{min-width:8ch;text-align:right;font-variant-numeric:tabular-nums}#settings #pw_sl_lbl{color:var(--dim);font-size:.9em;white-space:nowrap}   /* 2.9.1: the Custom slider, its visible label and its value */
 #settings #pw_reset{margin-left:0;white-space:nowrap;background:none;border:0;box-shadow:none;padding:0 .2rem;min-height:0;height:auto;width:auto;color:color-mix(in srgb,var(--accent) 50%,var(--text));text-decoration:underline;font:inherit}   /* the accent alone is too faint on the light themes */
-@media(max-width:34rem){body{max-width:1320px}#settings .pwrow{display:none}}
+@media(max-width:34rem){body{max-width:1320px}#settings .pwrow,#settings .phrow{display:none}}
+@media(max-width:34rem){#lvl .pcol{outline:1px solid color-mix(in srgb,var(--pv) 55%,transparent);outline-offset:3px}#ms .mg.pvc{border-color:color-mix(in srgb,var(--pv) 60%,transparent)}}   /* 2.9.1 removed the Preview pair's teal outline on desktop and tablet only: the phone keeps it as it was */
 /* Inner limits so a wide page does not spread one row of controls apart; each is above what Standard ever gives (strip bar 569 px, Device 935 px, gain slider 1046 px), so Standard is unchanged */
 #ms .msw{max-width:40rem}   /* the one-line Live strip: pause, stop, bar, time and meters stay together, the title takes the rest */
 .inprow .inpdev{max-width:60rem}.inpg input{max-width:72rem}   /* Live input card: Device menu and Input gain slider */
@@ -872,8 +890,9 @@ li.t .ib:hover,.lt .ib:hover,li.t button:not(.ib):hover,.lt button:not(.ib):hove
    <option value=console>Console - dense, amber</option><option value=studio>Studio - clean, soft cards</option><option value=stage>Stage - big, touch friendly</option></select></div>
   <div class=sr data-s="theme light dark system"><label>Theme</label><span class=seg id=set_theme>
    <button data-v=system onclick="setLook('theme','system')">System</button><button data-v=light onclick="setLook('theme','light')">Light</button><button data-v=dark onclick="setLook('theme','dark')">Dark</button></span></div>
-  <div class="sr pwrow" data-s="page width wide full screen custom pixels"><span class=lb2><span id=pw_lbl>Page width</span><button class=ib2 data-tip="How wide the page may grow on a large screen. Standard is the usual centred column, Full width uses the whole window, Custom takes 800 to 3840 pixels. Phones are not affected." aria-label="More information about the page width">i</button></span><span class=pwc><span class=seg id=set_pagew role=group aria-labelledby=pw_lbl>
-   <button data-v=standard onclick="pagewSet('standard')">Standard</button><button data-v=wide onclick="pagewSet('wide')">Wide</button><button data-v=full onclick="pagewSet('full')">Full width</button><button data-v=custom onclick="pagewSet('custom')">Custom</button></span><span id=pw_cw class=pwcw hidden><input type=number id=set_pagewpx min=800 max=3840 step=10 inputmode=numeric oninput="pagewLive(this.value)" onchange="pagewPx(this.value)" aria-label="Custom page width in pixels, 800 to 3840"><em>px</em></span><button class=lnk id=pw_reset onclick="pagewSet('standard')" hidden>Reset to Standard</button></span></div>
+  <div class="sr pwrow" data-s="page width wide full screen custom pixels"><span class=lb2><span id=pw_lbl>Page width</span><button class=ib2 data-tip="How wide the page may grow on a large screen. Standard is the usual centred column, Full width uses the whole window, Custom takes 800 to 3840 pixels: drag the slider (or use the arrow keys, Home and End). Phones are not affected." aria-label="More information about the page width">i</button></span><span class=pwc><span class=seg id=set_pagew role=group aria-labelledby=pw_lbl>
+   <button data-v=standard onclick="pagewSet('standard')">Standard</button><button data-v=wide onclick="pagewSet('wide')">Wide</button><button data-v=full onclick="pagewSet('full')">Full width</button><button data-v=custom onclick="pagewSet('custom')">Custom</button></span><span id=pw_cw class=pwcw hidden><label for=set_pagewpx id=pw_sl_lbl>Custom width</label><input type=range id=set_pagewpx min=800 max=3840 step=20 value=1600 oninput="pagewLive(this.value)" onchange="pagewPx(this.value)" aria-valuetext="1,600 px"><output id=pw_val for=set_pagewpx aria-hidden=true>1,600 px</output></span><button class=lnk id=pw_reset onclick="pagewSet('standard')" hidden>Reset to Standard</button></span></div>
+  <div class="sr phrow" data-s="pin header top bar logo keep in view scroll"><span class=lb2><label for=set_pinhdr>Pin header</label><button class=ib2 data-tip="Keeps the top bar (name, memory, STOP ALL, Theme and Settings) in view while you scroll. The one-line Live panel sits right under it. Off: the top bar scrolls away. Phones are not affected." aria-label="More information about pinning the header">i</button></span><span class=swl><input type=checkbox id=set_pinhdr onchange="pinHdrSet(this.checked)" aria-label="Pin header"><i></i></span></div>
   <div class=sr data-s="show waveforms wave"><label for=set_wave>Show waveforms</label><span class=swl><input type=checkbox id=set_wave onchange="setWave(this.checked)" aria-label="Show waveforms"><i></i></span></div>
   <div class=sr data-s="pin live panel keep in view scroll"><span class=lb2><label for=set_pin>Pin the Live panel</label><button class=ib2 data-tip="Keeps the Live panel in view while you scroll. The pin button on the panel does the same." aria-label="More information about pinning the Live panel">i</button></span><span class=swl><input type=checkbox id=set_pin onchange="pinSet(this.checked)" aria-label="Pin the Live panel"><i></i></span></div>
   <div class=sr data-s="shrink one line scrolled live panel"><span class=lb2><label for=set_pinmini>Shrink to one line when scrolled</label><button class=ib2 data-tip="When the full Live panel has scrolled out of view, a one-line version stays at the top: title, pause, time and the meters. Off: the whole panel stays at the top." aria-label="More information about the one-line Live panel">i</button></span><span class=swl><input type=checkbox id=set_pinmini onchange="pinOpt('mini',this.checked)" aria-label="Shrink to one line when scrolled"><i></i></span></div>
@@ -1221,8 +1240,8 @@ async function j(u,o){return (await fetch(u,o)).json()}
    its scroll position (body{position:fixed;top:-y}, the only method iOS respects); html keeps a (idle) scrollbar track so nothing shifts sideways. Every
    <dialog> opened with showModal() is covered by the wrapper below; the tour calls pageLock / pageUnlock itself. */
 const PGLOCK={n:0,y:0};
-function pageLock(){if(PGLOCK.n++)return;const b=document.body;PGLOCK.y=window.scrollY;b.style.top=-PGLOCK.y+'px';document.documentElement.classList.add('plock');b.classList.add('plock')}
-function pageUnlock(){if(PGLOCK.n===0||--PGLOCK.n)return;const b=document.body;document.documentElement.classList.remove('plock');b.classList.remove('plock');b.style.top='';window.scrollTo(0,PGLOCK.y)}
+function pageLock(){if(PGLOCK.n++)return;const b=document.body;PGLOCK.y=window.scrollY;b.style.top=-PGLOCK.y+'px';b.style.setProperty('--ply',PGLOCK.y+'px');document.documentElement.classList.add('plock');b.classList.add('plock')}   // --ply: the pinned header stays at the top while locked (style.css)
+function pageUnlock(){if(PGLOCK.n===0||--PGLOCK.n)return;const b=document.body;document.documentElement.classList.remove('plock');b.classList.remove('plock');b.style.top='';b.style.removeProperty('--ply');window.scrollTo(0,PGLOCK.y)}
 /* ---- 2.7.5 rc1: Live output / Preview buttons, Preview meters while previewing, Preview Mute, the pinned Live panel and its one-line strip */
 function outOpen(sel,btn){cbOpenSel(sel,btn)}
 /* The infinity sign of the dB scale comes from whatever font has it, so its glyph sits higher or lower than the digits: move it by the difference of the real ink centres (canvas metrics), so it is centred on its dB level like the numbers. */
@@ -1256,7 +1275,18 @@ function mstripSync(s){
  ms_rem.textContent=remv.textContent;const tl=(s.live_out||0)-(s.live_in||0),tot=s.live_dur?(tl>0.5&&tl<s.live_dur-0.5?tl:s.live_dur):0;ms_tot.textContent=tot?' / '+mmss(tot):'';
  ms.classList.toggle('idle',s.state==='stopped');ms_pill.textContent=s.state==='paused'?'PAUSED':'LIVE'}
 /* the one-line bar shows when MORE THAN HALF of the full panel has scrolled out of the top of the view and goes when less than half is out. The observer is told at 48 % and 52 % visible (a few percent of hysteresis, so nothing flickers at 50 %); it does not depend on scroll events and the bar is fixed, so no layout moves. */
-try{new IntersectionObserver(es=>{const e=es[es.length-1];PASSED=e.boundingClientRect.top<0&&e.intersectionRatio<0.5;mstripShow()},{threshold:[0,0.48,0.52,1]}).observe(document.getElementById('cl'))}catch(e){}
+/* 2.9.1: with the header pinned, "out of view" means under the header: the observer's root is shrunk by the header height (rebuilt when it changes) */
+var STRIPIO=null;
+function stripObs(off){if(STRIPIO&&STRIPIO._off===off)return;if(STRIPIO)STRIPIO.disconnect();
+ try{STRIPIO=new IntersectionObserver(es=>{const e=es[es.length-1];PASSED=e.boundingClientRect.top<off&&e.intersectionRatio<0.5;mstripShow()},{rootMargin:(-off)+'px 0px 0px 0px',threshold:[0,0.48,0.52,1]});STRIPIO._off=off;STRIPIO.observe(document.getElementById('cl'))}catch(e){}}
+/* Pin header (PINHDR, cp_pinhdr and applyPinHdr are in the head script of index.html): --hdrh = the pinned header's height, 0 when it is not pinned (off, or phone width) */
+function hdrSync(){const t=document.querySelector('body>.top');if(!t)return;const h=getComputedStyle(t).position==='sticky'?t.getBoundingClientRect().height:0;
+ document.documentElement.style.setProperty('--hdrh',h+'px');stripObs(Math.round(h))}
+function pinHdrSet(on){PINHDR.on=!!on;try{localStorage.setItem('cp_pinhdr',PINHDR.on?'on':'off')}catch(e){}applyPinHdr();hdrSync();pinHdrUi()}
+function pinHdrUi(){if(window.set_pinhdr)set_pinhdr.checked=PINHDR.on}
+hdrSync();
+try{new ResizeObserver(hdrSync).observe(document.querySelector('body>.top'))}catch(e){}
+addEventListener('resize',hdrSync);
 (()=>{const o=HTMLDialogElement.prototype.showModal;HTMLDialogElement.prototype.showModal=function(){const was=this.open;o.call(this);if(!was&&this.open){pageLock();this.addEventListener('close',pageUnlock,{once:true})}}})();
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const escAttr=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -1384,7 +1414,10 @@ IC.cplay='<svg width=16 height=16 viewBox="0 0 24 24" fill=none stroke=currentCo
 IC.shuf='<svg width=16 height=16 viewBox="0 0 24 24" fill=none stroke=currentColor stroke-width=2 stroke-linecap=round stroke-linejoin=round><path d="m18 14 4 4-4 4"/><path d="m18 2 4 4-4 4"/><path d="M2 18h1.973a4 4 0 0 0 3.3-1.7l5.454-8.6a4 4 0 0 1 3.3-1.7H22"/><path d="M2 6h1.972a4 4 0 0 1 3.6 2.2"/><path d="M22 18h-6.041a4 4 0 0 1-3.3-1.8l-.359-.45"/></svg>';
 IC.info='<svg width=15 height=15 viewBox="0 0 24 24" fill=none stroke=currentColor stroke-width=2 stroke-linecap=round stroke-linejoin=round><circle cx=12 cy=12 r=10 /><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>';
 let TRFADE=1500,TRFADEIN=0,PVTRIM=null,TR=null,PVCUR={id:null,state:'stopped'},LIBC={},LIBI={},FLASH={path:null,id:null,until:0},WAVE=false,PVST={pos:0,dur:0,state:'stopped',t0:0},LIVE={fid:null,pos:0,dur:0,lo:0,hi:0,playing:false,t0:0},WF={},scrub=null;
-try{WAVE=localStorage.getItem('cp_wave')==='1'}catch(e){}
+/* 2.9.1: waveforms are on by default on desktop and tablet. A stored choice always wins ('1' on, '0' off); nothing stored, a bad value or no storage = the
+   default. Phone width (34 rem or less when the page loads) keeps the old default, off, so nothing changes there. */
+const PHQ=matchMedia('(max-width:34rem)');
+try{const w=localStorage.getItem('cp_wave');WAVE=w==='1'?true:w==='0'?false:!PHQ.matches}catch(e){WAVE=!PHQ.matches}
 document.body.classList.toggle('wave',WAVE);
 function folderColor(id){let d=id.includes('/')?id.slice(0,id.lastIndexOf('/')):'';while(d){if(LIBC[d])return LIBC[d];d=d.includes('/')?d.slice(0,d.lastIndexOf('/')):''}return ''}
 function markPv(){                    // the preview button of the track being previewed shows pause (or play when paused)
@@ -1974,7 +2007,7 @@ const THM={system:'System',light:'Light',dark:'Dark'};
 function syncLook(){
  setTimeout(fitInf,0);
  thm.textContent=THM[LOOK.theme]+(LOOK.theme==='system'?' ('+document.documentElement.dataset.theme+')':'');
- set_skin.value=LOOK.skin;set_wave.checked=WAVE;wnFill();if(wn_body.hidden===wnOpen())wnTog();topLoad();trLoad();set_theme.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v===LOOK.theme));pagewUi()}
+ set_skin.value=LOOK.skin;set_wave.checked=WAVE;wnFill();if(wn_body.hidden===wnOpen())wnTog();topLoad();trLoad();set_theme.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v===LOOK.theme));pagewUi();pinHdrUi()}
 /* Time warnings live on the player (state.json), so every page, and the stage page, use the same list. They are always on.
    WN.warnings is [{t: seconds left, c: colour}], longest first: the first row is "First warning", the last "Final warning". */
 let WN={warnings:[{t:60,c:'#f97316'},{t:30,c:'#ef4444'}]},wnTouch=0,wnMig=false;
@@ -2019,10 +2052,15 @@ function setWave(v){WAVE=!!v;try{localStorage.setItem('cp_wave',WAVE?'1':'0')}ca
 /* page width (Settings > Appearance; PAGEW / applyPageW / pagewClamp are in the head script of index.html): saved on every change, shown at once */
 function pagewSave(){try{localStorage.setItem('cp_pagew',PAGEW.mode);localStorage.setItem('cp_pagew_px',String(PAGEW.px))}catch(e){}}
 function pagewSet(m){PAGEW.mode=m;applyPageW();pagewSave();pagewUi();if(m==='custom')set_pagewpx.focus()}
-function pagewLive(v){const n=+v;if(String(v).trim()!==''&&n>=PAGEW.MIN&&n<=PAGEW.MAX)document.documentElement.style.setProperty('--pagew',Math.round(n)+'px')}   // while typing or stepping: shown live, saved (and clamped) on change
+/* 2.9.1: Custom is a range slider (800-3840 px, steps of 20) with the value as text beside it. Dragging shows the width live (pagewLive, input event);
+   it is saved on release or on a keyboard step (pagewPx, change event). A stored value off the steps (or clamped into the range) is applied as it is and
+   only SHOWN at the nearest step: nothing is written until the slider is moved. */
+const pagewTxt=n=>Number(n).toLocaleString('en-US')+' px';
+function pagewShow(n){pw_val.textContent=pagewTxt(n);set_pagewpx.setAttribute('aria-valuetext',pagewTxt(n))}
+function pagewLive(v){const n=+v;if(String(v).trim()!==''&&n>=PAGEW.MIN&&n<=PAGEW.MAX){document.documentElement.style.setProperty('--pagew',Math.round(n)+'px');pagewShow(Math.round(n))}}
 function pagewPx(v){const n=pagewClamp(v);if(n!==null)PAGEW.px=n;PAGEW.mode='custom';applyPageW();pagewSave();pagewUi(true)}
 function pagewUi(force){const m=PAGEW.mode;set_pagew.querySelectorAll('button').forEach(b=>{const on=b.dataset.v===m;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on)});
- pw_cw.hidden=m!=='custom';pw_reset.hidden=m==='standard';if(force||document.activeElement!==set_pagewpx)set_pagewpx.value=PAGEW.px;setSums()}
+ pw_cw.hidden=m!=='custom';pw_reset.hidden=m==='standard';if(force||document.activeElement!==set_pagewpx){set_pagewpx.value=PAGEW.px;pagewShow(PAGEW.px)}setSums()}
 const PWN={standard:'',wide:'Wide page',full:'Full-width page'};
 function cycleTheme(){setLook('theme',{system:'light',light:'dark',dark:'system'}[LOOK.theme])}
 try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',syncLook)}catch(e){}
@@ -2807,7 +2845,7 @@ function waveLoop(ts){
  if(document.hidden||ts-wfT<33)return;
  trgTick();
  if(TR&&trdlg.open){trDraw();trIcons()}
- if(!WAVE){return}wfT=ts;
+ if(!WAVE){if(window.ms_prog&&!PHQ.matches){const d=LIVE.dur||0,p=LIVE.playing?LIVE.pos+(performance.now()-LIVE.t0)/1000:LIVE.pos;ms_prog.style.width=(d?Math.min(1,p/d)*100:0).toFixed(1)+'%'}return}wfT=ts;   // 2.9.1: the one-line strip's bar also moves with waveforms off (desktop and tablet; the phone is left as it was)
  const lw=LIVE.fid?waveFor(LIVE.fid):null,ld=LIVE.dur||(lw&&lw.dur)||0;
  const lpos=scrub&&scrub.cv===wfl?scrub.pos:(LIVE.playing?LIVE.pos+(performance.now()-LIVE.t0)/1000:LIVE.pos);
  if(window.ms_prog)ms_prog.style.width=(ld?Math.min(1,lpos/ld)*100:0).toFixed(1)+'%';
