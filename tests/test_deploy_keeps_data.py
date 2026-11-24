@@ -5,7 +5,7 @@ elevenlabs.key (2.9.0). A redeploy that removed the key would silently disconnec
     python tests/test_deploy_keeps_data.py          # exit 0 = all pass
 
   * deploy/deploy.sh is RUN in a sandbox (a throw-away git clone as the source, a fake install folder holding the data files and a
-    0600 key, CP_DEPLOY_SRC / CP_DEPLOY_APP point it there), twice: every data file is byte-identical afterwards and the key keeps
+    0600 key, CUEME_SRC / CUEME_APP point it there), twice: every data file is byte-identical afterwards and the key keeps
     mode 0600, while player.py, static/ and cpl/ were updated. Skipped without bash, git and rsync.
   * deploy/deploy.ps1 cannot run here (PowerShell / robocopy): it is checked statically. Its only writes to the install folder are
     Copy-Item of player.py, requirements.txt and run-player.bat, the robocopy /MIR of static and cpl (with /XF elevenlabs.key), the
@@ -57,7 +57,7 @@ class DeploySh(unittest.TestCase):
         shutil.rmtree(self.tmp, ignore_errors=True)
 
     def deploy(self, ref):
-        env = {**os.environ, "CP_DEPLOY_SRC": str(self.src), "CP_DEPLOY_APP": str(self.app)}
+        env = {**os.environ, "CUEME_SRC": str(self.src), "CUEME_APP": str(self.app)}
         r = subprocess.run(["bash", str(ROOT / "deploy" / "deploy.sh"), ref], env=env, capture_output=True, text=True)
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
 

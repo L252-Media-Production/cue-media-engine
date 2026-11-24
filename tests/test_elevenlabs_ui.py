@@ -9,7 +9,8 @@ only on Save key and never appears in the page; Test key's green box; the header
 the dialog without a key says "Connect your ElevenLabs account" and opens the Settings group; voices, quota line, character count;
 the amber quota warning disables Generate; generate, waveform and time; Save puts a track with the ElevenLabs chip and the
 "Edit text and regenerate" button in the Generated folder, which opens the dialog pre-filled; keyboard focus ring; Esc closes and returns
-focus; the dialog stays inside the viewport; text contrast >= 4.5:1 and control contrast >= 3:1 (the result boxes' coloured borders
+focus; closing with unsaved audio (Esc, X, backdrop) asks "Discard the generated audio?" with Keep editing (focused) and Discard,
+no question when nothing was generated or it is saved; the dialog stays inside the viewport; text contrast >= 4.5:1 and control contrast >= 3:1 (the result boxes' coloured borders
 are the shared Settings pattern and not a control: their title and text carry the meaning, so only their text is measured). The key used is made up."""
 import json, os, shutil, subprocess, sys, tempfile
 from pathlib import Path
@@ -145,7 +146,7 @@ def main():
                     rect = pg.evaluate("()=>{const r=eldlg.getBoundingClientRect();return {l:r.left,t:r.top,r:r.right,b:r.bottom,w:innerWidth,h:innerHeight}}")
                     check(f"{label}: dialog inside the viewport", rect["l"] >= 0 and rect["t"] >= 0 and rect["r"] <= rect["w"] and rect["b"] <= rect["h"], rect)
                     cr = pg.evaluate(CONTRAST, [["#eldlg .elsub", "text"], ["#eldlg label", "text"], ["#el_count", "text"], ["#eldlg .elk", "text"], ["#eldlg .hint2", "text"],
-                                                ["#el_qtxt", "text"], ["#el_go", "text"], ["#el_vref", "text"], ["#eldlg summary", "text"], ["#el_go", "bg"]])
+                                                ["#el_qtxt", "text"], ["#el_go", "text"], ["#el_vref", "text"], ["#eldlg summary", "text"], ["#el_go", "bg"], ["#el_cancel", "border"]])
                     bad = [x for x in cr if x["ratio"] < (4.5 if x["kind"] == "text" else 3)]
                     check(f"{label}: dialog contrast (text 4.5, controls 3)", not bad, bad)
 
@@ -170,9 +171,57 @@ def main():
                     o = pg.evaluate("()=>({t:el_time.textContent,out:el_out.textContent,v:el_rvoice.textContent,ch:el_rchars.textContent,folder:el_folder.value,mode:el_mode.hidden,focus:document.activeElement.id})")
                     check(f"{label}: preview card: time, output name, voice, characters, Generated folder", o["t"] == "00:00 / 00:02" and "This browser" in o["out"] and o["v"] == "My clone"
                           and o["ch"] == "41" and o["folder"] == "Generated" and o["mode"] and o["focus"] == "el_play", o)
-                    cr = pg.evaluate(CONTRAST, [["#el_time", "text"], ["#el_out", "text"], ["#eldlg .eldl dt", "text"], ["#el_play", "bg"], ["#el_savebtn", "text"], ["#el_savebtn", "bg"]])
+                    cr = pg.evaluate(CONTRAST, [["#el_time", "text"], ["#el_out", "text"], ["#eldlg .eldl dt", "text"], ["#el_play", "bg"], ["#el_savebtn", "text"], ["#el_savebtn", "bg"], ["#el_done .row button:not(.pri)", "border"], ["#el_done .row button:not(.pri)", "text"]])
                     bad = [x for x in cr if x["ratio"] < (4.5 if x["kind"] == "text" else 3)]
                     check(f"{label}: preview card contrast", not bad, bad)
+                    # ---- closing with unsaved audio asks first (Esc, X, backdrop); Keep editing has the focus
+                    st = lambda: pg.evaluate("()=>({dlg:eldlg.open,ask:elask.open,focus:document.activeElement.id})")      # noqa: E731
+                    pg.keyboard.press("Escape")
+                    pg.wait_for_function("()=>elask.open")
+                    o = st()
+                    check(f"{label}: Esc with unsaved audio asks, the dialog stays, Keep editing has the focus", o == {"dlg": True, "ask": True, "focus": "elask_keep"}, o)
+                    txt = pg.evaluate("()=>elask_t.textContent+' '+elask_d.textContent")
+                    btns = pg.evaluate("()=>[...elask.querySelectorAll('button')].map(b=>b.textContent)")
+                    check(f"{label}: the question and its two buttons", txt == "Discard the generated audio? Generating it again uses characters." and btns == ["Keep editing", "Discard"], (txt, btns))
+                    cr = pg.evaluate(CONTRAST, [["#elask h3", "text"], ["#elask_d", "text"], ["#elask_keep", "text"], ["#elask_go", "text"], ["#elask_keep", "border"], ["#elask_go", "border"]])
+                    bad = [x for x in cr if x["ratio"] < (4.5 if x["kind"] == "text" else 3)]
+                    check(f"{label}: question contrast", not bad, bad)
+                    r = pg.evaluate("()=>{const b=elask.getBoundingClientRect();return b.left>=0&&b.top>=0&&b.right<=innerWidth&&b.bottom<=innerHeight}")
+                    check(f"{label}: question inside the viewport", r, "")
+                    pg.keyboard.press("Escape")
+                    pg.wait_for_function("()=>!elask.open")
+                    pg.wait_for_timeout(50)
+                    o = st()
+                    check(f"{label}: Esc on the question = Keep editing; focus back where it was", o == {"dlg": True, "ask": False, "focus": "el_play"}, o)
+                    check(f"{label}: Keep editing keeps the audio", api.get("/api/elevenlabs/job").json["has_temp"] is True, "")
+                    pg.click("#eldlg .elhd .setx")
+                    pg.wait_for_function("()=>elask.open")
+                    pg.keyboard.press("Tab")
+                    f1 = pg.evaluate("()=>document.activeElement.id")
+                    pg.keyboard.press("Shift+Tab")
+                    f2 = pg.evaluate("()=>document.activeElement.id")
+                    check(f"{label}: X asks; Tab / Shift+Tab move between Discard and Keep editing", (f1, f2) == ("elask_go", "elask_keep"), (f1, f2))
+                    pg.keyboard.press("Enter")
+                    pg.wait_for_function("()=>!elask.open")
+                    check(f"{label}: Enter on Keep editing keeps the dialog", st()["dlg"] is True and api.get("/api/elevenlabs/job").json["has_temp"] is True, st())
+                    pg.click("#el_out")
+                    pg.wait_for_timeout(50)
+                    check(f"{label}: a click inside the dialog does not ask", st()["ask"] is False, st())
+                    pg.mouse.click(4, 4)
+                    pg.wait_for_function("()=>elask.open")
+                    check(f"{label}: a click on the backdrop asks", st()["dlg"] is True, st())
+                    if not first:
+                        pg.keyboard.press("Tab")
+                        pg.keyboard.press("Enter")
+                        pg.wait_for_function("()=>!eldlg.open&&!elask.open")
+                        pg.wait_for_timeout(150)
+                        check(f"{label}: Discard (keyboard) closes both, deletes the audio, focus back on the header button",
+                              api.get("/api/elevenlabs/job").json["has_temp"] is False and pg.evaluate("()=>document.activeElement.id") == "lib_gen", pg.evaluate("()=>document.activeElement.id"))
+                        pg.click("#lib_gen")
+                        pg.wait_for_selector("#eldlg[open] #el_form:not([hidden])")
+                    else:
+                        pg.click("#elask_keep")
+                        pg.wait_for_function("()=>!elask.open")
                     if first:
                         first = False
                         pg.click("#el_savebtn")
@@ -195,16 +244,34 @@ def main():
                         pg.wait_for_selector("#el_done:not([hidden])", timeout=15000)
                         check(f"{label}: edit mode offers Save as new and Replace", pg.is_visible("#el_mode"), "")
                         pg.keyboard.press("Escape")
-                        pg.wait_for_function("()=>!eldlg.open")
+                        pg.wait_for_function("()=>elask.open")
+                        pg.click("#elask_go")
+                        pg.wait_for_function("()=>!eldlg.open&&!elask.open")
                         pg.wait_for_timeout(200)
                         foc = pg.evaluate("()=>{const e=document.activeElement;return e.dataset.act||e.id}")
-                        check(f"{label}: Esc from an edit returns focus to the row button", foc == "elgen", foc)
-                        check(f"{label}: closing without saving discards the audio", api.get("/api/elevenlabs/job").json["has_temp"] is False, "")
+                        check(f"{label}: Esc from an edit asks; Discard returns focus to the row button", foc == "elgen", foc)
+                        check(f"{label}: Discard deletes the audio", api.get("/api/elevenlabs/job").json["has_temp"] is False, "")
+                        # already saved (a duplicate leaves the dialog open with its green box): no question
+                        pg.click("#lib_gen")
+                        pg.wait_for_selector("#eldlg[open] #el_form:not([hidden])")
+                        pg.wait_for_selector("#el_voices input[type=radio]")
+                        pg.fill("#el_name", "Doors again")
+                        pg.fill("#el_text", "Ladies and gentlemen, doors are now open.")
+                        pg.wait_for_function("()=>!el_go.disabled")
+                        pg.click("#el_go")
+                        pg.wait_for_selector("#el_done:not([hidden])", timeout=15000)
+                        pg.click("#el_savebtn")
+                        pg.wait_for_selector("#el_msg2.ok")
+                        check(f"{label}: duplicate save says where it is", "Already in the library" in pg.inner_text("#el_msg2"), pg.inner_text("#el_msg2"))
+                        pg.keyboard.press("Escape")
+                        pg.wait_for_function("()=>!eldlg.open")
+                        check(f"{label}: already saved: closes without asking", not pg.evaluate("()=>elask.open"), "")
                         pg.click("#lib_gen")
                         pg.wait_for_selector("#eldlg[open] #el_form:not([hidden])")
                     pg.keyboard.press("Escape")
                     pg.wait_for_function("()=>!eldlg.open")
                     pg.wait_for_timeout(150)
+                    check(f"{label}: nothing generated: Esc closes without asking", not pg.evaluate("()=>elask.open"), "")
                     check(f"{label}: Esc closes the dialog and returns focus to the header button", pg.evaluate("()=>document.activeElement.id") == "lib_gen", pg.evaluate("()=>document.activeElement.id"))
                     check(f"{label}: no page errors", not errs, errs)
                     c.close()

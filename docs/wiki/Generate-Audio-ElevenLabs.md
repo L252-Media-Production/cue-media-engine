@@ -48,7 +48,9 @@ browser, the player's Preview output, or both), the voice, the text and the char
 - **Save to library** puts it in the folder named in **Save to folder** (**Generated** by default; created if needed). If the very same
   audio is already in the library, nothing new is saved and you are told where it is.
 - **Edit and regenerate** goes back to the text.
-- **Discard** throws it away. Closing the window (or pressing Esc) without saving does the same.
+- **Discard** throws it away. Closing the window before saving (the ✕, Esc or a click outside it) asks first, "Discard the generated
+  audio? Generating it again uses characters.", with **Keep editing** (selected, so Enter or Esc keeps it) and **Discard**. Nothing is
+  asked when nothing was generated or it is already saved.
 
 ## Change a generated track
 

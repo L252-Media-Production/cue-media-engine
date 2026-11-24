@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
-SRC=${CP_DEPLOY_SRC:-/opt/companionplayer-src}     # the two folders can be overridden for tests/test_deploy_keeps_data.py
-APP=${CP_DEPLOY_APP:-/opt/media-player}
+SRC=${CUEME_SRC:-/opt/companionplayer-src}     # the source checkout and the install folder; CUEME_SRC / CUEME_APP override them (tests/test_deploy_keeps_data.py)
+APP=${CUEME_APP:-/opt/media-player}
 REF=${1:-main}
 cd "$SRC"
 git fetch -q --tags --prune origin

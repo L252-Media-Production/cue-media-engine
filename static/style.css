@@ -807,3 +807,8 @@ li.t .ib:hover,.lt .ib:hover,li.t button:not(.ib):hover,.lt button:not(.ib):hove
 #eldlg .row:last-child{position:sticky;bottom:-1.2rem;z-index:3;background:var(--panel);padding:.7rem 0 .25rem;margin-top:.6rem;border-top:1px solid var(--line)}
 /* Console light and Stage light: the accent is too pale behind white text and against the white panel (3.8:1 and 1.9:1); this dialog's primary buttons and Save key use a darker accent (>= 4.5:1 text, >= 3:1 against the panel) */
 :root[data-skin=console][data-theme=light] :is(#eldlg button.pri,#eldlg .elplay,#settings #el_save),:root[data-skin=stage][data-theme=light] :is(#eldlg button.pri,#eldlg .elplay,#settings #el_save){background:color-mix(in srgb,var(--accent) 58%,#000);border-color:color-mix(in srgb,var(--accent) 58%,#000);color:#fff}
+/* the Generate dialog and its Discard question: secondary buttons get a visible edge (>= 3:1 against the panel) and Discard the text-safe red */
+:is(#eldlg,#elask) .row button:not(.pri){border-color:color-mix(in srgb,var(--text) 55%,var(--panel))}
+:is(#eldlg,#elask) .row button.dng{color:var(--livet);border-color:color-mix(in srgb,var(--livet) 70%,var(--panel))}
+#elask{width:min(26rem,92vw)}
+#elask p{margin:.2rem 0 .6rem}

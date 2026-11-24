@@ -2322,7 +2322,7 @@ async function elToSettings(){eldlg.close();await openSettings();setTab('system'
  sec.scrollIntoView({block:'nearest'});(ELK.set?el_test:el_key).focus()}
 function elView(v){el_conn.hidden=v!=='conn';el_form.hidden=v!=='form';el_done.hidden=v!=='done'}
 async function elOpen(fid,opener){
- EL.opener=opener||document.activeElement;EL.edit=null;EL.res=null;EL.saved=false;EL.wantModel='';
+ EL.opener=opener||document.activeElement;EL.edit=null;EL.res=null;EL.saved=false;EL.closing=false;EL.wantModel='';
  try{const d=await j('/api/elevenlabs');ELK=d.key;EL.def=d.default_limit||10000;EL.folder=d.default_folder||'Generated'}catch(e){}
  elBox(el_msg,null);EL.msgFrom='';elRunning(false);el_editnote.hidden=true;
  if(!ELK.set){elView('conn');eldlg.showModal();el_conn.querySelector('.pri').focus();return}
@@ -2394,7 +2394,7 @@ async function elPollJob(){clearTimeout(EL.poll);let s=null;try{s=await j('/api/
  if(s.state==='error'){elBox(el_msg,s.error);EL.msgFrom=s.error&&s.error.kind==='voice_gone'?'voice':'api'}}
 function elCancel(){if(EL.running){clearTimeout(EL.poll);elPost('/api/elevenlabs/cancel').catch(()=>{});elRunning(false);
   elBox(el_msg,{level:'warn',title:'Stopped',error:'Nothing was generated and no characters were saved as a track.'});EL.msgFrom='api';el_go.focus();return}
- eldlg.close()}
+ elRequestClose()}
 function elOutName(){const t=pvt();return t==='browser'||!PVDEV?'This browser':t==='both'?'Player output ('+PVDEV+') and this browser':'Player output ('+PVDEV+')'}
 async function elShowDone(){const r=EL.res;elView('done');
  el_rvoice.textContent=r.voice_name;el_rtext.textContent=el_text.value.trim();el_rchars.textContent=elN(r.chars);
@@ -2437,10 +2437,24 @@ async function elSave(){const rep=!!EL.edit&&el_mode.querySelector('input:checke
  EL.saved=true;elFreeAudio();
  try{setLib(await j('/api/library'));lastLib='';renderLib()}catch(e){}
  if(d.duplicate){elBox(el_msg2,{level:'ok',title:'Already in the library',error:'The same audio is already saved as '+d.id+'. No second copy was made.'});el_savebtn.hidden=true;flashFolder(d.id);return}
- eldlg.close();flashFolder(d.id)}
-function elDiscard(){elStop(true);elPost('/api/elevenlabs/discard').catch(()=>{});elFreeAudio();EL.res=null;eldlg.close()}
+ EL.closing=true;eldlg.close();flashFolder(d.id)}
+function elDiscard(){elStop(true);elPost('/api/elevenlabs/discard').catch(()=>{});elFreeAudio();EL.res=null;EL.closing=true;eldlg.close()}
 function elEdit(){elStop(true);elView('form');elBox(el_msg,null);EL.msgFrom='';elCheck();el_text.focus()}
-eldlg.addEventListener('close',()=>{clearTimeout(EL.poll);elSampleStop();elStop(true);
+/* Closing (X, Esc, a click on the backdrop, Cancel) while generated audio is not saved asks first; Keep editing has the focus, so
+   Enter or Esc on the question never throws the audio away. Discard and Save close without asking (they are the choice). */
+let ELASKF=null;
+const elNeedsAsk=()=>!!EL.res&&!EL.saved;
+function elRequestClose(){if(elask.open)return;if(!elNeedsAsk()){EL.closing=true;eldlg.close();return}
+ ELASKF=document.activeElement;elask.returnValue='';elask.showModal();elask_keep.focus()}
+elask.addEventListener('close',()=>{const f=ELASKF;ELASKF=null;
+ if(elask.returnValue==='discard'){elDiscard();return}
+ setTimeout(()=>{const t=f&&f.isConnected&&eldlg.contains(f)&&!f.disabled&&f.offsetParent?f:!el_done.hidden?el_play:el_text;try{t.focus()}catch(e){}},0)});
+eldlg.addEventListener('cancel',e=>{e.preventDefault();elRequestClose()});
+eldlg.addEventListener('click',e=>{if(e.target!==eldlg)return;const r=eldlg.getBoundingClientRect();      // the backdrop: a click outside the dialog's box
+ if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)elRequestClose()});
+eldlg.addEventListener('close',()=>{
+ if(elNeedsAsk()&&!EL.closing){eldlg.showModal();elRequestClose();return}      // a close that skipped the question (a browser may skip 'cancel' on a repeated Esc): reopen and ask
+ EL.closing=false;clearTimeout(EL.poll);elSampleStop();elStop(true);
  if(EL.running){elPost('/api/elevenlabs/cancel').catch(()=>{});elRunning(false)}
  if(EL.res&&!EL.saved)elPost('/api/elevenlabs/discard').catch(()=>{});      // closing without saving throws the generated audio away
  elFreeAudio();EL.res=null;EL.saved=false;

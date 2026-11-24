@@ -275,7 +275,7 @@ try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',applyLo
  <div class=row style="justify-content:flex-end"><button onclick="dldlg.close()" id=dl_close>Close</button><button id=dl_show hidden onclick="dlGoto()">Show in library</button><button class=pri id=dl_go onclick=dlStart()>Download</button></div>
 </dialog>
 <dialog id=eldlg aria-labelledby=el_h>
- <div class=elhd><div><h3 id=el_h>Generate audio</h3><div class=elsub>ElevenLabs · your account</div></div><button class=setx type=button onclick="eldlg.close()" title="Close" aria-label="Close">✕</button></div>
+ <div class=elhd><div><h3 id=el_h>Generate audio</h3><div class=elsub>ElevenLabs · your account</div></div><button class=setx type=button onclick="elRequestClose()" title="Close" aria-label="Close">✕</button></div>
  <div id=el_conn hidden>
   <p class=elconn><b>Connect your ElevenLabs account</b></p>
   <div class=hint2>Add your own ElevenLabs API key in Settings › System › ElevenLabs. Then type an announcement, pick a voice from your account, preview it and save it as a track.</div>
@@ -316,6 +316,11 @@ try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',applyLo
   <div class=resbox id=el_msg2 role=status hidden></div>
   <div class=row style="justify-content:flex-end"><button type=button onclick="elDiscard()">Discard</button><button type=button onclick="elEdit()">Edit and regenerate</button><button class=pri type=button id=el_savebtn onclick="elSave()">Save to library</button></div>
  </div>
+</dialog>
+<dialog id=elask aria-labelledby=elask_t aria-describedby=elask_d>
+ <h3 id=elask_t>Discard the generated audio?</h3>
+ <p id=elask_d class=hint2>Generating it again uses characters.</p>
+ <div class=row style="justify-content:flex-end"><button type=button id=elask_keep onclick="elask.close('keep')">Keep editing</button><button type=button class=dng id=elask_go onclick="elask.close('discard')">Discard</button></div>
 </dialog>
 <dialog id=lxdlg>
  <h3>Export layout</h3>
