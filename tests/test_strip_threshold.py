@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """The one-line Live bar appears when MORE THAN HALF of the full panel is out of view (2.7.5 preview-rc2, Fix 2): scroll in steps and check it is hidden up to 46 % out and shown from 54 % out,
 no flicker around 50 % (a few % of hysteresis), no layout shift (the content below the panel does not move when the bar appears or goes), it never overlaps the page header (it is fixed at the top
-with a higher z-order), at 100 / 125 / 150 % zoom and on a phone, with the pin and shrink options in every combination.    python tests/test_strip_threshold.py   (needs playwright; own player)"""
+with a higher z-order), at 100 / 125 / 150 % zoom and on a phone, with the pin and shrink options in every combination.
+2.9.1: with the header pinned (the default on desktop and tablet) "out of view" means under the header, and the bar sits directly under it (hdr = its height,
+0 on a phone; tests/test_pin_header_ui.py).    python tests/test_strip_threshold.py   (needs playwright; own player)"""
 import os
 import sys
 import time
@@ -32,14 +34,16 @@ def main():
                 pg.goto(inst.base_url); pg.wait_for_selector("#cl"); time.sleep(0.8)
                 pg.evaluate("document.body.style.minHeight='4000px'")
                 time.sleep(0.2)
-                geo = pg.evaluate("(()=>{const r=cl.getBoundingClientRect();return {top:r.top+scrollY,h:r.height,below:cuerow.getBoundingClientRect().top+scrollY}})()")
+                geo = pg.evaluate("(()=>{const r=cl.getBoundingClientRect();return {top:r.top+scrollY,h:r.height,below:cuerow.getBoundingClientRect().top+scrollY,"
+                                  "hdr:parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hdrh'))||0}})()")
+                hdr = geo["hdr"]
                 shows = pin and mini
                 seen = []
                 step = max(4, int(geo["h"] / 40))
                 y = 0
                 while y < geo["top"] + geo["h"] + 40:
                     pg.evaluate(f"window.scrollTo(0,{y})"); time.sleep(0.12)
-                    out = (y - geo["top"]) / geo["h"]
+                    out = (y + hdr - geo["top"]) / geo["h"]
                     hidden = pg.evaluate("ms.hidden")
                     seen.append((round(out, 3), hidden))
                     y += step
@@ -53,7 +57,7 @@ def main():
                 else:
                     check(f"{tag}: the bar never shows", all(s[1] for s in seen), [s for s in seen if not s[1]][:3])
                 # no flicker: wiggle around the threshold
-                mid = geo["top"] + 0.5 * geo["h"]
+                mid = geo["top"] - hdr + 0.5 * geo["h"]
                 flips = 0
                 last = None
                 for k in range(40):
@@ -67,15 +71,15 @@ def main():
                     check(f"{tag}: no flicker when the scroll position wiggles by +-1.2 % of the panel height around 50 % ({flips} changes)", flips <= 2, flips)
                 # no layout shift and no overlap with the page header
                 if shows:
-                    pg.evaluate(f"window.scrollTo(0,{geo['top'] + 0.3 * geo['h']})"); time.sleep(0.3)
+                    pg.evaluate(f"window.scrollTo(0,{geo['top'] - hdr + 0.3 * geo['h']})"); time.sleep(0.3)
                     b1 = pg.evaluate("cuerow.getBoundingClientRect().top+scrollY")
-                    pg.evaluate(f"window.scrollTo(0,{geo['top'] + 0.3 * geo['h']})"); time.sleep(0.1)
-                    pg.evaluate(f"window.scrollTo(0,{geo['top'] + 0.7 * geo['h']})"); time.sleep(0.4)
+                    pg.evaluate(f"window.scrollTo(0,{geo['top'] - hdr + 0.3 * geo['h']})"); time.sleep(0.1)
+                    pg.evaluate(f"window.scrollTo(0,{geo['top'] - hdr + 0.7 * geo['h']})"); time.sleep(0.4)
                     shown = not pg.evaluate("ms.hidden")
                     b2 = pg.evaluate("cuerow.getBoundingClientRect().top+scrollY")
                     check(f"{tag}: the bar is visible at 70 % and the content below the panel did not move ({b1:.1f} -> {b2:.1f})", shown and abs(b1 - b2) < 0.6, (shown, b1, b2))
                     z = pg.evaluate("(()=>{const r=ms.getBoundingClientRect(),cs=getComputedStyle(ms);return {top:r.top,pos:cs.position,z:+cs.zIndex,hz:Math.max(0,...[...document.querySelectorAll('.top,header,#cl')].map(e=>+getComputedStyle(e).zIndex||0))}})()")
-                    check(f"{tag}: it is fixed at the top of the view with a higher z-order than the page content", abs(z["top"]) < 1.5 and z["pos"] == "fixed" and z["z"] > z["hz"], z)
+                    check(f"{tag}: it is fixed at the top of the view with a higher z-order than the page content", abs(z["top"] - hdr) < 1.5 and z["pos"] == "fixed" and z["z"] > z["hz"], z)
                 check(f"{tag}: no page errors", not errs, errs)
                 c.close()
         br.close()

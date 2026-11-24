@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Page width (2.8.1, Settings > Look > Appearance): the maximum width of the page on desktop and tablet.
-Default Standard (1320 px, as before), presets Wide (1800 px) and Full width (no limit), Custom 800-3840 px clamped;
+Default Standard (1320 px, as before), presets Wide (1800 px) and Full width (no limit), Custom 800-3840 px clamped
+(2.9.1: a range slider in steps of 20 px with the value as text; live while dragging, saved on release or a keyboard step);
 saved per browser (cp_pagew, cp_pagew_px), applied by the head script before the first paint, a bad stored value
 falls back to Standard, and phone widths are not affected.
     python tests/test_page_width_ui.py      (needs playwright; starts its own disposable player)"""
@@ -73,20 +74,52 @@ def main():
             check(f"{mode}: kept after a reload, before the first paint", d["mode"] == mode and pg.evaluate("window.__pw0") == prop and d["bodyw"] == width, d)
             pg.evaluate("openSettings();setTab('look')")
 
-        # 3. custom: live while typing, clamped and saved on change; Reset goes back to Standard
+        # 3. custom (2.9.1: a range slider 800-3840 px in steps of 20, the value as text beside it): live while dragging, saved on release
+        #    or on a keyboard step, clamped; Reset goes back to Standard
         pg.click("#set_pagew button[data-v=custom]")
         d = pg.evaluate(STATE)
-        check("custom: shows the pixel field with the remembered value (1600)", d["custom"] and d["input"] == "1600" and d["prop"] == "1600px", d)
-        pg.fill("#set_pagewpx", "2100")          # fill fires input, not change
+        check("custom: shows the slider with the remembered value (1600) and its text", d["custom"] and d["input"] == "1600" and d["prop"] == "1600px"
+              and pg.evaluate("pw_val.textContent") == "1,600 px", d)
+        a = pg.evaluate("()=>{const s=set_pagewpx;return {type:s.type,min:s.min,max:s.max,step:s.step,lbl:s.labels.length?s.labels[0].textContent:'',"
+                        "lblvis:s.labels.length&&s.labels[0].getBoundingClientRect().width>0,vt:s.getAttribute('aria-valuetext')}}")
+        check("slider: range 800-3840, step 20", a["type"] == "range" and a["min"] == "800" and a["max"] == "3840" and a["step"] == "20", a)
+        check("slider: visible label, accessible name and value text", a["lbl"] == "Custom width" and a["lblvis"] and a["vt"] == "1,600 px", a)
+        snap = pg.accessibility.snapshot(root=pg.query_selector("#pw_cw")) if hasattr(pg, "accessibility") else None
+        if snap is not None:
+            names = []
+            def walk(n):
+                names.append((n.get("role"), n.get("name")))
+                for k in n.get("children", []) or []:
+                    walk(k)
+            walk(snap)
+            check("slider: the accessibility tree has a slider named Custom width", ("slider", "Custom width") in names, names)
+        # live while dragging: a real mouse drag, checked before and after the release
+        box = pg.locator("#set_pagewpx").bounding_box()
+        y = box["y"] + box["height"] / 2
+        pg.mouse.move(box["x"] + box["width"] * (1600 - 800) / 3040, y); pg.mouse.down()
+        pg.mouse.move(box["x"] + box["width"] * 0.6, y, steps=6)
+        d = pg.evaluate(STATE); mid = d["prop"]
+        check("drag: the page follows while the thumb is held, nothing saved yet", d["prop"] != "1600px" and d["bodyw"] == min(2560, int(d["prop"][:-2])) and d["px"] == "1600"
+              and pg.evaluate("pw_val.textContent") == f"{int(d['prop'][:-2]):,} px", d)
+        pg.mouse.up()
         d = pg.evaluate(STATE)
-        check("custom: shown live while typing, not saved yet", d["prop"] == "2100px" and d["bodyw"] == 2100 and d["px"] == "1600", d)
+        check("drag: saved on release", d["px"] == mid[:-2] and d["saved"] == "custom" and d["prop"] == mid and int(mid[:-2]) % 20 == 0, (mid, d))
+        # keyboard: arrows step by 20 and save, Home / End go to the ends
+        pg.evaluate("pagewPx('2000')")
+        pg.wait_for_selector("#set_pagewpx", state="visible"); pg.focus("#set_pagewpx")
+        for key, want in (("ArrowRight", 2020), ("ArrowRight", 2040), ("ArrowLeft", 2020), ("ArrowUp", 2040), ("ArrowDown", 2020), ("Home", 800), ("End", 3840)):
+            pg.keyboard.press(key)
+            d = pg.evaluate(STATE)
+            check(f"keyboard {key}: {want} px, live and saved", d["prop"] == f"{want}px" and d["px"] == str(want) and d["input"] == str(want)
+                  and pg.evaluate("pw_val.textContent") == f"{want:,} px", d)
+        # the save function still clamps (a value from a layout or a script)
         for typed, want in (("500", 800), ("5000", 3840), ("1999.6", 2000), ("2400", 2400)):
-            pg.fill("#set_pagewpx", typed); pg.dispatch_event("#set_pagewpx", "change")
+            pg.evaluate(f"pagewPx('{typed}')")
             d = pg.evaluate(STATE)
             check(f"custom: {typed} is clamped to {want}", d["prop"] == f"{want}px" and d["px"] == str(want) and d["input"] == str(want) and d["saved"] == "custom", d)
-        pg.fill("#set_pagewpx", ""); pg.dispatch_event("#set_pagewpx", "change")
+        pg.evaluate("pagewPx('')")
         d = pg.evaluate(STATE)
-        check("custom: an empty field keeps the last value", d["prop"] == "2400px" and d["px"] == "2400" and d["input"] == "2400", d)
+        check("custom: an empty value keeps the last value", d["prop"] == "2400px" and d["px"] == "2400" and d["input"] == "2400", d)
         check("custom: the Appearance summary names it", "2400 px page" in pg.evaluate("sum_appearance.textContent"))
         pg.click("#pw_reset")
         d = pg.evaluate(STATE)
@@ -105,6 +138,24 @@ def main():
             d = pg.evaluate("()=>({mode:document.documentElement.dataset.pagew,prop:document.documentElement.style.getPropertyValue('--pagew')})")
             check(f"stored {label}: {mode} / {prop}", d["mode"] == mode and d["prop"] == prop and pg.evaluate("window.__pw0") == prop, d)
             check(f"stored {label}: no page errors", not errs, errs)
+            c.close()
+
+        # 4b. 2.9.1: a stored Custom value off the 20 px steps or out of range is honoured (clamped) and shown at the nearest step; the stored
+        #     value is not rewritten until the slider is moved
+        for stored, applied, shown in (("1610", 1610, "1620"), ("99999", 3840, "3840"), ("10", 800, "800"), ("2001", 2001, "2000")):
+            c, pg, errs = page(br, inst, {"cp_pagew": "custom", "cp_pagew_px": stored})
+            pg.evaluate("openSettings();setTab('look')")
+            d = pg.evaluate(STATE)
+            check(f"stored px {stored}: page {applied} px, slider at {shown}, text {applied:,} px, storage untouched",
+                  d["prop"] == f"{applied}px" and d["input"] == shown and pg.evaluate("pw_val.textContent") == f"{applied:,} px" and d["px"] == stored, d)
+            pg.evaluate("settings.close()"); pg.evaluate("openSettings();setTab('look');syncLook()")
+            check(f"stored px {stored}: still untouched after reopening Settings", pg.evaluate(STATE)["px"] == stored)
+            pg.wait_for_selector("#set_pagewpx", state="visible"); pg.wait_for_timeout(150)
+            pg.focus("#set_pagewpx"); pg.keyboard.press("ArrowLeft" if shown != "800" else "ArrowRight")
+            d = pg.evaluate(STATE)
+            want = int(shown) - 20 if shown != "800" else 820
+            check(f"stored px {stored}: moving the slider saves the stepped value {want}", d["px"] == str(want) and d["prop"] == f"{want}px", d)
+            check(f"stored px {stored}: no page errors", not errs, errs)
             c.close()
 
         # 5. phone widths: every setting gives the same page; the Settings row is hidden

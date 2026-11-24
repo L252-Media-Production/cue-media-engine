@@ -84,7 +84,7 @@ def main():
                     else:
                         check(f"{label}: Cache and RAM text with units on both numbers", re.fullmatch(r"Cache \d+\.\d GB / \d+\.\d GB", od["cache"]) and re.fullmatch(r"RAM \d+% \(\d+\.\d GB / \d+ GB\)", od["ram"]), od)
                         check(f"{label}: a non-breaking space before the slash in the RAM text", "GB\u00a0/ " in pg.evaluate("document.querySelector('.mr').textContent"))
-                    hh = pg.evaluate("document.querySelector('.top').getBoundingClientRect().height")
+                    hh = pg.evaluate("(()=>{const t=document.querySelector('.top'),s=getComputedStyle(t);return t.getBoundingClientRect().height-parseFloat(s.paddingTop)-parseFloat(s.paddingBottom)})()")   # 2.9.1: the pinned header adds padding around the same content
                     check(f"{label}: header no taller than rc1 ({RC1_H[skin][tag != 'desktop']} px)", hh <= RC1_H[skin][tag != "desktop"] + 0.5, hh)
                     shapes = {}
                     for name, r, st, txt, tip in (

@@ -93,8 +93,10 @@ def main():
         check("the pin is on by default: a filled, upright pin", pg.evaluate("pinbtn.classList.contains('on')&&pinbtn.getAttribute('aria-pressed')==='true'&&getComputedStyle(pinbtn.querySelector('svg')).fill!=='none'&&getComputedStyle(pinbtn.querySelector('svg')).transform==='none'"))
         check("the strip is hidden while the full panel is in view", pg.evaluate("ms.hidden"))
         pg.evaluate("window.scrollTo(0,1300)"); time.sleep(0.6)
-        st = pg.evaluate("({hidden:ms.hidden,top:ms.getBoundingClientRect().top,pos:getComputedStyle(ms).position,text:ms.innerText.replace(/\\s+/g,' ')})")
-        check("scrolled: the Live panel shrinks to one line at the top", not st["hidden"] and abs(st["top"]) < 1.5 and st["pos"] == "fixed", st)
+        st = pg.evaluate("({hidden:ms.hidden,top:ms.getBoundingClientRect().top,pos:getComputedStyle(ms).position,text:ms.innerText.replace(/\\s+/g,' '),"
+                         "hdr:document.querySelector('body>.top').getBoundingClientRect().bottom})")
+        # 2.9.1: the header is pinned by default on desktop, so the strip sits directly under it (tests/test_pin_header_ui.py)
+        check("scrolled: the Live panel shrinks to one line at the top, under the pinned header", not st["hidden"] and abs(st["top"] - st["hdr"]) < 1.5 and st["pos"] == "fixed", st)
         check("the one line has the pin, LIVE pill, title, pause, time and both meter pairs (PRV while previewing)", pg.evaluate("!!ms_pin&&ms_pill.textContent==='LIVE'&&!!ms_name&&!!ms_pp.innerHTML&&!!ms_rem&&!ms_pv.hidden&&ms.querySelectorAll('.hm').length===2&&ms.querySelector('.ml.pvl').textContent==='PRV'"), st)
         check("the pinned panel is not a modal: the page is not locked", pg.evaluate("!document.body.classList.contains('plock')&&PGLOCK.n===0"))
         check("the one line is a single row on a desktop", pg.eval_on_selector("#ms", R)[5] < 60, pg.eval_on_selector("#ms", R))
