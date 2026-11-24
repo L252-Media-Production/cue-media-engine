@@ -26,7 +26,7 @@ The web page and the HTTP and OSC control have **no authentication**: anyone who
 
 ## Quick start
 
-Requirements: Python 3, and for the best results ffmpeg (optional; see [Configuration](docs/wiki/Configuration.md)).
+Requirements: Python 3.11 or newer, and for the best results ffmpeg (optional; see [Configuration](docs/wiki/Configuration.md)).
 
 First time only:
 

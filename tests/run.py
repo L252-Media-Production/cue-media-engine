@@ -49,8 +49,14 @@ def main():
         print("player / module version (tests/test_module_version.py): " + ("PASS" if pv == 0 else "FAIL"))
         pk = subprocess.run([sys.executable, "-I", str(HERE / "test_cold_start.py")], capture_output=True).returncode
         print("cold start: clean folder, existing folder, upgrade from the previous release (tests/test_cold_start.py): " + ("PASS" if pk == 0 else "FAIL"))
+        r311 = subprocess.run([sys.executable, "-I", str(HERE / "test_py311_syntax.py")], capture_output=True, text=True)
+        p311 = r311.returncode
+        skip = [l.split("skipped", 1)[1].strip(" '") for l in r311.stderr.splitlines() if "test_compiles_with_python_311" in l and "skipped" in l]
+        print("Python 3.11 syntax (tests/test_py311_syntax.py): " + ("FAIL" if p311 else "PASS") + (f" (ast check only; real 3.11 compile SKIPPED: {skip[0]})" if skip else ""))
+        if p311:
+            print(r311.stderr[-3000:])
         pm = module_tests()
-        pe = pe or pc or pg or ps or pn or ph or pl or pdk or pdeb or pv or pk or pm
+        pe = pe or pc or pg or ps or pn or ph or pl or pdk or pdeb or pv or pk or p311 or pm
         code = int(code) or pe
     return int(code)
 
