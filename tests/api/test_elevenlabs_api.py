@@ -117,7 +117,12 @@ def test_generate_preview_save_over_http(rig):
     assert a.status == 200 and a.headers.get("Content-Type", "").startswith("audio/mpeg")
     assert a.body == (d / "speech.mp3").read_bytes()
     assert api.request("GET", link["url"]).status == 404, "one use"
-    sv = api.post("/api/elevenlabs/save", {"name": "House open", "folder": ""})
+    bad = api.post("/api/elevenlabs/save", {"name": "House open", "folder": "../../etc"})
+    assert bad.status == 400 and bad.json["field"] == "folder", bad.text
+    bad = api.post("/api/elevenlabs/save", {"name": "House open", "new_folder": "../escape"})
+    assert bad.status == 400 and bad.json["field"] == "new_folder", bad.text
+    assert not (inst.workdir / "media" / "escape").exists() and not (inst.workdir / "escape").exists()
+    sv = api.post("/api/elevenlabs/save", {"name": "House open", "new_folder": "Generated"})
     assert sv.status == 200 and sv.json["id"] == "Generated/House open.mp3", sv.text
     lib = api.get("/api/library").json
     row = [f for f in lib["files"] if f["id"] == "Generated/House open.mp3"]

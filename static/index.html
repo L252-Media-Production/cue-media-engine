@@ -312,7 +312,9 @@ try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',applyLo
    <label class=chk><input type=radio name=el_mode value=new checked onchange="elModeUi()"> Save as a new track</label>
    <label class=chk><input type=radio name=el_mode value=replace onchange="elModeUi()"> Replace <b id=el_repname></b> <span class=dim>(keeps its places in playlists; clears its A/B and trigger points)</span></label>
   </div>
-  <div class=fld id=el_folderrow><label for=el_folder>Save to folder</label><input id=el_folder maxlength=200 autocomplete=off value=Generated></div>
+  <div class=fld id=el_folderrow><label for=el_folder>Save to folder</label><select id=el_folder onchange="elFolderUi()"></select></div>
+  <div class=fld id=el_newrow hidden><label for=el_newname>Name</label><input id=el_newname maxlength=120 autocomplete=off spellcheck=false value=Generated aria-describedby=el_fmsg oninput="elFolderCheck()"></div>
+  <div class=elfmsg id=el_fmsg role=status hidden></div>
   <div class=resbox id=el_msg2 role=status hidden></div>
   <div class=row style="justify-content:flex-end"><button type=button onclick="elDiscard()">Discard</button><button type=button onclick="elEdit()">Edit and regenerate</button><button class=pri type=button id=el_savebtn onclick="elSave()">Save to library</button></div>
  </div>
@@ -388,7 +390,7 @@ try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',applyLo
  <div class=fld><label for=fd_name>Name</label><span class=nmx><input id=fd_name autocomplete=off><small id=fd_ext></small></span></div>
  <div class=fld id=fd_frow><label for=fd_folder>Parent Folder</label><select id=fd_folder></select></div>
  <div id=fdmsg class="msg bad"></div>
- <div class=row style="justify-content:flex-end"><button onclick="fdlg.close()">Cancel</button><button class=pri onclick="fdSave()">Save</button></div>
+ <div class=row style="justify-content:flex-end"><button type=button id=fd_gen class=fdgen hidden onclick="fdGen()">Edit text and regenerate…</button><button onclick="fdlg.close()">Cancel</button><button class=pri onclick="fdSave()">Save</button></div>
 </dialog>
 <input type=file id=picker multiple accept="audio/*,video/*,.wav,.mp3,.ogg,.flac,.m4a,.aac,.aif,.aiff,.aifc,.caf,.wma,.opus,.oga,.mp2,.ac3,.wv,.mp4,.m4v,.mov,.mkv,.webm,.avi,.3gp" hidden>
 <input type=file id=picker2 webkitdirectory multiple hidden>

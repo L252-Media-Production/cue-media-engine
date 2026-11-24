@@ -13,9 +13,9 @@ from pathlib import Path
 from cpl import clock, elevenlabs as el, upload
 from cpl.cache import cache_drop
 from cpl.config import LIB
-from cpl.library import _safe_rel, invalidate_storage
+from cpl.library import _safe_rel, find_duplicate, invalidate_storage
 from cpl.persist import save
-from cpl.state import DURS, GENERATED, library, playlists
+from cpl.state import DURS, GENERATED, LIBDIRS, library, playlists
 
 DEFAULT_FOLDER = "Generated"
 NAME_MAX = 80
@@ -199,18 +199,50 @@ def discard():
     return had
 
 
-async def save_new(name, folder):
-    """Save the temporary file as a new library track. Returns (dict, http status)."""
+def folder_error(name):
+    """Why `name` cannot be a new library folder (the dialog's Create new folder…), or "" when it can. One name, at the top
+    level: not empty, no / or \\, not starting with _ or . (those are skipped by the library scan), only characters a library
+    name may hold, not already there (in any letter case)."""
+    n = str(name or "").strip()
+    if not n:
+        return "Type a name for the new folder."
+    if "/" in n or "\\" in n:
+        return "A folder name cannot contain / or \\."
+    if n.startswith(("_", ".")):
+        return "A folder name cannot start with _ or a dot."
+    if _safe_rel(n, True) != n or n.endswith("."):        # a trailing dot is dropped by Windows
+        return "Use letters, digits, spaces, dots, dashes and underscores only."
+    if (LIB / n).exists() or n.lower() in {d.lower() for d in LIBDIRS}:
+        return "A folder called " + n + " already exists."
+    return ""
+
+
+async def save_new(name, folder=None, new_folder=None):
+    """Save the temporary file as a new library track, into an existing library folder (`folder`; "" = the top level) or into
+    a new top-level folder (`new_folder`, created only now). Anything else is refused, so a crafted request cannot write outside
+    media/library. Identical audio already in the library is reported before any folder is created. Returns (dict, http status)."""
     src = temp_path()
     if not src:
         return {"ok": False, "error": "There is nothing to save. Generate first."}, 409
     stem = clean_name(name)
     if not stem:
         return {"ok": False, "error": "Give the track a name."}, 400
-    folder = _safe_rel(str(folder or "").strip() or DEFAULT_FOLDER, True)
-    if not folder:
-        return {"ok": False, "error": "That folder name is not allowed."}, 400
+    if new_folder is not None:
+        err = folder_error(new_folder)
+        if err:
+            return {"ok": False, "error": err, "field": "new_folder"}, 409 if "already exists" in err else 400
+        folder = str(new_folder).strip()
+    else:
+        folder = "" if folder in (None, "") else str(folder)
+        if folder and (folder not in LIBDIRS or _safe_rel(folder, True) != folder or not (LIB / folder).is_dir()):
+            return {"ok": False, "error": "That folder does not exist in the library. Pick one from the list.", "field": "folder"}, 400
     meta = dict(_T["meta"])
+    size = Path(src).stat().st_size
+    dup = await asyncio.get_running_loop().run_in_executor(None, find_duplicate, src, size)
+    if dup:                                                # nothing to save, and no folder is created for it
+        _drop_temp()
+        JOB.update(state="idle", error=None, result=None)
+        return {"ok": True, "id": dup, "duplicate": True, "folder": Path(dup).parent.as_posix() if "/" in dup else ""}, 200
     res = await upload.import_path(src, folder, stem)
     if "error" in res:
         return {"ok": False, "error": res["error"]}, res["status"]

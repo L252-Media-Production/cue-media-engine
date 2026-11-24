@@ -3349,7 +3349,7 @@ async def h_el_save(req):
     if b.get("replace"):
         d, status = gen.replace(str(b["replace"]), _el_in_use(str(b["replace"])))
     else:
-        d, status = await gen.save_new(b.get("name"), b.get("folder"))
+        d, status = await gen.save_new(b.get("name"), b.get("folder"), b.get("new_folder"))
     if d.get("ok"):
         push(True)
     return web.json_response(d, status=status)

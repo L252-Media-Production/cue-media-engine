@@ -360,7 +360,7 @@ class Generation(ElevenLabsCase):
         self.up.finish_import = spy
         try:
             await self.generate(name="Doors: open?")
-            d, status = await self.gen.save_new("Doors: open?", "")
+            d, status = await self.gen.save_new("Doors: open?", new_folder="Generated")
         finally:
             self.up.finish_import = real
         self.assertEqual(status, 200, d)
@@ -379,26 +379,53 @@ class Generation(ElevenLabsCase):
     async def test_duplicate_is_reported_and_not_entered_twice(self):
         self.setkey()
         await self.generate()
-        a, _ = await self.gen.save_new("First", "")
+        a, _ = await self.gen.save_new("First", new_folder="Generated")
         await self.generate()
-        b, status = await self.gen.save_new("Second", "")
+        b, status = await self.gen.save_new("Second", new_folder="Other")
         self.assertEqual(status, 200, b)
         self.assertTrue(b["duplicate"])
         self.assertEqual(b["id"], a["id"])
         G = self.app.mod("state").GENERATED
         self.assertEqual(list(G), [a["id"]])
         self.assertFalse((self.dir / "media" / "library" / "Generated" / "Second.mp3").exists())
+        self.assertFalse((self.dir / "media" / "library" / "Other").exists(), "no folder is created for a duplicate")
 
     async def test_folder_and_name_checks(self):
         self.setkey()
         await self.generate()
-        d, status = await self.gen.save_new("x", "../outside")
+        lib = self.dir / "media" / "library"
+        for bad in ("../outside", "Nope", "/etc", "Generated/../..", "_import", ["x"], 5):
+            d, status = await self.gen.save_new("x", folder=bad)
+            self.assertEqual((status, d.get("field")), (400, "folder"), bad)
+        for bad in ("", "  ", "a/b", "..", "../up", "a\\b", "_hidden", ".dot", "bad*name", "two  spaces"):
+            d, status = await self.gen.save_new("x", new_folder=bad)
+            self.assertEqual((status, d.get("field")), (400, "new_folder"), bad)
+        self.assertFalse((self.dir / "media" / "outside").exists())
+        self.assertEqual({p.name for p in lib.iterdir() if p.is_dir()}, set(), "nothing was created")
+        d, status = await self.gen.save_new("   ", folder="")
         self.assertEqual(status, 400)
-        d, status = await self.gen.save_new("   ", "")
-        self.assertEqual(status, 400)
-        d, status = await self.gen.save_new("ok", "Shows/Friday")
-        self.assertEqual((status, d["id"]), (200, "Shows/Friday/ok.mp3"))
-        self.assertTrue({"Shows", "Shows/Friday"} <= set(self.P.LIBDIRS))
+        self.assertIsNotNone(self.gen.temp_path(), "a refused save keeps the audio")
+        d, status = await self.gen.save_new("ok", new_folder="Shows")
+        self.assertEqual((status, d["id"], d["folder"]), (200, "Shows/ok.mp3", "Shows"))
+        self.assertIn("Shows", self.P.LIBDIRS)
+        await self.generate(audio=AUDIO + b"2")
+        d, status = await self.gen.save_new("again", new_folder="shows")
+        self.assertEqual((status, d["field"]), (409, "new_folder"), "an existing folder (any letter case) is refused as a new one")
+        self.assertIn("already exists", d["error"])
+        d, status = await self.gen.save_new("again", folder="Shows")
+        self.assertEqual((status, d["id"]), (200, "Shows/again.mp3"), "an existing folder")
+        await self.generate(audio=AUDIO + b"3")
+        d, status = await self.gen.save_new("top", folder="")
+        self.assertEqual((status, d["id"]), (200, "top.mp3"), "the top level, as in Rename or move")
+
+    async def test_folder_error_rules(self):
+        fe = self.gen.folder_error
+        self.assertEqual(fe("Generated"), "")
+        self.assertEqual(fe("Walk-in music 2"), "")
+        for bad in ("", "a/b", "a\\b", "_x", ".x", "x*", "two  spaces", "trailing."):
+            self.assertTrue(fe(bad), bad)
+        self.assertEqual(self.lib.lib_mkdir("Existing")[1], 200)
+        self.assertIn("already exists", fe("existing"))
 
     async def test_clean_name(self):
         c = self.gen.clean_name
@@ -413,7 +440,7 @@ class Generation(ElevenLabsCase):
     async def test_rename_rekeys_and_delete_drops_the_metadata(self):
         self.setkey()
         await self.generate()
-        d, _ = await self.gen.save_new("Walk in", "")
+        d, _ = await self.gen.save_new("Walk in", new_folder="Generated")
         G = self.app.mod("state").GENERATED
         new, status = self.lib.lib_rename(d["id"], "Shows/Walk in.mp3")
         self.assertEqual(status, 200, new)
@@ -441,7 +468,7 @@ class Replace(ElevenLabsCase):
     async def test_replace_keeps_playlist_places_and_clears_what_belonged_to_the_old_audio(self):
         self.setkey()
         await self.generate()
-        d, _ = await self.gen.save_new("Notice", "")
+        d, _ = await self.gen.save_new("Notice", new_folder="Generated")
         fid = d["id"]
         P = self.P
         P.playlists[0]["tracks"].append(fid)

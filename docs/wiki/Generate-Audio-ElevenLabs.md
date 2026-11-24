@@ -45,8 +45,12 @@ takes a few seconds; **Stop** cancels it. One generation runs at a time, and pla
 When it is ready, the window shows a player with the waveform and length, where the preview plays (your usual Preview choice: this
 browser, the player's Preview output, or both), the voice, the text and the characters used. Then:
 
-- **Save to library** puts it in the folder named in **Save to folder** (**Generated** by default; created if needed). If the very same
-  audio is already in the library, nothing new is saved and you are told where it is.
+- **Save to library** puts it in the folder chosen in **Save to folder**: a list of your library folders (the same list as **Parent
+  Folder** in Rename or move, including the top level), with **Create new folder…** first. That shows a **Name** field, filled with
+  **Generated**; the name may not be empty, contain `/` or `\`, start with `_` or a dot, or already exist (then the window says so and
+  offers **Select it instead**). The new folder is made only when you press Save. The list starts on the folder you used last in this
+  browser if it is still there, else **Generated** if it exists, else **Create new folder…** with **Generated**. If the very same audio is
+  already in the library, nothing new is saved (and no folder is made) and you are told where it is.
 - **Edit and regenerate** goes back to the text.
 - **Discard** throws it away. Closing the window before saving (the ✕, Esc or a click outside it) asks first, "Discard the generated
   audio? Generating it again uses characters.", with **Keep editing** (selected, so Enter or Esc keeps it) and **Discard**. Nothing is
@@ -54,8 +58,9 @@ browser, the player's Preview output, or both), the voice, the text and the char
 
 ## Change a generated track
 
-Generated tracks show a small **ElevenLabs** label. The pen button beside the rename pencil (**Edit text and regenerate**) opens the window
-with the track's stored text and voice. After generating, choose **Save as a new track**, or **Replace** the old one: Replace keeps its
+Generated tracks show a small **ElevenLabs** label. Open the track's **Rename or move** window (the pencil) and press **Edit text and
+regenerate…** on the left of its buttons: the rename window closes without saving anything typed there, and the Generate window opens
+with the track's stored text and voice (the button is only there for generated tracks). After generating, choose **Save as a new track**, or **Replace** the old one: Replace keeps its
 places in every playlist, but clears its A/B points and trigger points (their times belonged to the old audio). Replace is refused while
 the track is playing, about to play or previewing.
 

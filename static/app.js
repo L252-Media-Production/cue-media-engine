@@ -156,9 +156,8 @@ const IC={collapse:LUI('<path d="M4 14h6v6"/><path d="M20 10h-6V4"/><path d="m14
  star:LUI('<path d="m12 2 3.1 6.3 6.9 1-5 4.9 1.2 6.9L12 17.8 5.8 21.1 7 14.2 2 9.3l6.9-1z"/>'),starOn:LUI('<path d="m12 2 3.1 6.3 6.9 1-5 4.9 1.2 6.9L12 17.8 5.8 21.1 7 14.2 2 9.3l6.9-1z"/>','currentColor'),
  eye:LUI('<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>'),eyeOff:LUI('<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><path d="m3 3 18 18"/>'),trim:'<svg width=18 height=16 viewBox="0 0 24 24" fill=none stroke=currentColor stroke-width=2 stroke-linecap=round stroke-linejoin=round><path d="M8 4H4v16h4"/><path d="M16 4h4v16h-4"/><path d="M9 12h6"/></svg>',loop:'<svg width=18 height=16 viewBox="0 0 24 24" fill=none stroke=currentColor stroke-width=2 stroke-linecap=round stroke-linejoin=round><path d="M17 2l4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></svg>',play:'PVW',
  pause:'<svg width=13 height=13 viewBox="0 0 24 24" fill=currentColor><rect x=5.5 y=4 width=4.5 height=16 rx=1.2 /><rect x=14 y=4 width=4.5 height=16 rx=1.2 /></svg>'};
-/* ElevenLabs (2.9.0): the Library header button is Lucide audio-lines; "Edit text and regenerate" on generated rows is Lucide pen-line (same 16 px, stroke 2) */
+/* ElevenLabs (2.9.0): the Library header button is Lucide audio-lines (same 16 px, stroke 2); "Edit text and regenerate…" is in the Rename or move dialog */
 IC.gen=LUI('<path d="M2 10v3"/><path d="M6 6v11"/><path d="M10 3v18"/><path d="M14 8v7"/><path d="M18 5v13"/><path d="M22 10v3"/>');
-IC.edtxt=LUI('<path d="M12 20h9"/><path d="M16.38 3.62a1 1 0 0 1 3 3L7.37 18.64a2 2 0 0 1-.86.5l-2.87.84a.5.5 0 0 1-.62-.62l.84-2.87a2 2 0 0 1 .5-.86z"/>');
 lib_gen.innerHTML=IC.gen;
 foctrbtn.innerHTML=IC.trim;   // the Cue panel's Trim button uses the same icon as the playlist rows
 IC.ea={default:'<svg width=16 height=16 viewBox="0 0 24 24" fill=none stroke=currentColor stroke-width=2 stroke-linecap=round stroke-linejoin=round><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg>',once:'<svg width=16 height=16 viewBox="0 0 24 24" fill=none stroke=currentColor stroke-width=2 stroke-linecap=round stroke-linejoin=round><path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/><path d="M11 10h1v4"/></svg>',loop:'<svg width=16 height=16 viewBox="0 0 24 24" fill=none stroke=currentColor stroke-width=2 stroke-linecap=round stroke-linejoin=round><path d="M6 16c5 0 7-8 12-8a4 4 0 0 1 0 8c-5 0-7-8-12-8a4 4 0 1 0 0 8"/></svg>',stop:'<svg width=16 height=16 viewBox="0 0 24 24" fill=none stroke=currentColor stroke-width=2 stroke-linecap=round stroke-linejoin=round><circle cx=12 cy=12 r=10 /><rect x=9 y=9 width=6 height=6 rx=1 /></svg>'};
@@ -228,7 +227,7 @@ function fileRow(x,depth,flat,num,dim){
   <button class="ib inf" data-info="${esc(x.id)}" title="File information" aria-label="File information">${IC.info}</button>
   <button class="ib pv" data-act=pv data-ic=play title="Preview this track (PVW)">${IC.play}</button>
   ${PL.length?`<span class=ib title="Add to a playlist">＋<select data-act=add><option value="">Add to…</option>${PL.map((p,n)=>`<option value=${n}>${esc(p.name)}</option>`).join('')}</select></span>`:''}
-  <button class=ib data-act=ren title="Rename or move to another folder">✎</button>${x.gen?`<button class="ib elgen" data-act=elgen title="Edit text and regenerate" aria-label="Edit text and regenerate">${IC.edtxt}</button>`:''}
+  <button class=ib data-act=ren title="Rename or move to another folder">✎</button>
   <button class="ib del" data-act=del title="Delete this file from the library">✕</button></div>`}
 /* ---- Library folder flags (2.7.4): favorite and hidden live on the player (LIBFL, shared by every browser); collapsed state, the Hidden toggle are per device ---- */
 let LIBFL={},HIDSHOW=false,SREV=false;try{HIDSHOW=localStorage.getItem('cp_lib_hidden')==='1'}catch(e){}
@@ -1012,7 +1011,6 @@ lib.addEventListener('click',e=>{
  const hm=e.target.closest('.hidmsg');if(hm){SREV=hm.dataset.act==='revhid';lastLib='';renderLib();return}
  const ip=e.target.closest('[data-act=inpl]');if(ip){cycleUsed(ip.closest('.lt').dataset.id);return}
  const rn=e.target.closest('[data-act=ren]');if(rn){openFd('ren',rn.closest('.lt').dataset.id,rn);return}
- const eg=e.target.closest('[data-act=elgen]');if(eg){elOpen(eg.closest('.lt').dataset.id,eg);return}
  const b=e.target.closest('[data-act=del]');if(b)delLib(b.closest('.lt').dataset.id);
  const v=e.target.closest('[data-act=pv]');if(v)pvPlay({id:v.closest('.lt').dataset.id})});
 lib.addEventListener('keydown',e=>{const hm=e.target.closest&&e.target.closest('.hidmsg');if(hm&&(e.key==='Enter'||e.key===' ')){e.preventDefault();hm.click()}});
@@ -1020,11 +1018,14 @@ lib.addEventListener('change',e=>{const s=e.target.closest('select[data-act=add]
  if(s&&s.value!==''){const id=s.closest('.lt').dataset.id,p=+s.value;s.value='';addToPl(p,[id],1e9)}});
 
 let FD=null;
+/* the library folders a dialog offers (Rename or move, and Save to folder in Generate audio): "(top level)" first; the scan already skips _ and . folders */
+function folderOpts(ban){return '<option value="">(top level)</option>'+LIBD.filter(d=>!/(^|\/)[_.]/.test(d)&&!(ban&&ban(d))).map(d=>`<option value="${esc(d)}">${esc(d)}</option>`).join('')}
 function openFd(mode,arg,anchor){
- FD={mode,arg};fdmsg.textContent='';
+ FD={mode,arg,anchor};fdmsg.textContent='';
+ const g=mode==='ren'&&(LIBF.find(x=>x.id===arg)||{}).gen;fd_gen.hidden=!g;
  const isFile=mode==='ren',base=arg.slice(arg.lastIndexOf('/')+1),parent=arg.includes('/')?arg.slice(0,arg.lastIndexOf('/')):'';
  const ban=mode==='renf'?(d=>d===arg||d.startsWith(arg+'/')):(()=>false);
- fd_folder.innerHTML='<option value="">(top level)</option>'+LIBD.filter(d=>!ban(d)).map(d=>`<option value="${esc(d)}">${esc(d)}</option>`).join('');
+ fd_folder.innerHTML=folderOpts(ban);
  if(mode==='newf'){fdtitle.textContent=arg?'New folder in "'+arg+'"':'New folder';fd_name.value='';fd_ext.textContent='';fd_frow.style.display='none'}
  else if(mode==='renf'){fdtitle.textContent='Rename or move folder';fd_name.value=base;fd_ext.textContent='';fd_frow.style.display='';fd_folder.value=parent}
  else{const ext=base.includes('.')?base.slice(base.lastIndexOf('.')):'';fdtitle.textContent='Rename or move track';
@@ -1038,6 +1039,8 @@ function fdPlace(r){fdlg.style.position=fdlg.style.margin=fdlg.style.left=fdlg.s
  fdlg.style.left=Math.max(M,Math.min(r.left+r.width/2-w/2,innerWidth-w-M))+'px';
  const below=r.bottom+6;fdlg.style.top=Math.max(M,Math.min(innerHeight-h-M,below+h<=innerHeight-M?below:r.top-6-h))+'px'}
 fdlg.addEventListener('close',()=>{fdlg.style.position=fdlg.style.margin=fdlg.style.left=fdlg.style.top=''});
+/* a generated track: leave the rename (its edits are not saved) and open Generate audio with the stored text and voice */
+function fdGen(){const id=FD.arg,a=FD.anchor;fdlg.close();elOpen(id,a&&a.isConnected?a:null)}
 fdlg.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.isComposing&&!e.target.closest('button')){e.preventDefault();fdSave()}});
 let fdBusy=false;
 async function fdSave(){
@@ -2398,10 +2401,33 @@ function elCancel(){if(EL.running){clearTimeout(EL.poll);elPost('/api/elevenlabs
 function elOutName(){const t=pvt();return t==='browser'||!PVDEV?'This browser':t==='both'?'Player output ('+PVDEV+') and this browser':'Player output ('+PVDEV+')'}
 async function elShowDone(){const r=EL.res;elView('done');
  el_rvoice.textContent=r.voice_name;el_rtext.textContent=el_text.value.trim();el_rchars.textContent=elN(r.chars);
- el_folder.value=EL.folder;el_mode.hidden=!EL.edit;if(EL.edit){el_repname.textContent=EL.edit.name;el_mode.querySelector('input[value=new]').checked=true}elModeUi();
+ elFolderFill();el_mode.hidden=!EL.edit;if(EL.edit){el_repname.textContent=EL.edit.name;el_mode.querySelector('input[value=new]').checked=true}elModeUi();
  el_out.innerHTML='Preview plays on: <b>'+esc(elOutName())+'</b>';elBox(el_msg2,null);el_savebtn.hidden=false;
  EL.dur=0;EL.peaks=null;elTime(0);elDraw(0);el_play.innerHTML=PVI.play;el_play.focus();await elFetchAudio();elUsage()}
-function elModeUi(){const rep=!!EL.edit&&el_mode.querySelector('input:checked').value==='replace';el_folderrow.hidden=rep;el_savebtn.textContent=rep?'Replace track':'Save to library'}
+function elModeUi(){const rep=!!EL.edit&&el_mode.querySelector('input:checked').value==='replace';el_folderrow.hidden=rep;el_savebtn.textContent=rep?'Replace track':'Save to library';
+ if(rep){el_newrow.hidden=true;el_fmsg.hidden=true;el_savebtn.disabled=false}else elFolderUi()}
+/* Save to folder: the library folders (folderOpts, as in Rename or move) with "Create new folder…" first. Default: the folder of the last
+   generated track in this browser if it is still there, else Generated, else a new folder named Generated. A new folder is made only on Save. */
+const ELNEW='\u0001new';
+function elFolderFill(){
+ el_folder.innerHTML=`<option value="${ELNEW}">Create new folder…</option>`+folderOpts();
+ let last=null;try{last=localStorage.getItem('cp_el_folder')}catch(e){}
+ const has=v=>v!==ELNEW&&[...el_folder.options].some(o=>o.value===v);
+ el_folder.value=last!==null&&has(last)?last:has(EL.folder)?EL.folder:ELNEW;el_newname.value=EL.folder;elFolderUi()}
+function elFolderUi(){if(!el_mode.hidden&&el_mode.querySelector('input:checked').value==='replace')return;el_newrow.hidden=el_folder.value!==ELNEW;elFolderCheck()}
+function elFolderErr(v){const n=v.trim();       // the same rules as the player (generate.folder_error)
+ if(!n)return ['Type a name for the new folder.'];
+ if(/[\/\\]/.test(n))return ['A folder name cannot contain / or \\.'];
+ if(/^[_.]/.test(n))return ['A folder name cannot start with _ or a dot.'];
+ if(/[^\p{L}\p{N}_.\- ]/u.test(n)||/\s\s/.test(n)||/[ .]$/.test(n))return ['Use letters, digits, spaces, dots, dashes and underscores only.'];
+ const ex=LIBD.find(d=>d.toLowerCase()===n.toLowerCase());if(ex)return ['A folder called '+ex+' already exists.',ex];
+ return null}
+function elFolderCheck(){
+ if(el_folder.value!==ELNEW){el_fmsg.hidden=true;el_newname.classList.remove('bad');el_savebtn.disabled=false;return}
+ const e=elFolderErr(el_newname.value);el_newname.classList.toggle('bad',!!e);el_savebtn.disabled=!!e;el_fmsg.hidden=!e;
+ el_fmsg.className='elfmsg'+(e&&e[1]?' warn':' bad');
+ el_fmsg.innerHTML=e?esc(e[0])+(e[1]?` <button type=button class=lnk id=el_fpick onclick="elFolderPick()">Select it instead</button>`:''):''}
+function elFolderPick(){const e=elFolderErr(el_newname.value);if(!e||!e[1])return;el_folder.value=e[1];elFolderUi();el_folder.focus()}
 function elFreeAudio(){elStop(false);if(EL.url){URL.revokeObjectURL(EL.url);EL.url=null}}
 async function elFetchAudio(){elFreeAudio();
  try{const d=await elPost('/api/elevenlabs/preview',{cmd:'link'});if(!d.ok)throw new Error(d.error);
@@ -2430,11 +2456,16 @@ function elStop(send){if(!EL.playing)return;EL.playing=false;cancelAnimationFram
  el_play.innerHTML=PVI.play;el_play.setAttribute('aria-label','Play the preview');el_play.title='Play the preview';elTime(0);elDraw(0)}
 async function elSave(){const rep=!!EL.edit&&el_mode.querySelector('input:checked').value==='replace';
  elStop(true);el_savebtn.disabled=true;
- const b=rep?{replace:EL.edit.id}:{name:EL.res.name,folder:el_folder.value.trim()||EL.folder};
+ if(!rep&&el_folder.value===ELNEW&&elFolderErr(el_newname.value)){elFolderCheck();el_newname.focus();return}
+ const b=rep?{replace:EL.edit.id}:el_folder.value===ELNEW?{name:EL.res.name,new_folder:el_newname.value.trim()}:{name:EL.res.name,folder:el_folder.value};
  let d;try{d=await elPost('/api/elevenlabs/save',b)}catch(e){d={ok:false,error:'The player did not answer.'}}
  el_savebtn.disabled=false;
- if(!d.ok){elBox(el_msg2,{level:'bad',title:"Couldn't save",error:d.error});return}
- EL.saved=true;elFreeAudio();
+ if(!d.ok){
+  if(d.field){try{setLib(await j('/api/library'))}catch(e){}}      // the folders changed meanwhile (another browser): show the list as it is now
+  if(d.field==='new_folder'){elFolderCheck();if(el_fmsg.hidden){el_fmsg.className='elfmsg bad';el_fmsg.textContent=d.error;el_fmsg.hidden=false}el_newname.focus()}
+  else{if(d.field==='folder')elFolderFill();elBox(el_msg2,{level:'bad',title:"Couldn't save",error:d.error})}
+  return}
+ EL.saved=true;elFreeAudio();if(!rep&&!d.duplicate)try{localStorage.setItem('cp_el_folder',d.folder)}catch(e){}
  try{setLib(await j('/api/library'));lastLib='';renderLib()}catch(e){}
  if(d.duplicate){elBox(el_msg2,{level:'ok',title:'Already in the library',error:'The same audio is already saved as '+d.id+'. No second copy was made.'});el_savebtn.hidden=true;flashFolder(d.id);return}
  EL.closing=true;eldlg.close();flashFolder(d.id)}
@@ -2458,6 +2489,6 @@ eldlg.addEventListener('close',()=>{
  if(EL.running){elPost('/api/elevenlabs/cancel').catch(()=>{});elRunning(false)}
  if(EL.res&&!EL.saved)elPost('/api/elevenlabs/discard').catch(()=>{});      // closing without saving throws the generated audio away
  elFreeAudio();EL.res=null;EL.saved=false;
- let o=EL.opener;const row=o&&o.dataset&&o.dataset.act==='elgen'?(o.closest('.lt')||{}).dataset:null;EL.opener=null;
- if(o&&!o.isConnected)o=row&&row.id&&[...document.querySelectorAll('#lib .lt')].find(r=>r.dataset.id===row.id)?.querySelector('[data-act=elgen]')||lib_gen;     // the library list was redrawn meanwhile
+ let o=EL.opener;const act=o&&o.dataset&&o.dataset.act,row=act&&o.closest('.lt')?o.closest('.lt').dataset.id:'';EL.opener=null;
+ if(o&&!o.isConnected)o=row&&[...document.querySelectorAll('#lib .lt')].find(r=>r.dataset.id===row)?.querySelector(`[data-act=${act}]`)||lib_gen;     // the library list was redrawn meanwhile
  if(o&&!o.closest('dialog:not([open])'))setTimeout(()=>{try{o.focus()}catch(e){}},0)});
