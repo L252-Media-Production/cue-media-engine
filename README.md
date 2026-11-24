@@ -44,7 +44,7 @@ Every time after that, from this folder:
 
 Open <http://localhost:8080>. At startup the available audio output devices are printed.
 
-- **Linux (Debian), headless, with a USB audio interface** is the production target: run it as a systemd service (see [Install and run](docs/wiki/Install-and-Run.md)). Companion usually runs on the same machine.
+- **Linux (Debian), headless, with a USB audio interface** is the production target: run it as a systemd service (see [Install and run](docs/wiki/Install-and-Run.md)). Companion usually runs on the same machine. On Debian 12 and 13 (amd64 and arm64) a `.deb` from the Releases page installs it as the service `cue-media-engine`, with no internet needed at install time ([Install from a .deb](docs/wiki/Install-and-Run.md#install-from-a-deb-debian-12-and-13)).
 - **Raspberry Pi, Windows and macOS** are supported too. On Windows use `run-player.bat`; on macOS `run-player.command`. (The memory readout is not implemented on macOS.)
 
 **Updating:** copy `player.py`, `cpl/` and `static/` together over the old ones (the player refuses to start if `cpl/` or `static/` is missing or incomplete; on Windows also copy `run-player.bat`). Your playlists, library and settings are kept. To deploy from a clone of this repository with `deploy/deploy.ps1` (Windows, default install folder `C:\Apps\CueME`) or `deploy/deploy.sh` (macOS / Linux), see [Install and run: Deploy from a clone](docs/wiki/Install-and-Run.md#deploy-from-a-clone-deploy-scripts).

@@ -43,6 +43,58 @@ WantedBy=multi-user.target
 ```
 Then `sudo systemctl enable --now cue-media-engine`. Adjust `User` and paths to match your setup.
 
+## Install from a .deb (Debian 12 and 13)
+For Debian 12 (bookworm) and 13 (trixie), on amd64 (a NUC or PC) and arm64 (a 64-bit Raspberry Pi OS). The package carries
+every Python package it needs, so the machine needs **no internet connection** to install it (apt only needs `python3`,
+`python3-venv`, `ffmpeg`, `alsa-utils` and `adduser`, which are usually there or on the install medium).
+
+1. From the project's **Releases** page, download the file for your Debian version and architecture, for example
+   `cue-media-engine_2.9.1_debian12_amd64.deb`, and `SHA256SUMS`. (`dpkg --print-architecture` and `cat /etc/debian_version`
+   tell you which one.)
+2. Check the download: `sha256sum -c SHA256SUMS --ignore-missing` must print `OK` for your file.
+3. Install: `sudo apt install ./cue-media-engine_2.9.1_debian12_amd64.deb` (the `./` matters).
+4. Open `http://<host>:8080`. `systemctl status cue-media-engine` shows the service; `journalctl -u cue-media-engine -f` its log.
+
+What is installed where:
+- `/opt/cue-media-engine/`: the program (`player.py`, `cpl/`, `static/`, `VERSION`) and its Python environment `.venv`, made
+  at install time from the wheels in `/usr/share/cue-media-engine/wheels/`.
+- **Your data lives in the same folder**: `config.json`, `state.json`, `playlists.json`, `durations.json`, `resume.json`,
+  `elevenlabs.key` and `media/library/`. The folder belongs to the user `cueme`; the program files belong to root.
+- The service `cue-media-engine` runs as the system user `cueme` (member of `audio`), starts at boot and restarts 2 seconds
+  after a crash. On a fresh install it is enabled and started.
+- `/etc/default/cue-media-engine`: environment for the service, all commented out. For example, uncomment
+  `SDL_AUDIODRIVER=alsa` if SDL finds no sound on a headless machine, then `sudo systemctl restart cue-media-engine`.
+  Your edits survive updates.
+
+**Updating:** install the new `.deb` the same way. Your data is kept, and **the player is not restarted**, so an update never
+cuts the audio. It keeps running the old code until you run `sudo systemctl restart cue-media-engine`. Restart soon (between
+shows): helper processes that the player starts (decoding, import, download) already run from the new files.
+
+**Moving from an old `companionplayer` install** (`/opt/media-player`): the package never touches it. If `companionplayer` is
+running when you install, the new service is enabled but not started, because both use ports 8080 and 9000. To move over,
+between shows:
+```
+sudo systemctl disable --now companionplayer
+cd /opt/media-player
+sudo cp -a config.json state.json playlists.json durations.json resume.json elevenlabs.key media /opt/cue-media-engine/
+sudo chown -R cueme:cueme /opt/cue-media-engine/config.json /opt/cue-media-engine/state.json \
+  /opt/cue-media-engine/playlists.json /opt/cue-media-engine/durations.json /opt/cue-media-engine/resume.json \
+  /opt/cue-media-engine/elevenlabs.key /opt/cue-media-engine/media
+sudo systemctl start cue-media-engine
+```
+(`cp` reports any of those files that you do not have; that is fine.) Companion buttons that run `systemctl` as a shell
+command must then use the unit name `cue-media-engine` instead of `companionplayer`. Keep `/opt/media-player` until the new
+install has proven itself, then delete it by hand.
+
+**Remove:** `sudo apt remove cue-media-engine` stops and disables the service and removes the program; the data and `.venv`
+stay. `sudo apt purge cue-media-engine` also removes `.venv`, the compiled `__pycache__` folders, `VERSION` and
+`/etc/default/cue-media-engine`. **Neither ever deletes your data** (`config.json`, `state.json`, `playlists.json`,
+`durations.json`, `resume.json`, `elevenlabs.key`, `media/`), and the user `cueme` is kept. Delete
+`/opt/cue-media-engine` by hand if you no longer need it.
+
+**Building the package yourself** (needs Docker): `packaging/build-deb.sh --debian 12 --arch amd64` in a clone of the
+repository writes the `.deb` to `dist/deb/`. See `packaging/README.md`.
+
 ## Folder layout
 ```
 cue-media-engine/
