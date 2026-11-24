@@ -1,0 +1,6 @@
+# Environment for the cue-media-engine service (read by systemd: EnvironmentFile in
+# the cue-media-engine.service unit). One VARIABLE=value per line.
+# After a change: sudo systemctl restart cue-media-engine
+#
+# Example: force SDL to use ALSA directly for the audio output.
+# SDL_AUDIODRIVER=alsa

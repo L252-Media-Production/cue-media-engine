@@ -1,0 +1,122 @@
+#!/bin/sh
+# postinst for cue-media-engine (packaging/README.md). POSIX sh, idempotent.
+# Fresh install: create the cueme user, the venv from the bundled wheelhouse, enable and start the service.
+# Upgrade: update the venv, daemon-reload, and NEVER restart (a restart cuts the audio, possibly during a show).
+set -e
+
+APP=/opt/cue-media-engine
+SHARE=/usr/share/cue-media-engine
+VENV="$APP/.venv"
+STAMP="$VENV/requirements.installed"
+UNIT=cue-media-engine.service
+SVC_USER=cueme
+
+umask 022
+
+# Every systemctl call goes through here: nothing happens where systemd is not running (containers, chroots).
+sysd() {
+    [ -d /run/systemd/system ] || return 0
+    systemctl "$@"
+}
+have_systemd() { [ -d /run/systemd/system ]; }
+
+fail() {
+    echo "cue-media-engine: $*" >&2
+    exit 1
+}
+
+make_user() {
+    if ! getent group "$SVC_USER" >/dev/null; then
+        addgroup --system --quiet "$SVC_USER"
+    fi
+    if ! getent passwd "$SVC_USER" >/dev/null; then
+        adduser --system --quiet --ingroup "$SVC_USER" --home "$APP" --no-create-home \
+            --shell /usr/sbin/nologin "$SVC_USER"
+    fi
+    if ! id -nG "$SVC_USER" | tr ' ' '\n' | grep -qx audio; then
+        adduser --quiet "$SVC_USER" audio
+    fi
+}
+
+pyver() { "$1" -c 'import sys; print("%d.%d" % sys.version_info[:2])' 2>/dev/null || true; }
+
+make_venv() {
+    want=$(pyver python3)
+    [ -n "$want" ] || fail "python3 does not run; cannot create $VENV"
+    if [ -d "$VENV" ] && [ "$(pyver "$VENV/bin/python")" != "$want" ]; then
+        echo "cue-media-engine: $VENV does not match python $want (system upgrade?); creating it again"
+        rm -rf "$VENV"
+    fi
+    if [ -x "$VENV/bin/python" ] && [ -f "$STAMP" ] && cmp -s "$STAMP" "$SHARE/requirements.frozen.txt"; then
+        return 0                                    # already installed from this exact wheelhouse
+    fi
+    if [ ! -x "$VENV/bin/python" ]; then
+        python3 -m venv "$VENV" || fail "'python3 -m venv $VENV' failed (is python3-venv installed?)"
+    fi
+    "$VENV/bin/python" -m pip install --no-index --find-links "$SHARE/wheels" \
+        --disable-pip-version-check --no-cache-dir --no-input --quiet \
+        -r "$SHARE/requirements.frozen.txt" \
+        || fail "installing the Python packages from $SHARE/wheels into $VENV failed (output above). Nothing was downloaded: the package carries every wheel it needs."
+    cp "$SHARE/requirements.frozen.txt" "$STAMP"
+}
+
+precompile() {
+    # cueme cannot write __pycache__ into the root-owned cpl/, so compile it here with the venv's Python.
+    "$VENV/bin/python" -m compileall -q "$APP/cpl" >/dev/null \
+        || fail "compiling $APP/cpl failed"
+}
+
+companionplayer_active() {
+    have_systemd && systemctl is-active --quiet companionplayer.service
+}
+
+fresh_install() {
+    if companionplayer_active; then
+        sysd enable --quiet "$UNIT"
+        echo "WARNING: the old service companionplayer is running. Cue Media Engine uses the same ports"
+        echo "(8080 web, 9000 OSC), so cue-media-engine has been enabled but NOT started."
+        echo "To move over: see 'Moving from an old companionplayer install' in docs/wiki/Install-and-Run.md,"
+        echo "then: sudo systemctl disable --now companionplayer && sudo systemctl start cue-media-engine"
+        return 0
+    fi
+    if have_systemd; then
+        sysd enable --now --quiet "$UNIT" \
+            || echo "cue-media-engine: the service could not be started; see: journalctl -u cue-media-engine"
+        echo "Cue Media Engine is running: http://<this machine>:8080"
+    else
+        echo "systemd is not running here; start the player with: sudo systemctl enable --now cue-media-engine"
+    fi
+}
+
+upgrade() {
+    sysd daemon-reload || true
+    if have_systemd && systemctl is-active --quiet "$UNIT"; then
+        echo "Cue Media Engine updated. The running player keeps the old code until it is restarted."
+        echo "Restart when ready: sudo systemctl restart cue-media-engine"
+    else
+        echo "Cue Media Engine is not running. Start it with: sudo systemctl enable --now cue-media-engine"
+    fi
+}
+
+case "$1" in
+    configure)
+        make_user
+        chown "$SVC_USER:$SVC_USER" "$APP"           # not recursive: the library is never walked
+        chmod 0755 "$APP"
+        make_venv
+        precompile
+        if [ -z "$2" ]; then
+            fresh_install
+        else
+            upgrade
+        fi
+        ;;
+    abort-upgrade|abort-remove|abort-deconfigure|triggered)
+        ;;
+    *)
+        echo "postinst called with unknown argument '$1'" >&2
+        exit 1
+        ;;
+esac
+
+exit 0

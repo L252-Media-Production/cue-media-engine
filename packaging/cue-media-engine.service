@@ -1,0 +1,21 @@
+[Unit]
+Description=Cue Media Engine (playlist audio player)
+Documentation=https://github.com/L252-Media-Production/cue-media-engine
+Wants=network-online.target
+After=network-online.target sound.target
+
+[Service]
+Type=simple
+User=cueme
+Group=cueme
+WorkingDirectory=/opt/cue-media-engine
+EnvironmentFile=-/etc/default/cue-media-engine
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/opt/cue-media-engine/.venv/bin/python player.py
+Restart=always
+RestartSec=2
+# No sandboxing, real-time scheduling or CPU limits on purpose: audio glitches are the failure that matters most,
+# and any such setting needs its own audio test first (packaging/README.md).
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,33 @@
+#!/bin/sh
+# prerm for cue-media-engine (packaging/README.md). POSIX sh, idempotent.
+# The service is stopped only when the package is removed, NEVER on upgrade (that would cut the audio).
+set -e
+
+APP=/opt/cue-media-engine
+UNIT=cue-media-engine.service
+
+sysd() {
+    [ -d /run/systemd/system ] || return 0
+    systemctl "$@"
+}
+
+drop_pycache() {
+    [ -d "$APP/cpl" ] || return 0
+    find "$APP/cpl" -type d -name __pycache__ -prune -exec rm -rf {} +
+}
+
+case "$1" in
+    remove|deconfigure)
+        sysd stop "$UNIT" || true
+        sysd disable --quiet "$UNIT" || true
+        drop_pycache                                 # so dpkg can remove the cpl/ folders
+        ;;
+    upgrade|failed-upgrade)
+        ;;
+    *)
+        echo "prerm called with unknown argument '$1'" >&2
+        exit 1
+        ;;
+esac
+
+exit 0

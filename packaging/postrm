@@ -1,0 +1,47 @@
+#!/bin/sh
+# postrm for cue-media-engine (packaging/README.md). POSIX sh, idempotent.
+# The player's data (config, state, playlists, durations, resume, the ElevenLabs key and the media library)
+# is NEVER deleted, not even on purge. The cueme user is never removed.
+set -e
+
+APP=/opt/cue-media-engine
+
+sysd() {
+    [ -d /run/systemd/system ] || return 0
+    systemctl "$@"
+}
+
+drop_pycache() {
+    [ -d "$APP/cpl" ] || return 0
+    find "$APP/cpl" -type d -name __pycache__ -prune -exec rm -rf {} +
+}
+
+case "$1" in
+    remove)
+        drop_pycache
+        sysd daemon-reload || true
+        ;;
+    purge)
+        drop_pycache
+        rm -rf "$APP/.venv"
+        rm -f "$APP/VERSION"
+        rm -f /etc/systemd/system/multi-user.target.wants/cue-media-engine.service
+        sysd daemon-reload || true
+        if [ -d "$APP" ]; then
+            rmdir "$APP" 2>/dev/null || true          # only when nothing is left in it
+        fi
+        if [ -d "$APP" ]; then
+            echo "Cue Media Engine was purged. Its data was kept in $APP"
+            echo "(config.json, state.json, playlists.json, durations.json, resume.json, elevenlabs.key, media/)."
+            echo "Delete that folder by hand if you no longer need it. The user cueme was kept as well."
+        fi
+        ;;
+    upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
+        ;;
+    *)
+        echo "postrm called with unknown argument '$1'" >&2
+        exit 1
+        ;;
+esac
+
+exit 0

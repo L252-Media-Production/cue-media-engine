@@ -1,0 +1,16 @@
+Package: cue-media-engine
+Version: @VERSION@
+Architecture: @ARCH@
+Maintainer: @MAINTAINER@
+Installed-Size: @INSTALLED_SIZE@
+Depends: @PYTHON_DEP@, python3-venv, ffmpeg, alsa-utils, adduser
+Section: sound
+Priority: optional
+Homepage: https://github.com/L252-Media-Production/cue-media-engine
+Description: playlist audio player for live AV work
+ A playlist audio player for live AV work, controlled from Bitfocus Companion
+ (OSC and HTTP) and from its own web page. One Python program, no build step.
+ .
+ Installs the systemd service cue-media-engine (user cueme, web page on port
+ 8080). The Python packages come from a bundled wheelhouse, so no internet
+ connection is needed at install time.

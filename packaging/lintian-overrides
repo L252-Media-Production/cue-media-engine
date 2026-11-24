@@ -1,0 +1,7 @@
+# Lintian overrides for cue-media-engine (packaging/README.md explains each decision).
+# The player keeps its data next to player.py (cpl/config.py BASE), so the install root is /opt/cue-media-engine by design.
+cue-media-engine: dir-or-file-in-opt
+# The maintainer scripts call systemctl themselves (guarded by /run/systemd/system) so that an upgrade NEVER restarts the player.
+cue-media-engine: maintainer-script-calls-systemctl
+# player.py and cpl/legacy.py carry a #! line but are always run as "python player.py"; all app files are 0644 on purpose.
+cue-media-engine: script-not-executable
