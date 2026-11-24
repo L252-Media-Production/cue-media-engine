@@ -156,6 +156,10 @@ const IC={collapse:LUI('<path d="M4 14h6v6"/><path d="M20 10h-6V4"/><path d="m14
  star:LUI('<path d="m12 2 3.1 6.3 6.9 1-5 4.9 1.2 6.9L12 17.8 5.8 21.1 7 14.2 2 9.3l6.9-1z"/>'),starOn:LUI('<path d="m12 2 3.1 6.3 6.9 1-5 4.9 1.2 6.9L12 17.8 5.8 21.1 7 14.2 2 9.3l6.9-1z"/>','currentColor'),
  eye:LUI('<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>'),eyeOff:LUI('<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><path d="m3 3 18 18"/>'),trim:'<svg width=18 height=16 viewBox="0 0 24 24" fill=none stroke=currentColor stroke-width=2 stroke-linecap=round stroke-linejoin=round><path d="M8 4H4v16h4"/><path d="M16 4h4v16h-4"/><path d="M9 12h6"/></svg>',loop:'<svg width=18 height=16 viewBox="0 0 24 24" fill=none stroke=currentColor stroke-width=2 stroke-linecap=round stroke-linejoin=round><path d="M17 2l4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></svg>',play:'PVW',
  pause:'<svg width=13 height=13 viewBox="0 0 24 24" fill=currentColor><rect x=5.5 y=4 width=4.5 height=16 rx=1.2 /><rect x=14 y=4 width=4.5 height=16 rx=1.2 /></svg>'};
+/* ElevenLabs (2.9.0): the Library header button is Lucide audio-lines; "Edit text and regenerate" on generated rows is Lucide pen-line (same 16 px, stroke 2) */
+IC.gen=LUI('<path d="M2 10v3"/><path d="M6 6v11"/><path d="M10 3v18"/><path d="M14 8v7"/><path d="M18 5v13"/><path d="M22 10v3"/>');
+IC.edtxt=LUI('<path d="M12 20h9"/><path d="M16.38 3.62a1 1 0 0 1 3 3L7.37 18.64a2 2 0 0 1-.86.5l-2.87.84a.5.5 0 0 1-.62-.62l.84-2.87a2 2 0 0 1 .5-.86z"/>');
+lib_gen.innerHTML=IC.gen;
 foctrbtn.innerHTML=IC.trim;   // the Cue panel's Trim button uses the same icon as the playlist rows
 IC.ea={default:'<svg width=16 height=16 viewBox="0 0 24 24" fill=none stroke=currentColor stroke-width=2 stroke-linecap=round stroke-linejoin=round><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg>',once:'<svg width=16 height=16 viewBox="0 0 24 24" fill=none stroke=currentColor stroke-width=2 stroke-linecap=round stroke-linejoin=round><path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/><path d="M11 10h1v4"/></svg>',loop:'<svg width=16 height=16 viewBox="0 0 24 24" fill=none stroke=currentColor stroke-width=2 stroke-linecap=round stroke-linejoin=round><path d="M6 16c5 0 7-8 12-8a4 4 0 0 1 0 8c-5 0-7-8-12-8a4 4 0 1 0 0 8"/></svg>',stop:'<svg width=16 height=16 viewBox="0 0 24 24" fill=none stroke=currentColor stroke-width=2 stroke-linecap=round stroke-linejoin=round><circle cx=12 cy=12 r=10 /><rect x=9 y=9 width=6 height=6 rx=1 /></svg>'};
 const EA_TIP={default:'Then play the next track (follows the playlist)',once:'Loop once, then continue',loop:'Loop forever',stop:'Stop at this track'};
@@ -218,13 +222,13 @@ const byName=(a,b)=>a.name.toLowerCase().localeCompare(b.name.toLowerCase());
 function fileRow(x,depth,flat,num,dim){
  const dir=x.id.includes('/')?x.id.slice(0,x.id.lastIndexOf('/')):'';
  return `<div class="lt${dim?' hid':''}${SEL.has(x.id)?' sel':''}${FLASH.id===x.id&&Date.now()<FLASH.until?' flash':''}" draggable=true data-id="${esc(x.id)}" style="padding-left:${depth*14+4}px"><span class=grip title="Drag into a playlist, or onto a folder">⠿</span>${num?`<span class=lnum>${num}</span>`:''}
-  <span class=ln title="${esc(x.id+(x.fmt&&x.fmt.tip?'  ·  '+x.fmt.tip:''))}">${esc(x.name)}${flat&&dir?` <small class=dim>${esc(dir)}</small>`:''}</span><span class="sz ldr">${LIBDUR[x.id]?dtxt(LIBDUR[x.id]):''}</span>
+  <span class=ln title="${esc(x.id+(x.fmt&&x.fmt.tip?'  ·  '+x.fmt.tip:''))}">${esc(x.name)}${flat&&dir?` <small class=dim>${esc(dir)}</small>`:''}</span>${x.gen?'<span class=elchip title="Made with ElevenLabs">ElevenLabs</span>':''}<span class="sz ldr">${LIBDUR[x.id]?dtxt(LIBDUR[x.id]):''}</span>
   ${x.fmt&&(x.fmt.lv==='warn'||x.fmt.lv==='error')?`<span class="fmtw ${x.fmt.lv}" title="${esc(x.fmt.msg+(x.fmt.tip?' ('+x.fmt.tip+')':''))}">${x.fmt.lv==='error'?'⛔':'⚠'}</span>`:(LIBDUR[x.id]===0?'<span class="fmtw error" title="This file could not be read">⛔</span>':'')}
   ${x.used&&x.used.length?`<button class="ib inpl" data-act=inpl title="In ${x.used.length} playlist(s): ${esc([...x.used].sort((a,b)=>a-b).map(n=>PL[n]?PL[n].name:n).join(', '))}. Click to find it in each playlist, one at a time.">▤<b>${x.used.length}</b></button>`:''}
   <button class="ib inf" data-info="${esc(x.id)}" title="File information" aria-label="File information">${IC.info}</button>
   <button class="ib pv" data-act=pv data-ic=play title="Preview this track (PVW)">${IC.play}</button>
   ${PL.length?`<span class=ib title="Add to a playlist">＋<select data-act=add><option value="">Add to…</option>${PL.map((p,n)=>`<option value=${n}>${esc(p.name)}</option>`).join('')}</select></span>`:''}
-  <button class=ib data-act=ren title="Rename or move to another folder">✎</button>
+  <button class=ib data-act=ren title="Rename or move to another folder">✎</button>${x.gen?`<button class="ib elgen" data-act=elgen title="Edit text and regenerate" aria-label="Edit text and regenerate">${IC.edtxt}</button>`:''}
   <button class="ib del" data-act=del title="Delete this file from the library">✕</button></div>`}
 /* ---- Library folder flags (2.7.4): favorite and hidden live on the player (LIBFL, shared by every browser); collapsed state, the Hidden toggle are per device ---- */
 let LIBFL={},HIDSHOW=false,SREV=false;try{HIDSHOW=localStorage.getItem('cp_lib_hidden')==='1'}catch(e){}
@@ -817,7 +821,7 @@ async function dfiLoad(){try{DFI=(await j('/api/settings/folders')).default_icon
 dfi_grid.addEventListener('click',async e=>{const b=e.target.closest('button');if(!b)return;
  const r=await fetch('/api/settings/folders',{method:'POST',body:JSON.stringify({default_icon:b.dataset.i||''})});
  if(r.ok){DFI=b.dataset.i||'';dfiShow();dfiTog(false);say(b.dataset.i?'New folders will get the '+b.dataset.i.replace(/-/g,' ')+' icon.':'New folders get the plain circle.',true)}else say('Could not save.',false)});
-async function openSettings(){setMode();dfiLoad();
+async function openSettings(){setMode();dfiLoad();elLoad();
  const s=await j('/api/settings');CMP={host:s.companion_host,port:s.companion_osc_port,target:s.target||s.companion_host+':'+s.companion_osc_port,prefix:s.variable_prefix??s.var_prefix??'',warn:null};
  CMP.found=s.host_found;set_host.value=s.companion_host;set_port.value=s.companion_osc_port;set_prefix.value=CMP.prefix;pfxWarn(null);pfx_resrow.hidden=true;pfxPreview();cmpWarn(null);cmp_res.hidden=true;pfxShow();
  await loadDevs();fillPvTarget();
@@ -846,7 +850,7 @@ function setSums1(){
  set('transitions',(TRD==='cut'?'Cut':'Crossfade')+' · crossfade '+(+tr_ms.value||0)+' s');
  set('companion',(CMP.warn?'Still using ':'')+cmpFmt(CMP.target));
  set('engine',(FFSUM||'FFmpeg …')+(appver.textContent?' · v'+appver.textContent.replace(/^Cue Media Engine /,''):''));
- set('library',FMTSUM||'…');set('health',HS?'Watchdog '+(HS.watchdog?'on':'off')+' · Push '+(HS.push&&HS.push.enabled?'on':'off'):'…')}
+ set('library',FMTSUM||'…');set('eleven',ELK.set?'Key set':'No key');set('health',HS?'Watchdog '+(HS.watchdog?'on':'off')+' · Push '+(HS.push&&HS.push.enabled?'on':'off'):'…')}
 var FMTSUM='',FFSUM='';
 /* tips: the (i) buttons open one sentence under their row */
 settings.addEventListener('click',e=>{const b=e.target.closest('.ib2');if(!b)return;const row=b.closest('.sr'),n=row.nextElementSibling;
@@ -1008,6 +1012,7 @@ lib.addEventListener('click',e=>{
  const hm=e.target.closest('.hidmsg');if(hm){SREV=hm.dataset.act==='revhid';lastLib='';renderLib();return}
  const ip=e.target.closest('[data-act=inpl]');if(ip){cycleUsed(ip.closest('.lt').dataset.id);return}
  const rn=e.target.closest('[data-act=ren]');if(rn){openFd('ren',rn.closest('.lt').dataset.id,rn);return}
+ const eg=e.target.closest('[data-act=elgen]');if(eg){elOpen(eg.closest('.lt').dataset.id,eg);return}
  const b=e.target.closest('[data-act=del]');if(b)delLib(b.closest('.lt').dataset.id);
  const v=e.target.closest('[data-act=pv]');if(v)pvPlay({id:v.closest('.lt').dataset.id})});
 lib.addEventListener('keydown',e=>{const hm=e.target.closest&&e.target.closest('.hidmsg');if(hm&&(e.key==='Enter'||e.key===' ')){e.preventDefault();hm.click()}});
@@ -2276,3 +2281,169 @@ loadDevs();render(true);
 async function renderLoop(){try{await render()}catch(e){healthSync({status:'error',state:'problem',summary:'Cannot reach the player',detail:'cannot reach the player',checks:[]})}setTimeout(renderLoop,1000)}   // one render at a time: a slow reply cannot overlap the next
 setTimeout(renderLoop,1000);liveOpen();
 pinUi();try{fillPvTarget()}catch(e){}pvmSync();fitInf();if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fitInf);
+/* ---- ElevenLabs (2.9.0): Settings › System › ElevenLabs and the Generate dialog (#eldlg). The key never comes to the page: the
+   player answers "set" and its last four characters only. Generation runs on the player one at a time; the page polls /api/elevenlabs/job.
+   The unsaved audio is fetched once through a one-use link (blob) for the waveform and for playing in this browser; on the player's
+   Preview output it plays through /api/elevenlabs/preview. Closing the dialog without saving discards it. ---- */
+let ELK={set:false,last4:'',note:''};
+const EL={voices:null,usage:null,usageNote:'',models:null,def:10000,folder:'Generated',edit:null,opener:null,poll:null,running:false,res:null,saved:false,
+ vsel:'',wantModel:'',adv:false,url:null,dur:0,peaks:null,playing:false,audio:null,raf:0,ps:0,msgFrom:''};
+const ELTITLE={no_key:'No key',invalid_key:'Key not valid',permission:'Missing permission',network:"Can't reach ElevenLabs",quota:'Quota used up',rate:'ElevenLabs is busy',
+ too_long:'Text too long',timeout:'No answer in time',voice_gone:'Voice not found',unexpected:'Unexpected answer',busy:'Already generating',input:'Check the form'};
+const ELKIND={own:'Own',cloned:'Cloned',library:'Library'};
+const elPost=(u,o)=>j(u,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(o||{})});
+const elN=n=>Number(n).toLocaleString();
+function elKeyUi(k){if(k)ELK=k;const has=!!ELK.set;
+ el_chip.textContent=has?'Key set · ends in '+ELK.last4:'No key';el_chip.className='chipb'+(has?' ok':'');
+ el_add.hidden=has;el_has.hidden=!has;el_keycancel.hidden=true;el_keylbl.textContent='API key';el_key.value='';
+ el_keynote.hidden=!(has&&ELK.note);el_keynote.textContent=ELK.note||'';elErr('');setSums()}
+function elErr(m){el_err.hidden=!m;el_err.textContent=m||''}
+async function elLoad(){try{const d=await j('/api/elevenlabs');elKeyUi(d.key);EL.def=d.default_limit||10000;EL.folder=d.default_folder||'Generated'}catch(e){}}
+function elKeyReplace(){el_add.hidden=false;el_keycancel.hidden=false;el_keylbl.textContent='New API key';el_key.value='';el_key.focus()}
+async function elKeySave(){const v=el_key.value.trim();if(!v){elErr('Paste the key first.');el_key.focus();return}
+ el_save.disabled=true;let d;try{d=await elPost('/api/elevenlabs/key',{key:v})}catch(e){d={ok:false,error:'The player did not answer.'}}
+ el_save.disabled=false;el_key.value='';
+ if(d.ok){el_res.hidden=true;elKeyUi(d.key);say('ElevenLabs key saved. Press Test key to check it.',true);el_test.focus()}else{elErr(d.error||'Could not save the key.');el_key.focus()}}
+async function elKeyRemove(){if(!confirm('Remove the ElevenLabs key from this player? Tracks you already saved stay in the library.'))return;
+ let d=null;try{d=await j('/api/elevenlabs/key',{method:'DELETE'})}catch(e){}
+ if(d&&d.ok){el_res.hidden=true;elKeyUi(d.key);say('ElevenLabs key removed.',true);el_key.focus()}else say('Could not remove the key.',false)}
+function elUseTxt(u){let t=elN(u.left)+' of '+elN(u.limit)+' characters left';
+ if(u.reset)t+=' · resets '+new Date(u.reset*1000).toLocaleDateString([],{day:'numeric',month:'short'});return t}
+function elBox(box,d){                // d: {level: ok|warn|bad, title?, kind?, error|msg}; null hides the box
+ if(!d){box.hidden=true;box.innerHTML='';return}
+ const lv=d.level==='ok'?'ok':d.level==='warn'?'warn':'bad';box.className='resbox '+lv;
+ box.innerHTML=`<b>${esc(d.title||ELTITLE[d.kind]||(lv==='ok'?'Done':'Problem'))}</b>${esc(d.error||d.msg||'')}`;box.hidden=false}
+async function elTest(){el_test.disabled=true;elBox(el_res,{level:'',title:'Testing…',msg:''});el_res.className='resbox';
+ let d;try{d=await elPost('/api/elevenlabs/test')}catch(e){d={level:'warn',title:"Couldn't test",msg:'The player did not answer.'}}
+ elBox(el_res,{level:d.level,title:d.title,msg:d.msg+(d.usage?' '+elUseTxt(d.usage)+'.':'')});el_test.disabled=false}
+function elFromSettings(){settings.close();elOpen(null,lib_gen)}
+async function elToSettings(){eldlg.close();await openSettings();setTab('system');
+ const sec=settings.querySelector('[data-sec=eleven]');if(settings.classList.contains('sm')&&!sec.classList.contains('open'))setSec('eleven');
+ sec.scrollIntoView({block:'nearest'});(ELK.set?el_test:el_key).focus()}
+function elView(v){el_conn.hidden=v!=='conn';el_form.hidden=v!=='form';el_done.hidden=v!=='done'}
+async function elOpen(fid,opener){
+ EL.opener=opener||document.activeElement;EL.edit=null;EL.res=null;EL.saved=false;EL.wantModel='';
+ try{const d=await j('/api/elevenlabs');ELK=d.key;EL.def=d.default_limit||10000;EL.folder=d.default_folder||'Generated'}catch(e){}
+ elBox(el_msg,null);EL.msgFrom='';elRunning(false);el_editnote.hidden=true;
+ if(!ELK.set){elView('conn');eldlg.showModal();el_conn.querySelector('.pri').focus();return}
+ elView('form');
+ if(fid){let m=null;try{m=await j('/api/elevenlabs/track?id='+encodeURIComponent(fid))}catch(e){}
+  if(m&&m.ok){EL.edit={id:fid,name:m.name};el_name.value=m.name;el_text.value=m.text;EL.vsel=m.voice_id||'';EL.wantModel=m.model||'';
+   el_editnote.hidden=false;el_editnote.innerHTML=`Editing the text of <b>${esc(m.name)}</b>. Generate, listen, then save it as a new track or replace this one.`}}
+ else{el_name.value='';el_text.value='';EL.vsel='';try{EL.vsel=localStorage.getItem('cp_el_voice')||''}catch(e){}}
+ el_model.innerHTML='<option value="">Default model</option>';el_quota.hidden=true;EL.usage=null;EL.voices=null;
+ elRngReset(true);eldlg.showModal();el_name.focus();elCheck();
+ elVoices(false);elUsage();elModels()}
+async function elVoices(refresh){el_voices.innerHTML='<div class=elvmsg>Loading voices…</div>';el_vref.disabled=true;
+ let d;try{d=await j('/api/elevenlabs/voices'+(refresh?'?refresh=1':''))}catch(e){d={ok:false,level:'bad',kind:'network',error:'The player did not answer.'}}
+ el_vref.disabled=false;
+ if(!d.ok){EL.voices=[];el_voices.innerHTML='<div class=elvmsg>No voices to show.</div>';elBox(el_msg,d);EL.msgFrom='api';elCheck();return}
+ EL.voices=d.voices||[];elVRender();elCheck()}
+function elVRender(){const v=EL.voices||[];
+ if(!v.length){el_voices.innerHTML='<div class=elvmsg>This account has no voices yet. Add one in ElevenLabs, then press Refresh.</div>';return}
+ if(EL.vsel&&!v.some(x=>x.id===EL.vsel)){if(EL.edit)elBox(el_msg,{level:'warn',title:'Voice not found',error:'The voice this track was made with is no longer in your account. Pick another.'});EL.vsel=''}
+ if(!EL.vsel&&!EL.edit)EL.vsel=v[0].id;
+ el_voices.innerHTML=v.map(x=>`<div class="elv${x.id===EL.vsel?' on':''}"><label><input type=radio name=el_voice value="${esc(x.id)}"${x.id===EL.vsel?' checked':''}${EL.running?' disabled':''}><span class=elvn>${esc(x.name)}</span><span class="elk ${x.kind}">${ELKIND[x.kind]||''}</span></label>`+
+  (x.preview?`<button type=button class=elsmp data-u="${escAttr(x.preview)}" title="Play a sample of ${escAttr(x.name)}" aria-label="Play a sample of ${escAttr(x.name)}">${PVI.play}</button>`:'')+'</div>').join('');
+ const on=el_voices.querySelector('.elv.on');if(on)on.scrollIntoView({block:'nearest'})}
+el_voices.addEventListener('change',e=>{if(e.target.name!=='el_voice')return;EL.vsel=e.target.value;try{localStorage.setItem('cp_el_voice',EL.vsel)}catch(x){}
+ el_voices.querySelectorAll('.elv').forEach(r=>r.classList.toggle('on',r.querySelector('input').checked));if(EL.msgFrom==='voice'){elBox(el_msg,null);EL.msgFrom=''}elCheck()});
+let ELS=null,ELSB=null;      // the voice sample playing in this browser, and its button
+function elSampleStop(){if(ELS){ELS.pause();ELS=null}if(ELSB){ELSB.innerHTML=PVI.play;ELSB.classList.remove('on');ELSB=null}}
+el_voices.addEventListener('click',e=>{const b=e.target.closest('.elsmp');if(!b)return;const was=ELSB===b;elSampleStop();if(was)return;
+ ELS=new Audio(b.dataset.u);ELSB=b;b.innerHTML=PVI.pause;b.classList.add('on');ELS.onended=elSampleStop;ELS.play().catch(elSampleStop)});
+async function elUsage(){let d=null;try{d=await j('/api/elevenlabs/usage')}catch(e){}
+ EL.usage=d&&d.ok?d.usage:null;EL.usageNote=d&&d.note?'Usage isn’t shown because the key lacks the usage permission (user_read).':'';
+ if(EL.usage){const u=EL.usage;el_qtxt.textContent=elUseTxt(u);el_qbar.style.width=(u.limit?Math.min(100,u.used/u.limit*100):100)+'%';el_quota.classList.remove('nobar');el_quota.hidden=false}
+ else if(EL.usageNote){el_qtxt.textContent=EL.usageNote;el_quota.classList.add('nobar');el_quota.hidden=false}else el_quota.hidden=true;elCheck()}
+async function elModels(){let d=null;try{d=await j('/api/elevenlabs/models')}catch(e){}
+ EL.models=d&&d.ok&&d.models||null;if(d&&d.default_limit)EL.def=d.default_limit;
+ el_model.innerHTML='<option value="">Default model</option>'+(EL.models||[]).map(m=>`<option value="${esc(m.id)}">${esc(m.name)}</option>`).join('');
+ if(EL.wantModel&&(EL.models||[]).some(m=>m.id===EL.wantModel)){el_model.value=EL.wantModel;el_adv.open=true}elCheck()}
+function elLimit(){const m=el_model.value;if(!m)return EL.def;const x=(EL.models||[]).find(y=>y.id===m);return x&&x.limit||null}
+function elRng(){EL.adv=true;el_stabv.textContent=(+el_stab.value).toFixed(2);el_simv.textContent=(+el_sim.value).toFixed(2)}
+function elRngReset(quiet){el_stab.value=0.5;el_sim.value=0.75;elRng();EL.adv=false;if(quiet)el_adv.open=false}
+function elCheck(){const n=el_text.value.trim().length,lim=elLimit(),u=EL.usage;
+ el_count.textContent=elN(n)+(lim?' / '+elN(lim):'')+(n===1?' character':' characters');
+ let warn='';
+ if(lim&&n>lim)warn=`The text is ${elN(n)} characters; this model takes at most ${elN(lim)} in one request. Shorten it or split it into two tracks.`;
+ else if(u&&n>u.left)warn=`This text needs ${elN(n)} characters, but only ${elN(u.left)} are left in your ElevenLabs plan this period.`;
+ el_count.classList.toggle('over',!!warn);
+ if(warn){elBox(el_msg,{level:'warn',title:lim&&n>lim?'Text too long':'Not enough characters left',error:warn});EL.msgFrom='check'}
+ else if(EL.msgFrom==='check'){elBox(el_msg,null);EL.msgFrom=''}
+ const voiceOk=!!EL.vsel&&(EL.voices||[]).some(x=>x.id===EL.vsel);
+ el_go.disabled=EL.running||!!warn||!n||!el_name.value.trim()||!voiceOk;
+ el_go.title=EL.running?'Generating…':!el_name.value.trim()?'Give the track a name':!n?'Type the text to speak':!voiceOk?'Pick a voice':warn?'Shorten the text first':'Generate the audio (uses '+elN(n)+' characters)'}
+function elRunning(on){EL.running=on;el_prog.hidden=!on;el_cancel.textContent=on?'Stop':'Cancel';
+ for(const e of [el_name,el_text,el_model,el_stab,el_sim,el_vref])e.disabled=on;el_voices.querySelectorAll('input').forEach(i=>i.disabled=on);elCheck()}
+async function elGenerate(){if(el_go.disabled)return;elSampleStop();
+ const v=(EL.voices||[]).find(x=>x.id===EL.vsel)||{};
+ const b={name:el_name.value.trim(),text:el_text.value,voice_id:EL.vsel,voice_name:v.name||'',model:el_model.value||null};
+ if(EL.adv){b.stability=+el_stab.value;b.similarity=+el_sim.value}
+ try{localStorage.setItem('cp_el_voice',EL.vsel)}catch(e){}
+ elBox(el_msg,null);EL.msgFrom='';el_progt.textContent='Generating…';
+ let d;try{d=await elPost('/api/elevenlabs/generate',b)}catch(e){d={ok:false,level:'bad',kind:'unexpected',error:'The player did not answer.'}}
+ if(!d.ok){elBox(el_msg,d);EL.msgFrom=d.kind==='voice_gone'?'voice':'api';return}
+ elRunning(true);EL.poll=setTimeout(elPollJob,400)}
+async function elPollJob(){clearTimeout(EL.poll);let s=null;try{s=await j('/api/elevenlabs/job')}catch(e){}
+ if(!eldlg.open||!EL.running)return;
+ if(s&&s.state==='running'){el_progt.textContent='Generating… '+Math.round(s.elapsed||0)+' s';EL.poll=setTimeout(elPollJob,400);return}
+ elRunning(false);
+ if(!s){elBox(el_msg,{level:'bad',title:'Lost contact',error:'The player did not answer. Try again.'});return}
+ if(s.state==='done'){EL.res=s.result;elShowDone();return}
+ if(s.state==='error'){elBox(el_msg,s.error);EL.msgFrom=s.error&&s.error.kind==='voice_gone'?'voice':'api'}}
+function elCancel(){if(EL.running){clearTimeout(EL.poll);elPost('/api/elevenlabs/cancel').catch(()=>{});elRunning(false);
+  elBox(el_msg,{level:'warn',title:'Stopped',error:'Nothing was generated and no characters were saved as a track.'});EL.msgFrom='api';el_go.focus();return}
+ eldlg.close()}
+function elOutName(){const t=pvt();return t==='browser'||!PVDEV?'This browser':t==='both'?'Player output ('+PVDEV+') and this browser':'Player output ('+PVDEV+')'}
+async function elShowDone(){const r=EL.res;elView('done');
+ el_rvoice.textContent=r.voice_name;el_rtext.textContent=el_text.value.trim();el_rchars.textContent=elN(r.chars);
+ el_folder.value=EL.folder;el_mode.hidden=!EL.edit;if(EL.edit){el_repname.textContent=EL.edit.name;el_mode.querySelector('input[value=new]').checked=true}elModeUi();
+ el_out.innerHTML='Preview plays on: <b>'+esc(elOutName())+'</b>';elBox(el_msg2,null);el_savebtn.hidden=false;
+ EL.dur=0;EL.peaks=null;elTime(0);elDraw(0);el_play.innerHTML=PVI.play;el_play.focus();await elFetchAudio();elUsage()}
+function elModeUi(){const rep=!!EL.edit&&el_mode.querySelector('input:checked').value==='replace';el_folderrow.hidden=rep;el_savebtn.textContent=rep?'Replace track':'Save to library'}
+function elFreeAudio(){elStop(false);if(EL.url){URL.revokeObjectURL(EL.url);EL.url=null}}
+async function elFetchAudio(){elFreeAudio();
+ try{const d=await elPost('/api/elevenlabs/preview',{cmd:'link'});if(!d.ok)throw new Error(d.error);
+  const blob=await (await fetch(d.url)).blob();if(!eldlg.open)return;EL.url=URL.createObjectURL(blob);
+  const ab=await new OfflineAudioContext(1,1,44100).decodeAudioData(await blob.arrayBuffer());
+  EL.dur=ab.duration;const ch=ab.getChannelData(0),N=160,step=Math.max(1,Math.floor(ch.length/N)),pk=[];
+  for(let i=0;i<N;i++){let m=0;for(let k=i*step,e=Math.min(ch.length,k+step);k<e;k+=8){const a=Math.abs(ch[k]);if(a>m)m=a}pk.push(m)}
+  const top=Math.max(...pk,1e-4);EL.peaks=pk.map(x=>x/top);elTime(0);elDraw(0)}
+ catch(e){el_time.textContent='--:--'}}
+function elTime(t){el_time.textContent=mmss(t)+' / '+(EL.dur?mmss(EL.dur):'--:--')}
+function elDraw(frac){const c=el_wave,w=c.clientWidth||300,h=c.clientHeight||48,dpr=window.devicePixelRatio||1;
+ if(c.width!==Math.round(w*dpr)){c.width=Math.round(w*dpr);c.height=Math.round(h*dpr)}
+ const g=c.getContext('2d');g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,w,h);const pk=EL.peaks;if(!pk)return;
+ const cs=getComputedStyle(eldlg),on=cs.getPropertyValue('--accent').trim()||'#f2b53b',off=cs.getPropertyValue('--dim').trim()||'#888',bw=w/pk.length;
+ pk.forEach((p,i)=>{const bh=Math.max(2,p*(h-4));g.fillStyle=(i+0.5)/pk.length<=frac?on:off;g.globalAlpha=(i+0.5)/pk.length<=frac?1:.55;g.fillRect(i*bw+bw*.15,(h-bh)/2,Math.max(1,bw*.7),bh)});g.globalAlpha=1}
+function elPlay(){if(EL.playing){elStop(true);return}
+ const t=pvt(),remote=!!PVDEV&&t!=='browser',local=!remote||t==='both';
+ EL.playing=true;el_play.innerHTML=PVI.pause;el_play.setAttribute('aria-label','Stop the preview');el_play.title='Stop the preview';
+ if(remote)elPost('/api/elevenlabs/preview',{cmd:'play'}).then(d=>{if(!d.ok){elBox(el_msg2,{level:'warn',title:"Couldn't play",error:d.error});elStop(false)}}).catch(()=>elStop(false));
+ if(local&&EL.url){EL.audio=new Audio(EL.url);EL.audio.onended=()=>elStop(false);EL.audio.play().catch(()=>{})}
+ EL.ps=performance.now();elTick()}
+function elTick(){if(!EL.playing)return;const t=EL.audio?EL.audio.currentTime:(performance.now()-EL.ps)/1000;elTime(Math.min(t,EL.dur||t));elDraw(EL.dur?t/EL.dur:0);
+ if(EL.dur&&!EL.audio&&t>=EL.dur+0.2){elStop(false);return}EL.raf=requestAnimationFrame(elTick)}
+function elStop(send){if(!EL.playing)return;EL.playing=false;cancelAnimationFrame(EL.raf);if(EL.audio){EL.audio.pause();EL.audio=null}
+ if(send&&PVDEV&&pvt()!=='browser')elPost('/api/elevenlabs/preview',{cmd:'stop'}).catch(()=>{});
+ el_play.innerHTML=PVI.play;el_play.setAttribute('aria-label','Play the preview');el_play.title='Play the preview';elTime(0);elDraw(0)}
+async function elSave(){const rep=!!EL.edit&&el_mode.querySelector('input:checked').value==='replace';
+ elStop(true);el_savebtn.disabled=true;
+ const b=rep?{replace:EL.edit.id}:{name:EL.res.name,folder:el_folder.value.trim()||EL.folder};
+ let d;try{d=await elPost('/api/elevenlabs/save',b)}catch(e){d={ok:false,error:'The player did not answer.'}}
+ el_savebtn.disabled=false;
+ if(!d.ok){elBox(el_msg2,{level:'bad',title:"Couldn't save",error:d.error});return}
+ EL.saved=true;elFreeAudio();
+ try{setLib(await j('/api/library'));lastLib='';renderLib()}catch(e){}
+ if(d.duplicate){elBox(el_msg2,{level:'ok',title:'Already in the library',error:'The same audio is already saved as '+d.id+'. No second copy was made.'});el_savebtn.hidden=true;flashFolder(d.id);return}
+ eldlg.close();flashFolder(d.id)}
+function elDiscard(){elStop(true);elPost('/api/elevenlabs/discard').catch(()=>{});elFreeAudio();EL.res=null;eldlg.close()}
+function elEdit(){elStop(true);elView('form');elBox(el_msg,null);EL.msgFrom='';elCheck();el_text.focus()}
+eldlg.addEventListener('close',()=>{clearTimeout(EL.poll);elSampleStop();elStop(true);
+ if(EL.running){elPost('/api/elevenlabs/cancel').catch(()=>{});elRunning(false)}
+ if(EL.res&&!EL.saved)elPost('/api/elevenlabs/discard').catch(()=>{});      // closing without saving throws the generated audio away
+ elFreeAudio();EL.res=null;EL.saved=false;
+ let o=EL.opener;const row=o&&o.dataset&&o.dataset.act==='elgen'?(o.closest('.lt')||{}).dataset:null;EL.opener=null;
+ if(o&&!o.isConnected)o=row&&row.id&&[...document.querySelectorAll('#lib .lt')].find(r=>r.dataset.id===row.id)?.querySelector('[data-act=elgen]')||lib_gen;     // the library list was redrawn meanwhile
+ if(o&&!o.closest('dialog:not([open])'))setTimeout(()=>{try{o.focus()}catch(e){}},0)});

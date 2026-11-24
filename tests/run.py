@@ -41,12 +41,14 @@ def main():
         print("state hooks (tests/test_state_hooks.py): " + ("PASS" if ph == 0 else "FAIL"))
         pl = subprocess.run([sys.executable, "-I", str(HERE / "test_launchers.py")], capture_output=True).returncode
         print("launchers + deploy scripts (tests/test_launchers.py): " + ("PASS" if pl == 0 else "FAIL"))
+        pdk = subprocess.run([sys.executable, "-I", str(HERE / "test_deploy_keeps_data.py")], capture_output=True).returncode
+        print("deploy keeps config, state and the ElevenLabs key (tests/test_deploy_keeps_data.py): " + ("PASS" if pdk == 0 else "FAIL"))
         pv = subprocess.run([sys.executable, "-I", str(HERE / "test_module_version.py")], capture_output=True).returncode
         print("player / module version (tests/test_module_version.py): " + ("PASS" if pv == 0 else "FAIL"))
         pk = subprocess.run([sys.executable, "-I", str(HERE / "test_cold_start.py")], capture_output=True).returncode
         print("cold start: clean folder, existing folder, upgrade from the previous release (tests/test_cold_start.py): " + ("PASS" if pk == 0 else "FAIL"))
         pm = module_tests()
-        pe = pe or pc or pg or ps or pn or ph or pl or pv or pk or pm
+        pe = pe or pc or pg or ps or pn or ph or pl or pdk or pv or pk or pm
         code = int(code) or pe
     return int(code)
 

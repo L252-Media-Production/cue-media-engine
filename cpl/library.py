@@ -10,7 +10,7 @@ from cpl.cache import cache_drop
 from cpl.config import AUDIO_EXT, CFG, LIB, MEDIA
 from cpl.persist import save
 from cpl.playlists import clamp_focus, remove_from_playlist, track
-from cpl.state import FOLDER_COLORS, FOLDER_FLAGS, FOLDER_ICONS, LIBDIRS, decks, library, playlists
+from cpl.state import FOLDER_COLORS, FOLDER_FLAGS, FOLDER_ICONS, GENERATED, LIBDIRS, decks, library, playlists
 from cpl.util import _sc, parse_size
 
 
@@ -181,6 +181,8 @@ def lib_rename(old, new):
             pl["triggers"] = {m(k): [{**x, "file": m(x["file"])} for x in v] for k, v in pl["triggers"].items()}
     if S.known is not None:
         S.known = {m(x) for x in S.known}
+    for k in [k for k in GENERATED if m(k) != k]:          # the ElevenLabs text and voice follow the file
+        GENERATED[m(k)] = GENERATED.pop(k)
     cache.rename_path(m)                               # the decoded sounds, meter and ducking data follow the new names; trimmed copies are rebuilt by the warm-up
     for d in decks:                                    # a playing track keeps playing; just show the new name
         tr = track(*d.pt) if d.pt else None
@@ -244,6 +246,7 @@ def delete_from_library(fid):
     except FileNotFoundError:
         pass
     library.pop(fid, None)
+    GENERATED.pop(fid, None)
     invalidate_storage()
     save()
     return "ok"

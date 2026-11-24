@@ -11,7 +11,7 @@ from cpl.config import AUDIO_EXT, DATA, MEDIA
 from cpl.library import invalidate_storage, missing_refs, scan_library, storage_info
 from cpl.persist import save
 from cpl.playlists import clamp_focus
-from cpl.state import FOLDER_COLORS, FOLDER_FLAGS, FOLDER_ICONS, library, playlists
+from cpl.state import FOLDER_COLORS, FOLDER_FLAGS, FOLDER_ICONS, GENERATED, library, playlists
 from cpl.upload import import_file
 from cpl.util import fmt_bytes
 
@@ -78,6 +78,11 @@ def load():
             keep = {f: True for f in ("fav", "hidden") if v.get(f) is True}
             if keep:
                 FOLDER_FLAGS[k] = keep
+    GENERATED.clear()
+    gen = data.get("generated")
+    for k, v in (gen.items() if isinstance(gen, dict) else ()):
+        if isinstance(k, str) and isinstance(v, dict) and isinstance(v.get("text"), str):
+            GENERATED[k] = {f: v[f] for f in ("text", "voice_id", "voice_name", "model", "created") if isinstance(v.get(f), str)}
     scan_library()
     if data.get("playlists") and data.get("version") != 2:
         DATA.with_name("playlists.pre-library.json").write_text(DATA.read_text())   # safety copy

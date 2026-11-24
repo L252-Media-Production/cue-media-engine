@@ -14,6 +14,7 @@ Cue Media Engine is an independent project and is not affiliated with or endorse
 - **Play on Top:** announcements over music with a sidechain ducker; the same ducker can be driven by a live microphone input.
 - **No glitches:** tracks are decoded into RAM ahead of time by helper processes, so a cue starts instantly and the output never freezes.
 - **Preview and Solo:** a second output, or the browser, for the engineer's headphones.
+- **Generated announcements (optional):** connect your own [ElevenLabs](https://elevenlabs.io) account, type a line, pick one of your voices, preview it and save it as a normal track ([how](docs/wiki/Generate-Audio-ElevenLabs.md)).
 - **Level match, loudness and file information** for every track.
 - **Stage page:** the time remaining as big text for stage screens.
 - **Health panel, watchdog and webhook alerts** for unattended machines.

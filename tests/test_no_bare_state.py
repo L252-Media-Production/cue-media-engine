@@ -28,7 +28,7 @@ sys.path.insert(0, str(HERE))
 # old module-level name -> name on S.  Moved so far:
 SCALARS = {"rev": "rev", "cue_cleared": "cue_cleared", "known": "known", "last_scan": "last_scan", "_boot_done": "boot_done", "LAST_LOAD_ERR": "LAST_LOAD_ERR", "MONITOR": "MONITOR",
            "pending": "pending", "_pending_n": "pending_n", "live_deck": "live_deck", "notify": "notify"}
-CONTAINERS = ["playlists", "FOLDER_COLORS", "FOLDER_ICONS", "FOLDER_FLAGS", "LIBDIRS", "library", "focus", "decks", "ISSUES", "DEV_MISSING", "DURS"]
+CONTAINERS = ["playlists", "FOLDER_COLORS", "FOLDER_ICONS", "FOLDER_FLAGS", "GENERATED", "LIBDIRS", "library", "focus", "decks", "ISSUES", "DEV_MISSING", "DURS"]
 # the module-private rebound globals (docs/split-plan.md 4.1 rows 12-18): file -> names. Remove an entry when its module is split out and the name becomes a plain module attribute.
 MODULE_PRIVATE = {
     "cpl/legacy.py": {"osc_out", "_list_keys", "_ui_cache", "_dl_task"},    # to localise in P5 (_gen -> cache), P6 (_dur_* -> durations), P8 (osc_out, _list_keys -> stateout; _ui_cache -> ui_assets; _dl_task -> download)

@@ -101,22 +101,32 @@ async def save_upload(part, total_len, folder=""):
             if err:
                 return {"error": f"could not convert {Path(safe).name}: {err}", "status": 422}
             written = dest.stat().st_size
-        elif CFG["import_normalise"] and ext in (".wav", ".flac") and ff_check():
-            probe = await ff_probe(dest)
-            if needs_normalising(probe):
-                tmp = IMPORT_DIR / f"{os.getpid()}-{time.time_ns()}{ext}"
-                IMPORT_DIR.mkdir(exist_ok=True)
-                os.replace(dest, tmp)
-                err = await ff_convert(tmp, dest, ext[1:])
-                if err:                           # keep the original rather than lose the upload
-                    os.replace(tmp, dest)
-                    print("import: could not normalise", safe, "-", err)
-                else:
-                    tmp.unlink(missing_ok=True)
-                    written = dest.stat().st_size
     finally:
         if convert:
             work.unlink(missing_ok=True)
+    return await finish_import(dest, written, folder, normalise=not convert)
+
+
+async def finish_import(dest, written, folder, normalise=True):
+    """The common end of every import into the library (an upload, and since 2.9.0 a track made with ElevenLabs): `dest` is
+    already in its library folder. wav/flac the mixer would have to resample are normalised (when ffmpeg is there); identical
+    audio already in the library is reused (dest is deleted); otherwise the library entry is added. Duration, waveform, format
+    check, loudness and the RAM cache follow from the library entry as for any file. Returns {"id", "duplicate"}."""
+    ext = dest.suffix.lower()
+    loop = asyncio.get_running_loop()
+    if normalise and CFG["import_normalise"] and ext in (".wav", ".flac") and ff_check():
+        probe = await ff_probe(dest)
+        if needs_normalising(probe):
+            tmp = IMPORT_DIR / f"{os.getpid()}-{time.time_ns()}{ext}"
+            IMPORT_DIR.mkdir(exist_ok=True)
+            os.replace(dest, tmp)
+            err = await ff_convert(tmp, dest, ext[1:])
+            if err:                           # keep the original rather than lose the upload
+                os.replace(tmp, dest)
+                print("import: could not normalise", dest.name, "-", err)
+            else:
+                tmp.unlink(missing_ok=True)
+                written = dest.stat().st_size
     dup = await loop.run_in_executor(None, find_duplicate, dest, written)
     if dup:                                      # identical audio is already in the library: reuse it
         dest.unlink(missing_ok=True)
@@ -124,6 +134,22 @@ async def save_upload(part, total_len, folder=""):
     fid = dest.relative_to(LIB).as_posix()
     library[fid] = written
     if folder:
-        LIBDIRS.add(folder)
+        parts = folder.split("/")
+        for i in range(1, len(parts) + 1):
+            LIBDIRS.add("/".join(parts[:i]))
     invalidate_storage()
     return {"id": fid, "duplicate": False}
+
+
+async def import_path(src, folder, stem):
+    """Bring a file the player made itself (an ElevenLabs generation, 2.9.0) into library folder `folder` as `stem` + its
+    extension, through the same steps as an upload (finish_import). `src` is moved. Returns {"id", "duplicate"} or {"error", "status"}."""
+    src = Path(src)
+    size = src.stat().st_size
+    info = storage_info(True)
+    if size > info["allowance"]:
+        return {"error": space_error(size, info), "status": 507}
+    mkdir_new(LIB / folder)
+    dest = unique_in_lib(f"{folder}/{stem}{src.suffix.lower()}" if folder else f"{stem}{src.suffix.lower()}")
+    await asyncio.get_running_loop().run_in_executor(None, shutil.move, str(src), str(dest))
+    return await finish_import(dest, size, folder)

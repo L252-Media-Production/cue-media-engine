@@ -2,7 +2,7 @@
 
 Imported everywhere as `from cpl import state as S`.
   * Stable containers (never rebound, only changed in place, so importing them by name is safe; tests/test_state_identity.py):
-    playlists, FOLDER_COLORS, FOLDER_ICONS, FOLDER_FLAGS, LIBDIRS, library, focus, decks, ISSUES, DEV_MISSING, DURS.
+    playlists, FOLDER_COLORS, FOLDER_ICONS, FOLDER_FLAGS, GENERATED, LIBDIRS, library, focus, decks, ISSUES, DEV_MISSING, DURS.
   * Rebindable scalars are read and written ONLY as S.<name> (never `from cpl.state import <scalar>`): they move here group by group.
   * bump() owns `rev`.
 This module imports nothing from the application.
@@ -12,6 +12,7 @@ playlists = []                    # [{"name": str, "tracks": [library id, ...]}]
 FOLDER_COLORS = {}                 # library folder path -> "#rrggbb" (saved in playlists.json)
 FOLDER_ICONS = {}                  # library folder path -> icon name (see ICONS in the web page; saved in playlists.json)
 FOLDER_FLAGS = {}                  # library folder path -> {"fav": True, "hidden": True} (only the flags that are set; saved in playlists.json; web page only, never in snapshot())
+GENERATED = {}                    # library id -> {"text", "voice_id", "voice_name", "model", "created"}: tracks made with ElevenLabs (2.9.0; saved in playlists.json; never the key)
 LIBDIRS = set()                   # every folder under media/library (relative, "/" separated), including empty ones
 library = {}                      # library id (path inside media/library, "/" separated) -> size in bytes
 focus = [0, 0]                    # [playlist, track] - the cursor (the Cue), never plays by itself

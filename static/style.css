@@ -739,3 +739,71 @@ li.t .ib:hover,.lt .ib:hover,li.t button:not(.ib):hover,.lt button:not(.ib):hove
 /* Inner limits so a wide page does not spread one row of controls apart; each is above what Standard ever gives (strip bar 569 px, Device 935 px, gain slider 1046 px), so Standard is unchanged */
 #ms .msw{max-width:40rem}   /* the one-line Live strip: pause, stop, bar, time and meters stay together, the title takes the rest */
 .inprow .inpdev{max-width:60rem}.inpg input{max-width:72rem}   /* Live input card: Device menu and Input gain slider */
+/* ---- ElevenLabs (2.9.0): Settings › System › ElevenLabs, the Library header button, generated rows and the Generate dialog (#eldlg). Desktop and tablet only: hidden at phone width ---- */
+#settings .resbox.warn{border-color:#92400e;background:color-mix(in srgb,#f59e0b 14%,transparent)}
+#settings #el_add .btns{flex:1 1 auto;justify-content:flex-end;min-width:0}#settings #el_key{flex:0 1 19rem;width:19rem;min-width:8rem}
+#lib_gen svg{width:20px;height:20px}
+.lt .elchip{flex:none;font-size:.72em;line-height:1.35;padding:0 .45rem;border:1px solid var(--line);border-radius:99px;color:color-mix(in srgb,var(--text) 78%,var(--panel));white-space:nowrap}
+.lt .ib.elgen svg{width:15px;height:15px;display:block}
+@media(max-width:34rem){#lib_gen,.lt .ib.elgen{display:none}}
+#eldlg{width:min(38rem,94vw);padding-top:1rem}
+#eldlg .elhd{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;margin-bottom:.5rem}
+#eldlg .elhd h3{margin:0}
+#eldlg .elhd .setx{position:static;float:none;margin:0}
+#eldlg .elsub{color:var(--dim);font-size:.85em}
+#eldlg .elconn{margin:.6rem 0 .2rem}
+#eldlg .elq{font-size:.85em;color:var(--dim);margin:.1rem 0 .6rem}
+#eldlg .elqbar{height:4px;border-radius:2px;background:var(--line);margin-top:.3rem;overflow:hidden}
+#eldlg .elqbar i{display:block;height:100%;width:0;background:var(--accent)}
+#eldlg .elq.nobar .elqbar{display:none}
+#eldlg .elnote{font-size:.85em;border-left:3px solid var(--accent);padding:.3rem .6rem;margin:.2rem 0 .6rem;background:var(--panel2);border-radius:var(--r)}
+#eldlg .elfh{display:flex;align-items:baseline;justify-content:space-between;gap:.6rem;margin:.7rem 0 .3rem;font-weight:600}
+#eldlg .elcnt{font-weight:400;font-size:.85em;color:var(--dim);font-variant-numeric:tabular-nums}
+#eldlg .elcnt.over{color:#d97706;font-weight:600}
+[data-theme=light] #eldlg .elcnt.over{color:#92400e}
+#eldlg button.lnk{background:none;border:0;padding:0 .2rem;min-height:0;height:auto;color:var(--accent);text-decoration:underline;font:inherit;font-weight:400;font-size:.9em}
+[data-theme=light] #eldlg button.lnk{color:color-mix(in srgb,var(--accent) 60%,#000)}
+#eldlg .elvl{max-height:13rem;overflow:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--panel2);padding:.2rem}
+#eldlg .elvmsg{padding:.6rem;color:var(--dim);font-size:.9em}
+#eldlg .elv{display:flex;align-items:center;gap:.4rem;border-radius:var(--r);padding:0 .3rem 0 0}
+#eldlg .elv.on{background:color-mix(in srgb,var(--accent) 16%,transparent)}
+#eldlg .elv label{display:flex;align-items:center;gap:.5rem;flex:1;min-width:0;padding:.35rem .4rem;cursor:pointer;min-height:var(--btn)}
+#eldlg .elv input{margin:0;accent-color:var(--accent);flex:none}
+#eldlg .elvn{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#eldlg .elk{flex:none;font-size:.72em;padding:0 .45rem;border-radius:99px;border:1px solid var(--line);color:var(--text);background:var(--panel)}
+#eldlg .elk.own{border-color:color-mix(in srgb,var(--accent) 60%,var(--line))}
+#eldlg .elk.cloned{border-color:color-mix(in srgb,var(--pv) 60%,var(--line))}
+#eldlg .elsmp{flex:none;display:inline-flex;align-items:center;justify-content:center;width:var(--ibs);height:var(--ibs);min-height:0;padding:0;border-radius:50%;color:var(--text)}
+#eldlg .elsmp svg{width:12px;height:12px}
+#eldlg .elsmp.on{border-color:var(--accent);color:var(--accent)}
+#eldlg textarea{display:block;width:100%;min-height:6.5rem;resize:vertical;font:inherit;color:var(--text);background:var(--panel2);border:1px solid var(--line);border-radius:var(--r);padding:.45rem .55rem;line-height:1.45}
+#eldlg .eladv{margin:.6rem 0 .2rem}
+#eldlg .eladv summary{cursor:pointer;font-weight:600;padding:.2rem 0}
+#eldlg .elrng{display:flex;align-items:center;gap:.6rem}
+#eldlg .elrng input{flex:1;min-width:0;accent-color:var(--accent)}
+#eldlg .elrng output{font-variant-numeric:tabular-nums;min-width:2.6rem;text-align:right}
+#eldlg .resbox{border-radius:var(--r);padding:.45rem .65rem;font-size:.85em;line-height:1.45;margin:.5rem 0;border:1px solid var(--line)}
+#eldlg .resbox b{display:block}
+#eldlg .resbox.ok{border-color:#2a6a45;background:color-mix(in srgb,#16a34a 12%,transparent)}
+#eldlg .resbox.warn{border-color:#92400e;background:color-mix(in srgb,#f59e0b 14%,transparent)}
+#eldlg .resbox.bad{border-color:var(--live);background:color-mix(in srgb,var(--live) 10%,transparent)}
+#eldlg .elprog{display:flex;align-items:center;gap:.5rem;margin:.5rem 0;font-size:.9em}
+#eldlg .elspin{width:14px;height:14px;border-radius:50%;border:2px solid var(--line);border-top-color:var(--accent);animation:elspin .8s linear infinite}
+@keyframes elspin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){#eldlg .elspin{animation:none;border-top-color:var(--accent)}}
+#eldlg .elcard{display:flex;align-items:center;gap:.7rem;border:1px solid var(--line);border-radius:var(--r);background:var(--panel2);padding:.55rem .7rem}
+#eldlg .elplay{flex:none;width:2.6rem;height:2.6rem;min-height:0;padding:0;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:var(--accent);border-color:var(--accent);color:var(--on)}
+#eldlg #el_wave{flex:1;min-width:0;height:48px;display:block}
+#eldlg .eltime{flex:none;font-variant-numeric:tabular-nums;font-size:.9em}
+#eldlg .elout{font-size:.85em;color:var(--dim);margin:.35rem 0 .5rem}
+#eldlg .elout b{color:var(--text);font-weight:600}
+#eldlg .eldl{display:grid;grid-template-columns:7.5rem 1fr;gap:.25rem .5rem;margin:.4rem 0;font-size:.9em}
+#eldlg .eldl dt{color:var(--dim)}
+#eldlg .eldl dd{margin:0;min-width:0}
+#eldlg .elrt{max-height:6.5rem;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere}
+#eldlg .elmode{display:flex;flex-direction:column;gap:.3rem;margin:.6rem 0}
+#eldlg .elmode .chk{display:flex;gap:.45rem;align-items:baseline;font-size:.92em}
+#eldlg .row{display:flex;flex-wrap:wrap;gap:.5rem}
+#eldlg .row:last-child{position:sticky;bottom:-1.2rem;z-index:3;background:var(--panel);padding:.7rem 0 .25rem;margin-top:.6rem;border-top:1px solid var(--line)}
+/* Console light and Stage light: the accent is too pale behind white text and against the white panel (3.8:1 and 1.9:1); this dialog's primary buttons and Save key use a darker accent (>= 4.5:1 text, >= 3:1 against the panel) */
+:root[data-skin=console][data-theme=light] :is(#eldlg button.pri,#eldlg .elplay,#settings #el_save),:root[data-skin=stage][data-theme=light] :is(#eldlg button.pri,#eldlg .elplay,#settings #el_save){background:color-mix(in srgb,var(--accent) 58%,#000);border-color:color-mix(in srgb,var(--accent) 58%,#000);color:#fff}

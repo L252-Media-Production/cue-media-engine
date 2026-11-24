@@ -34,7 +34,7 @@ from cpl.config import (APP_VERSION, BASE, LAUNCHER, MEDIA, LIB, DATA, CFG, cfg_
 from cpl.dsp import DUCK_STEP, duck_key, duck_curve, duck_smooth, lufs_from_pcm      # moved to cpl/dsp.py in split steps P2 / P3
 from cpl.state import bump                          # rev += 1, then the on_change hooks (request_warm: lists changed, make sure the tracks around the focus are decoded)
 from cpl import state as S                            # the shared state (split step P4); scalars are always S.name, containers may be imported by name
-from cpl.state import playlists, FOLDER_COLORS, FOLDER_FLAGS, FOLDER_ICONS, LIBDIRS, library, focus, decks, ISSUES, DEV_MISSING, DURS      # stable containers: never rebound (tests/test_state_identity.py)
+from cpl.state import playlists, FOLDER_COLORS, FOLDER_FLAGS, FOLDER_ICONS, GENERATED, LIBDIRS, library, focus, decks, ISSUES, DEV_MISSING, DURS      # stable containers: never rebound (tests/test_state_identity.py)
 from cpl.persist import (save, save_state)      # moved to cpl/persist.py in split step P5/P6
 from cpl import cache                                # cache.invalidate_all() / cache.rename_path(): the cache internals are private to the module
 from cpl.cache import (_cache_lock, _env, _key, _loading, _tcache, cache_bytes, cache_drop, cache_put, cached, cut_sound, decode_in_child, ensure_loaded, mem_info, resolve_path, trimmed_cached, trimmed_put)      # moved to cpl/cache.py in split step P5/P6
@@ -59,6 +59,8 @@ from cpl import devwatch      # is the Live output still there, without enumerat
 from cpl import audiodrv      # which audio driver SDL selected, for the health report (2.8.0 follow-up 3)
 from cpl import outalias      # labels, groups, hidden and live-only flags for output names (2.8.0 output-alias)
 from cpl import health as healthm      # the health model (2.8.0): pure, fed by health_report()
+from cpl import elevenlabs as el      # ElevenLabs (2.9.0): the key file and every call to the API (tests replace el.transport)
+from cpl import generate as gen      # ElevenLabs (2.9.0): one generation at a time, its temporary file, Save / Replace / Discard
 from cpl.boot import (load)      # moved to cpl/boot.py in split step P5/P6
 
 # ---------------------------------------------------------------- web files
@@ -2166,7 +2168,8 @@ async def h_library(_):
     fmt_kick()
     files = [{"id": fid, "name": Path(fid).stem, "size": size, "used": sorted(used.get(fid, ())),
               "dur": (dd[fid][2] if fid in dd and dd[fid][0] == size else None),
-              "fmt": ({"lv": FMT[fid]["lv"], "msg": FMT[fid]["msg"], "tip": FMT[fid]["tip"]} if fid in FMT and FMT[fid]["s"] == size else None)}
+              "fmt": ({"lv": FMT[fid]["lv"], "msg": FMT[fid]["msg"], "tip": FMT[fid]["tip"]} if fid in FMT and FMT[fid]["s"] == size else None),
+              **({"gen": True} if fid in GENERATED else {})}
              for fid, size in sorted(library.items(), key=lambda kv: kv[0].lower())]
     return web.json_response({"files": files, "folders": sorted(LIBDIRS, key=str.lower), "colors": FOLDER_COLORS, "icons": FOLDER_ICONS, "flags": _flags_out(), "storage": storage_info(True)})
 
@@ -3224,6 +3227,142 @@ async def h_upload(req):
     return web.json_response({"ok": True, "files": results})
 
 
+# ---------------------------------------------------------------- ElevenLabs (2.9.0): Settings › System › ElevenLabs and the Generate dialog
+# The key never leaves cpl/elevenlabs.py: these routes return "set" and the last four characters only. A failed call never
+# touches the health (ISSUES) or the push messages; it is answered to the page in plain words (el.ElError.json()).
+def _el_fail(e):
+    return web.json_response({"ok": False, **e.json()}, status=400 if e.kind == "no_key" else 502)
+
+
+async def h_el_get(_):
+    return web.json_response({"key": el.key_info(), "job": gen.state(), "default_folder": gen.DEFAULT_FOLDER,
+                              "default_limit": el.DEFAULT_MODEL_LIMIT, "output_format": el.OUTPUT_FORMAT,
+                              "preview": {"device": CFG["preview_device"] or ""}})
+
+
+async def h_el_key(req):
+    b = await body(req)
+    ok, err = await asyncio.get_running_loop().run_in_executor(None, el.save_key, b.get("key"))     # icacls on Windows can take seconds: never on the event loop
+    if not ok:
+        return web.json_response({"ok": False, "error": err, "key": el.key_info()}, status=400)
+    return web.json_response({"ok": True, "key": el.key_info()})
+
+
+async def h_el_key_del(_):
+    el.remove_key()
+    return web.json_response({"ok": True, "key": el.key_info()})
+
+
+async def h_el_test(_):
+    return web.json_response({"ok": True, **(await el.test_key())})
+
+
+async def h_el_voices(req):
+    try:
+        return web.json_response({"ok": True, "voices": await el.list_voices(refresh=req.query.get("refresh") == "1")})
+    except el.ElError as e:
+        return _el_fail(e)
+
+
+async def h_el_usage(_):
+    try:
+        return web.json_response({"ok": True, "usage": await el.usage()})
+    except el.ElError as e:
+        if e.kind == "permission":                            # not an error for the dialog: the quota line is just not shown
+            return web.json_response({"ok": True, "usage": None, "note": e.message})
+        return _el_fail(e)
+
+
+async def h_el_models(_):
+    try:
+        return web.json_response({"ok": True, "models": await el.list_models(), "default_limit": el.DEFAULT_MODEL_LIMIT})
+    except el.ElError as e:
+        return _el_fail(e)
+
+
+async def h_el_generate(req):
+    d, status = gen.start(await body(req))
+    return web.json_response(d, status=status)
+
+
+async def h_el_job(_):
+    return web.json_response(gen.state())
+
+
+async def h_el_cancel(_):
+    return web.json_response({"ok": True, "cancelled": gen.cancel()})
+
+
+def _el_stop_preview():
+    if preview.fid is None and preview.name.startswith("Generated: ") and preview.status.get("state") in ("loading", "playing", "paused"):
+        preview.send({"cmd": "stop"})
+
+
+async def h_el_discard(_):
+    _el_stop_preview()
+    return web.json_response({"ok": True, "deleted": gen.discard()})
+
+
+async def h_el_preview(req):
+    """The generated (not yet saved) audio: {cmd: "play"} on the player's Preview output, {cmd: "stop"}, or {cmd: "link"} for a
+    one-use, short-lived link that this browser fetches once (no file path ever leaves the player)."""
+    b = await body(req)
+    cmd = b.get("cmd")
+    path = gen.temp_path()
+    if cmd == "stop":
+        _el_stop_preview()
+        return web.json_response({"ok": True})
+    if not path:
+        return web.json_response({"ok": False, "error": "There is nothing to preview. Generate first."}, status=409)
+    if cmd == "link":
+        return web.json_response({"ok": True, "url": "/api/elevenlabs/audio?t=" + gen.new_token(), "expires_s": int(gen.TOKEN_S)})
+    if cmd == "play":
+        if not preview.enabled():
+            return web.json_response({"ok": False, "error": "No Preview output is set. Choose one in Settings › Audio, or preview in this browser."}, status=400)
+        name = (gen.JOB.get("result") or {}).get("name") or "audio"
+        ok = preview.play_file(path, "Generated: " + name)
+        return web.json_response({"ok": bool(ok), "device": CFG["preview_device"] or ""}, status=200 if ok else 500)
+    return web.json_response({"ok": False, "error": "unknown command"}, status=400)
+
+
+async def h_el_audio(req):
+    path = gen.take_token(req.query.get("t", ""))
+    if not path:
+        return web.json_response({"ok": False, "error": "This preview link has expired. Press play again."}, status=404)
+    data = await asyncio.get_running_loop().run_in_executor(None, Path(path).read_bytes)
+    return web.Response(body=data, content_type="audio/mpeg", headers={"Cache-Control": "no-store"})
+
+
+def _el_in_use(fid):
+    """The track is on a deck, waiting to start, or previewing: Replace must not change it under the audio."""
+    for d in decks:
+        if getattr(d, "fid", None) == fid or (d.pt and (track(*d.pt) or {}).get("id") == fid):
+            return True
+    if S.pending and S.pending.get("fid") == fid:
+        return True
+    return preview.fid == fid and preview.status.get("state") in ("loading", "playing", "paused")
+
+
+async def h_el_save(req):
+    b = await body(req)
+    _el_stop_preview()
+    if b.get("replace"):
+        d, status = gen.replace(str(b["replace"]), _el_in_use(str(b["replace"])))
+    else:
+        d, status = await gen.save_new(b.get("name"), b.get("folder"))
+    if d.get("ok"):
+        push(True)
+    return web.json_response(d, status=status)
+
+
+async def h_el_track(req):
+    fid = req.query.get("id", "")
+    m = gen.meta_of(fid) if fid in library else None
+    if not m:
+        return web.json_response({"ok": False, "error": "That track was not made with ElevenLabs."}, status=404)
+    return web.json_response({"ok": True, "id": fid, "name": Path(fid).stem, "folder": Path(fid).parent.as_posix() if "/" in fid else "", **m})
+
+
 async def h_cmd(req):
     parts = [x for x in req.match_info["tail"].split("/") if x]
     q = req.query.get("ms")
@@ -3365,6 +3504,21 @@ async def main():
         web.get("/api/download", h_dl_state),
         web.post("/api/download/clear", h_dl_clear),
         web.post("/api/move", h_move),
+        web.get("/api/elevenlabs", h_el_get),
+        web.post("/api/elevenlabs/key", h_el_key),
+        web.delete("/api/elevenlabs/key", h_el_key_del),
+        web.post("/api/elevenlabs/test", h_el_test),
+        web.get("/api/elevenlabs/voices", h_el_voices),
+        web.get("/api/elevenlabs/usage", h_el_usage),
+        web.get("/api/elevenlabs/models", h_el_models),
+        web.post("/api/elevenlabs/generate", h_el_generate),
+        web.get("/api/elevenlabs/job", h_el_job),
+        web.post("/api/elevenlabs/cancel", h_el_cancel),
+        web.post("/api/elevenlabs/discard", h_el_discard),
+        web.post("/api/elevenlabs/preview", h_el_preview),
+        web.get("/api/elevenlabs/audio", h_el_audio),
+        web.post("/api/elevenlabs/save", h_el_save),
+        web.get("/api/elevenlabs/track", h_el_track),
         web.get("/api/{tail:.*}", h_cmd),    # Companion HTTP: GET /api/0/1, /api/next ...
     ])
     if os.environ.get("CP_TEST_WATCHDOG"):                  # test hook, inert unless set

@@ -14,6 +14,8 @@ playlists.json
 resume.json
 config.json
 durations.json
+elevenlabs.key
+elevenlabs.key.tmp
 formats.json
 fileinfo.json
 playlists.pre-endactions.json

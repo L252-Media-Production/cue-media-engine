@@ -8,7 +8,7 @@ function Invoke-G {
     if ($LASTEXITCODE -ne 0) { throw "git $args failed ($LASTEXITCODE)" }
 }
 function Mirror($from, $to) {
-    robocopy $from $to /MIR /XD __pycache__ /NFL /NDL /NJH /NJS | Out-Null
+    robocopy $from $to /MIR /XD __pycache__ /XF elevenlabs.key /NFL /NDL /NJH /NJS | Out-Null
     if ($LASTEXITCODE -ge 8) { throw "robocopy $from failed ($LASTEXITCODE)" }   # 0-7 means success
 }
 
@@ -21,6 +21,8 @@ Invoke-G checkout -q $Ref
 git.exe -C $Src show-ref --verify --quiet "refs/remotes/origin/$Ref"
 if ($LASTEXITCODE -eq 0) { Invoke-G reset -q --hard "origin/$Ref" }
 
+# Only these files and the two mirrored folders are written: config.json, state.json, playlists.json, media and the
+# ElevenLabs key (elevenlabs.key) in $App are never touched (tests/test_deploy_keeps_data.py)
 Copy-Item "$Src\player.py","$Src\requirements.txt","$Src\run-player.bat" $App -Force
 Mirror "$Src\static" "$App\static"
 if (Test-Path "$Src\cpl") { Mirror "$Src\cpl" "$App\cpl" }

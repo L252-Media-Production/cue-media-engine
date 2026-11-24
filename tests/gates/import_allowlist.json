@@ -169,6 +169,20 @@
       "persist",
       "state",
       "util"
+    ],
+    "elevenlabs": [
+      "clock",
+      "config"
+    ],
+    "generate": [
+      "cache",
+      "clock",
+      "config",
+      "elevenlabs",
+      "library",
+      "persist",
+      "state",
+      "upload"
     ]
   }
 }

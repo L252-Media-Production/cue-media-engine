@@ -17,7 +17,7 @@ from harness.appload import load_app  # noqa: E402
 
 os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
 SRC = Path(__file__).resolve().parent.parent / "player.py"
-CONTAINERS = ["playlists", "FOLDER_COLORS", "FOLDER_ICONS", "FOLDER_FLAGS", "LIBDIRS", "library", "focus", "decks", "ISSUES", "DEV_MISSING", "DURS"]
+CONTAINERS = ["playlists", "FOLDER_COLORS", "FOLDER_ICONS", "FOLDER_FLAGS", "GENERATED", "LIBDIRS", "library", "focus", "decks", "ISSUES", "DEV_MISSING", "DURS"]
 
 
 def make_wav(path, seconds=3, rate=22050):

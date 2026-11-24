@@ -16,6 +16,7 @@
 - [File information](File-Information)
 - [Preview, Solo and Mirror](Preview-and-Solo)
 - [Download from a link](Download-from-a-Link)
+- [Generate audio (ElevenLabs)](Generate-Audio-ElevenLabs)
 - [Live operation](Live-Operation)
 - [Appearance and layout](Appearance-and-Layout)
 - [Stage page](Stage-Page)

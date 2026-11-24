@@ -6,13 +6,13 @@ import json, shutil
 
 from cpl import state as S
 from cpl.config import CFG, DATA, STATE
-from cpl.state import DEV_MISSING, FOLDER_COLORS, FOLDER_FLAGS, FOLDER_ICONS, bump, library, playlists
+from cpl.state import DEV_MISSING, FOLDER_COLORS, FOLDER_FLAGS, FOLDER_ICONS, GENERATED, bump, library, playlists
 from cpl.util import atomic_write, log_once
 
 
 def save():
     text = json.dumps({"version": 2, "playlists": playlists, "known": sorted(library),
-                       "folder_colors": FOLDER_COLORS, "folder_icons": FOLDER_ICONS, "folder_flags": FOLDER_FLAGS}, indent=2)
+                       "folder_colors": FOLDER_COLORS, "folder_icons": FOLDER_ICONS, "folder_flags": FOLDER_FLAGS, "generated": GENERATED}, indent=2)
     if DATA.exists():
         try:
             shutil.copy2(DATA, DATA.with_suffix(".bak"))      # one generation back, in case the new file is ever bad

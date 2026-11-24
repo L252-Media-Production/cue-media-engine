@@ -121,6 +121,23 @@ try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',applyLo
   <div class=hint2 id=fmt_status></div>
   </div></section>
 
+ <section class=ss data-tab=system data-sec=eleven><button class=sh onclick="setSec('eleven')" aria-expanded=false><b>ElevenLabs</b><span class=chipb id=el_chip>No key</span><span class=ssum id=sum_eleven>…</span><em class=chev>⌄</em></button>
+  <div class=sb>
+  <div id=el_add>
+  <div class=sr data-s="elevenlabs api key save voice text to speech"><label for=el_key id=el_keylbl>API key</label><span class=btns><input type=password id=el_key autocomplete=off spellcheck=false autocapitalize=off placeholder="Paste your API key" aria-describedby=el_n1 onkeydown="if(event.key==='Enter')elKeySave()"><button class=pri id=el_save type=button onclick="elKeySave()">Save key</button><button id=el_keycancel type=button onclick="elKeyUi()" hidden>Cancel</button></span></div>
+  <div class=hint2 id=el_n1>Create a key in ElevenLabs under <b>Developers › API keys</b>. Give it the <code>text_to_speech</code> and <code>voices_read</code> permissions; add <code>user_read</code> to see your usage here.</div>
+  <div class=hint2 id=el_n2>The key is stored only on this player, never shown again, and saved when you press Save key. The text you type to generate audio is sent to ElevenLabs.</div>
+  </div>
+  <div id=el_has hidden>
+  <div class=sr data-s="elevenlabs api key replace remove"><span>API key</span><span class=btns><button type=button onclick="elKeyReplace()">Replace</button><button class=dng type=button onclick="elKeyRemove()">Remove</button></span></div>
+  <div class=warnbox id=el_keynote role=status hidden></div>
+  <div class=sr data-s="elevenlabs check the key test permissions"><span class=lb2>Check the key<button class=ib2 data-tip="Lists one voice (voices_read) and reads the usage (user_read). Generating speech (text_to_speech) can't be tested without spending characters, so a key without it fails on the first Generate." aria-label="More information about testing the key">i</button></span><button id=el_test type=button onclick="elTest()">Test key</button></div>
+  <div class=resbox id=el_res role=status hidden></div>
+  <div class=sr data-s="elevenlabs generate audio voice of god announcement text to speech"><span>Generate audio</span><button type=button onclick="elFromSettings()">Open</button></div>
+  </div>
+  <div class="warnbox bad" id=el_err role=alert hidden></div>
+  </div></section>
+
  <section class=ss data-tab=system data-sec=health><button class=sh onclick="setSec('health')" aria-expanded=false><b>Health and alerts</b><span class=ssum id=sum_health></span><em class=chev>⌄</em></button>
   <div class=sb>
   <div class=sr data-s="player name host name push messages report"><label for=set_pname>Player name</label><input type=text id=set_pname maxlength=40 autocomplete=off spellcheck=false placeholder="Host name" aria-describedby=hs_name onchange="hsName()"></div>
@@ -222,7 +239,7 @@ try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',applyLo
  <section id=libcol>
   <div class=libtop>
    <div class=libhd id=libhd><h3 id=libh3>Library <small id=libcount></small><span class=libsum id=libsum hidden></span><span class=libwarn id=libwarn hidden></span></h3>
-   <div class=libtools><button id=lib_hidden class=lbt type=button onclick="libHidden()" hidden aria-pressed=false></button><button id=lib_expand class=lbt type=button onclick="libCollapse(false)" title="Expand all" aria-label="Expand all"></button><button id=lib_collapse class=lbt type=button onclick="libCollapse(true)" title="Collapse all" aria-label="Collapse all"></button></div>
+   <div class=libtools><button id=lib_hidden class=lbt type=button onclick="libHidden()" hidden aria-pressed=false></button><button id=lib_gen class=lbt type=button onclick="elOpen(null,this)" title="Generate audio with ElevenLabs" aria-label="Generate audio with ElevenLabs"></button><button id=lib_expand class=lbt type=button onclick="libCollapse(false)" title="Expand all" aria-label="Expand all"></button><button id=lib_collapse class=lbt type=button onclick="libCollapse(true)" title="Collapse all" aria-label="Collapse all"></button></div>
    <div class=libbar id=libbar hidden><i></i></div></div>
    <div class=srch><input id=q placeholder="Search library" oninput=renderLib()>
     <button class="newf pri" onclick="upMenu(this)" title="Upload audio files or a whole folder (wav, mp3, ogg, flac, and more when ffmpeg is installed). You can also drop files and folders together anywhere on the library." aria-label="Upload files or a folder">
@@ -256,6 +273,49 @@ try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',applyLo
  <div class=fld><label>Playlists</label><label class=chk><input type=checkbox id=dl_pl> Whole playlist, if the link is one (up to 100 tracks)</label></div>
  <div id=dl_prog hidden><div class=dlbar><i id=dl_bar></i></div><div id=dl_msg class=msg></div></div>
  <div class=row style="justify-content:flex-end"><button onclick="dldlg.close()" id=dl_close>Close</button><button id=dl_show hidden onclick="dlGoto()">Show in library</button><button class=pri id=dl_go onclick=dlStart()>Download</button></div>
+</dialog>
+<dialog id=eldlg aria-labelledby=el_h>
+ <div class=elhd><div><h3 id=el_h>Generate audio</h3><div class=elsub>ElevenLabs · your account</div></div><button class=setx type=button onclick="eldlg.close()" title="Close" aria-label="Close">✕</button></div>
+ <div id=el_conn hidden>
+  <p class=elconn><b>Connect your ElevenLabs account</b></p>
+  <div class=hint2>Add your own ElevenLabs API key in Settings › System › ElevenLabs. Then type an announcement, pick a voice from your account, preview it and save it as a track.</div>
+  <div class=row style="justify-content:flex-end"><button type=button onclick="eldlg.close()">Cancel</button><button class=pri type=button onclick="elToSettings()">Open ElevenLabs settings</button></div>
+ </div>
+ <div id=el_form hidden>
+  <div class=elq id=el_quota hidden><span id=el_qtxt></span><div class=elqbar aria-hidden=true><i id=el_qbar></i></div></div>
+  <div class=elnote id=el_editnote hidden></div>
+  <div class=fld><label for=el_name>Track name</label><input id=el_name maxlength=80 autocomplete=off placeholder="Doors open" oninput="elCheck()"></div>
+  <div class=elfh><span id=el_vl>Voice</span><button class=lnk type=button id=el_vref onclick="elVoices(true)">Refresh</button></div>
+  <div id=el_voices class=elvl role=radiogroup aria-labelledby=el_vl></div>
+  <div class=elfh><label for=el_text>Text</label><span id=el_count class=elcnt aria-live=polite>0 characters</span></div>
+  <textarea id=el_text rows=5 maxlength=100000 placeholder="Ladies and gentlemen, please welcome to the stage…" oninput="elCheck()"></textarea>
+  <details id=el_adv class=eladv><summary>Advanced</summary>
+   <div class=fld><label for=el_model>Model</label><select id=el_model onchange="elCheck()"><option value="">Default model</option></select></div>
+   <div class=fld><label for=el_stab>Stability</label><span class=elrng><input type=range id=el_stab min=0 max=1 step=0.05 value=0.5 oninput="elRng()"><output id=el_stabv>0.50</output></span></div>
+   <div class=fld><label for=el_sim>Similarity</label><span class=elrng><input type=range id=el_sim min=0 max=1 step=0.05 value=0.75 oninput="elRng()"><output id=el_simv>0.75</output></span></div>
+   <div class=hint2>Leave these alone to use the voice's own settings. <button class=lnk type=button onclick="elRngReset()">Reset</button></div>
+  </details>
+  <div class=hint2>The text is sent to ElevenLabs to make the audio and counts against your ElevenLabs plan.</div>
+  <div class=resbox id=el_msg role=status hidden></div>
+  <div class=elprog id=el_prog hidden><span class=elspin aria-hidden=true></span><span id=el_progt>Generating…</span></div>
+  <div class=row style="justify-content:flex-end"><button type=button id=el_cancel onclick="elCancel()">Cancel</button><button class=pri type=button id=el_go onclick="elGenerate()">Generate</button></div>
+ </div>
+ <div id=el_done hidden>
+  <div class=elcard>
+   <button class=elplay type=button id=el_play onclick="elPlay()" aria-label="Play the preview" title="Play the preview"></button>
+   <canvas id=el_wave height=48 aria-hidden=true></canvas>
+   <span class=eltime id=el_time>0:00</span>
+  </div>
+  <div class=elout id=el_out></div>
+  <dl class=eldl><dt>Voice</dt><dd id=el_rvoice></dd><dt>Text</dt><dd id=el_rtext class=elrt></dd><dt>Characters</dt><dd id=el_rchars></dd></dl>
+  <div id=el_mode class=elmode hidden role=radiogroup aria-label="How to save">
+   <label class=chk><input type=radio name=el_mode value=new checked onchange="elModeUi()"> Save as a new track</label>
+   <label class=chk><input type=radio name=el_mode value=replace onchange="elModeUi()"> Replace <b id=el_repname></b> <span class=dim>(keeps its places in playlists; clears its A/B and trigger points)</span></label>
+  </div>
+  <div class=fld id=el_folderrow><label for=el_folder>Save to folder</label><input id=el_folder maxlength=200 autocomplete=off value=Generated></div>
+  <div class=resbox id=el_msg2 role=status hidden></div>
+  <div class=row style="justify-content:flex-end"><button type=button onclick="elDiscard()">Discard</button><button type=button onclick="elEdit()">Edit and regenerate</button><button class=pri type=button id=el_savebtn onclick="elSave()">Save to library</button></div>
+ </div>
 </dialog>
 <dialog id=lxdlg>
  <h3>Export layout</h3>
