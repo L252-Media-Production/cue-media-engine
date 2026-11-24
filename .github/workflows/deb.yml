@@ -1,0 +1,92 @@
+# Debian packages (packaging/README.md): build the .deb for Debian 12 and 13 on amd64 and arm64, and on a v* tag
+# attach them to a DRAFT GitHub Release (JC publishes it by hand). Action SHAs were read from the tag refs of each
+# repository (git ls-remote / gh api repos/actions/<name>/git/ref/tags/<tag>).
+name: Debian packages
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Branch, tag or commit to build (empty = the branch selected above)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Debian ${{ matrix.debian }} ${{ matrix.arch }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        debian: ["12", "13"]
+        arch: [amd64, arm64]
+        include:
+          - arch: amd64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+          persist-credentials: false
+
+      - name: Build the package (with lintian)
+        env:
+          LINT: "1"
+          DEBIAN_RELEASE: ${{ matrix.debian }}
+          ARCH: ${{ matrix.arch }}
+        run: packaging/build-deb.sh --debian "$DEBIAN_RELEASE" --arch "$ARCH" --out dist/deb
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: deb-debian${{ matrix.debian }}-${{ matrix.arch }}
+          path: |
+            dist/deb/*.deb
+            dist/deb/*.requirements.frozen.txt
+            dist/deb/*.lintian.txt
+          if-no-files-found: error
+          compression-level: 0
+
+  release:
+    name: Draft release
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: deb-*
+          path: dist
+          merge-multiple: true
+
+      - name: Checksums
+        working-directory: dist
+        run: |
+          sha256sum -- *.deb *.requirements.frozen.txt > SHA256SUMS
+          cat SHA256SUMS
+
+      - name: Create the draft release (if none) and upload
+        working-directory: dist
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+          REPO: ${{ github.repository }}
+        run: |
+          if gh release view "$TAG" --repo "$REPO" >/dev/null 2>&1; then
+            echo "Release $TAG exists: uploading the files to it"
+          else
+            pre=""
+            case "$TAG" in *-rc*) pre="--prerelease" ;; esac
+            gh release create "$TAG" --repo "$REPO" --draft $pre --verify-tag --title "Cue Media Engine $TAG" \
+              --notes "Debian packages for Debian 12 and 13, amd64 and arm64. Check the files with: sha256sum -c SHA256SUMS --ignore-missing. Install: sudo apt install ./cue-media-engine_<version>_debian<12|13>_<arch>.deb (docs/wiki/Install-and-Run.md)."
+          fi
+          gh release upload "$TAG" --repo "$REPO" --clobber -- *.deb *.requirements.frozen.txt SHA256SUMS
